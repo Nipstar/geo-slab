@@ -324,7 +324,7 @@ def query_openrouter_mistral(prompt: str, api_key: str) -> Optional[str]:
 
 def query_openrouter_claude(prompt: str, api_key: str) -> Optional[str]:
     """Query Claude via OpenRouter."""
-    return query_openrouter(prompt, api_key, model="anthropic/claude-haiku-4-5-20251001")
+    return query_openrouter(prompt, api_key, model="anthropic/claude-3.5-haiku")
 
 
 # ── Provider Resolution ──────────────────────────────────────────────────────
