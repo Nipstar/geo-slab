@@ -322,6 +322,11 @@ def query_openrouter_mistral(prompt: str, api_key: str) -> Optional[str]:
     return query_openrouter(prompt, api_key, model="mistralai/mistral-small-3.1-24b-instruct")
 
 
+def query_openrouter_claude(prompt: str, api_key: str) -> Optional[str]:
+    """Query Claude via OpenRouter."""
+    return query_openrouter(prompt, api_key, model="anthropic/claude-haiku-4-5-20251001")
+
+
 # ── Provider Resolution ──────────────────────────────────────────────────────
 # Priority: native API keys first, then OpenRouter as fallback for missing ones
 
@@ -347,12 +352,18 @@ def _build_providers() -> dict:
             "query_fn": query_openrouter_chatgpt,
         }
 
-    # Claude: native Anthropic key only (OpenRouter adds latency for Anthropic)
+    # Claude: native Anthropic key > OpenRouter
     if os.environ.get("ANTHROPIC_API_KEY"):
         providers["anthropic"] = {
             "name": "Claude (Anthropic)",
             "env_key": "ANTHROPIC_API_KEY",
             "query_fn": query_anthropic,
+        }
+    elif openrouter_key:
+        providers["anthropic_or"] = {
+            "name": "Claude (via OpenRouter)",
+            "env_key": "OPENROUTER_API_KEY",
+            "query_fn": query_openrouter_claude,
         }
 
     # Gemini: native Google key > OpenRouter
