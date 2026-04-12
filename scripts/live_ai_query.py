@@ -265,28 +265,145 @@ def query_perplexity(prompt: str, api_key: str) -> Optional[str]:
         return None
 
 
-PROVIDERS = {
-    "openai": {
-        "name": "ChatGPT (OpenAI)",
-        "env_key": "OPENAI_API_KEY",
-        "query_fn": query_openai,
-    },
-    "anthropic": {
-        "name": "Claude (Anthropic)",
-        "env_key": "ANTHROPIC_API_KEY",
-        "query_fn": query_anthropic,
-    },
-    "gemini": {
-        "name": "Gemini (Google)",
-        "env_key": "GOOGLE_GENERATIVE_AI_API_KEY",
-        "query_fn": query_gemini,
-    },
-    "perplexity": {
-        "name": "Perplexity AI",
-        "env_key": "PERPLEXITY_API_KEY",
-        "query_fn": query_perplexity,
-    },
-}
+def query_openrouter(prompt: str, api_key: str, model: str = "openai/gpt-4o-mini") -> Optional[str]:
+    """Query any model via OpenRouter (OpenAI-compatible API)."""
+    try:
+        import requests
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://antekautomation.com",
+                "X-Title": "GEO SLAB",
+            },
+            json={
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 1000,
+                "temperature": 0.7,
+            },
+            timeout=30,
+        )
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        print(f"[OpenRouter/{model}] Error: {e}", file=sys.stderr)
+        return None
+
+
+def query_openrouter_chatgpt(prompt: str, api_key: str) -> Optional[str]:
+    """Query ChatGPT via OpenRouter."""
+    return query_openrouter(prompt, api_key, model="openai/gpt-4o-mini")
+
+
+def query_openrouter_gemini(prompt: str, api_key: str) -> Optional[str]:
+    """Query Gemini via OpenRouter."""
+    return query_openrouter(prompt, api_key, model="google/gemini-2.0-flash-001")
+
+
+def query_openrouter_grok(prompt: str, api_key: str) -> Optional[str]:
+    """Query Grok via OpenRouter."""
+    return query_openrouter(prompt, api_key, model="x-ai/grok-3-mini-beta")
+
+
+def query_openrouter_deepseek(prompt: str, api_key: str) -> Optional[str]:
+    """Query DeepSeek via OpenRouter."""
+    return query_openrouter(prompt, api_key, model="deepseek/deepseek-chat-v3-0324")
+
+
+def query_openrouter_meta(prompt: str, api_key: str) -> Optional[str]:
+    """Query Meta Llama via OpenRouter."""
+    return query_openrouter(prompt, api_key, model="meta-llama/llama-4-maverick")
+
+
+def query_openrouter_mistral(prompt: str, api_key: str) -> Optional[str]:
+    """Query Mistral via OpenRouter."""
+    return query_openrouter(prompt, api_key, model="mistralai/mistral-small-3.1-24b-instruct")
+
+
+# ── Provider Resolution ──────────────────────────────────────────────────────
+# Priority: native API keys first, then OpenRouter as fallback for missing ones
+
+def _build_providers() -> dict:
+    """
+    Build the active provider map. Uses native API keys when available,
+    falls back to OpenRouter for ChatGPT and Gemini if OPENROUTER_API_KEY is set.
+    """
+    providers = {}
+    openrouter_key = os.environ.get("OPENROUTER_API_KEY")
+
+    # ChatGPT: native OpenAI key > OpenRouter
+    if os.environ.get("OPENAI_API_KEY"):
+        providers["openai"] = {
+            "name": "ChatGPT (OpenAI)",
+            "env_key": "OPENAI_API_KEY",
+            "query_fn": query_openai,
+        }
+    elif openrouter_key:
+        providers["openai_or"] = {
+            "name": "ChatGPT (via OpenRouter)",
+            "env_key": "OPENROUTER_API_KEY",
+            "query_fn": query_openrouter_chatgpt,
+        }
+
+    # Claude: native Anthropic key only (OpenRouter adds latency for Anthropic)
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        providers["anthropic"] = {
+            "name": "Claude (Anthropic)",
+            "env_key": "ANTHROPIC_API_KEY",
+            "query_fn": query_anthropic,
+        }
+
+    # Gemini: native Google key > OpenRouter
+    if os.environ.get("GOOGLE_GENERATIVE_AI_API_KEY"):
+        providers["gemini"] = {
+            "name": "Gemini (Google)",
+            "env_key": "GOOGLE_GENERATIVE_AI_API_KEY",
+            "query_fn": query_gemini,
+        }
+    elif openrouter_key:
+        providers["gemini_or"] = {
+            "name": "Gemini (via OpenRouter)",
+            "env_key": "OPENROUTER_API_KEY",
+            "query_fn": query_openrouter_gemini,
+        }
+
+    # Perplexity: native key only (not on OpenRouter)
+    if os.environ.get("PERPLEXITY_API_KEY"):
+        providers["perplexity"] = {
+            "name": "Perplexity AI",
+            "env_key": "PERPLEXITY_API_KEY",
+            "query_fn": query_perplexity,
+        }
+
+    # Grok, DeepSeek, Meta AI, Mistral: OpenRouter only
+    if openrouter_key:
+        providers["grok"] = {
+            "name": "Grok (xAI)",
+            "env_key": "OPENROUTER_API_KEY",
+            "query_fn": query_openrouter_grok,
+        }
+        providers["deepseek"] = {
+            "name": "DeepSeek",
+            "env_key": "OPENROUTER_API_KEY",
+            "query_fn": query_openrouter_deepseek,
+        }
+        providers["meta"] = {
+            "name": "Meta AI (Llama)",
+            "env_key": "OPENROUTER_API_KEY",
+            "query_fn": query_openrouter_meta,
+        }
+        providers["mistral"] = {
+            "name": "Mistral (Le Chat)",
+            "env_key": "OPENROUTER_API_KEY",
+            "query_fn": query_openrouter_mistral,
+        }
+
+    return providers
+
+
+PROVIDERS = _build_providers()
 
 
 # ── Main Audit Logic ─────────────────────────────────────────────────────────
@@ -446,7 +563,7 @@ def run_brand_visibility_audit(
         (visibility_pct * 0.40) +     # 40% — organic discovery rate
         (sentiment_score * 0.20) +     # 20% — sentiment quality
         (min(sov, 100) * 0.25) +       # 25% — share of voice
-        (min(len(available) / 4 * 100, 100) * 0.15)  # 15% — provider coverage
+        (min(len(available) / 8 * 100, 100) * 0.15)  # 15% — provider coverage (up to 8 providers)
     )
     visibility_score = max(0, min(100, visibility_score))
 
