@@ -132,9 +132,9 @@ These crawlers are primarily used for AI model training rather than live search 
 - **Recommendation:** **CONTEXT-DEPENDENT** -- Similar to CCBot. Allow for training presence, block for training data control. No impact on live AI search.
 
 #### Bytespider
-- **Operator:** ByteDance
+- **Operator:** ByteDance (TikTok)
 - **User-Agent:** `Bytespider`
-- **Purpose:** Used by ByteDance for various AI products including TikTok's AI features and Doubao (their ChatGPT competitor in China).
+- **Purpose:** Used by ByteDance for various AI products including TikTok's AI features and Doubao (their ChatGPT competitor in China). **NOTE:** Bytespider is ByteDance/TikTok, NOT DeepSeek. DeepSeek is a separate Chinese AI company with no confirmed dedicated crawler.
 - **Impact of Blocking:** Content will not be used for ByteDance AI products. Minimal impact for Western-market businesses.
 - **Recommendation:** **BLOCK** for most Western businesses (aggressive crawling behavior reported, minimal search visibility benefit). **ALLOW** if targeting Chinese/Asian markets.
 
@@ -144,6 +144,16 @@ These crawlers are primarily used for AI model training rather than live search 
 - **Purpose:** Used by Cohere for model training. Cohere powers enterprise AI solutions and the Coral chat product.
 - **Impact of Blocking:** Content will not be used for Cohere model training. Minimal direct consumer-facing impact.
 - **Recommendation:** **CONTEXT-DEPENDENT** -- Low priority. Allow or block based on general training data stance.
+
+---
+
+### Platforms Without Confirmed Dedicated Crawlers (as of April 2026)
+
+The following AI platforms use web search via partnerships or undisclosed crawling infrastructure. They do not have publicly documented crawler user-agents:
+
+- **Grok (xAI):** Uses X/Twitter data natively plus web search through partnerships. No confirmed dedicated crawler user-agent. Optimizing for Grok focuses on X/Twitter presence and general web visibility rather than crawler access.
+- **DeepSeek:** Chinese AI company using web search through partnerships. No confirmed dedicated crawler. NOT related to Bytespider (which is ByteDance/TikTok). Optimization focuses on technical content quality and general web index presence.
+- **Mistral (Le Chat):** French AI company using Brave Search and partner indexes. No confirmed dedicated crawler. Optimization focuses on Brave Search index presence, structured data, and multilingual content.
 
 ---
 

@@ -4,6 +4,7 @@ Fetch and parse web pages for GEO analysis.
 Extracts HTML, text content, meta tags, headers, and structured data.
 """
 
+import os
 import sys
 import json
 import re
@@ -17,6 +18,14 @@ except ImportError:
     print("ERROR: Required packages not installed. Run: pip install requests beautifulsoup4")
     sys.exit(1)
 
+# Optional Firecrawl integration for JS-heavy sites
+FIRECRAWL_AVAILABLE = False
+try:
+    from firecrawl import FirecrawlApp
+    FIRECRAWL_AVAILABLE = True
+except ImportError:
+    pass
+
 # Common AI crawler user agents for testing
 AI_CRAWLERS = {
     "GPTBot": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.2; +https://openai.com/gptbot)",
@@ -24,6 +33,10 @@ AI_CRAWLERS = {
     "PerplexityBot": "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)",
     "GoogleBot": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
     "BingBot": "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+    "FacebookBot": "Mozilla/5.0 (compatible; FacebookBot/1.0; +https://www.facebook.com/externalhit_uatext.php)",
+    # Grok (xAI): No confirmed public crawler user-agent as of April 2026
+    # DeepSeek: No confirmed public crawler (Bytespider is ByteDance/TikTok, NOT DeepSeek)
+    # Mistral: No confirmed public crawler user-agent as of April 2026
 }
 
 DEFAULT_HEADERS = {
@@ -32,6 +45,125 @@ DEFAULT_HEADERS = {
     "Accept-Language": "en-US,en;q=0.9",
     "Accept-Encoding": "gzip, deflate",
 }
+
+
+def _use_firecrawl() -> bool:
+    """Check if Firecrawl should be used (available + API key set)."""
+    return FIRECRAWL_AVAILABLE and bool(os.environ.get("FIRECRAWL_API_KEY"))
+
+
+def fetch_page_firecrawl(url: str, timeout: int = 30) -> dict:
+    """
+    Fetch a page using Firecrawl API.
+    Returns the same dict structure as fetch_page() for compatibility.
+    Firecrawl handles JS rendering, anti-bot, and returns clean markdown.
+    """
+    result = {
+        "url": url,
+        "status_code": None,
+        "redirect_chain": [],
+        "headers": {},
+        "meta_tags": {},
+        "title": None,
+        "description": None,
+        "canonical": None,
+        "h1_tags": [],
+        "heading_structure": [],
+        "word_count": 0,
+        "text_content": "",
+        "internal_links": [],
+        "external_links": [],
+        "images": [],
+        "structured_data": [],
+        "has_ssr_content": True,  # Firecrawl renders JS, so always true
+        "security_headers": {},
+        "errors": [],
+        "fetched_with": "firecrawl",
+    }
+
+    try:
+        app = FirecrawlApp(api_key=os.environ["FIRECRAWL_API_KEY"])
+        scrape_result = app.scrape_url(url, params={
+            "formats": ["markdown", "html"],
+            "timeout": timeout * 1000,
+        })
+
+        result["status_code"] = scrape_result.get("metadata", {}).get("statusCode", 200)
+
+        metadata = scrape_result.get("metadata", {})
+        result["title"] = metadata.get("title")
+        result["description"] = metadata.get("description")
+        result["canonical"] = metadata.get("canonical")
+
+        # Extract text from markdown content
+        markdown_content = scrape_result.get("markdown", "")
+        result["text_content"] = markdown_content
+        result["word_count"] = len(markdown_content.split())
+
+        # Parse HTML content for structured data extraction
+        html_content = scrape_result.get("html", "")
+        if html_content:
+            soup = BeautifulSoup(html_content, "lxml")
+
+            # Meta tags
+            for meta in soup.find_all("meta"):
+                name = meta.get("name", meta.get("property", ""))
+                content = meta.get("content", "")
+                if name and content:
+                    result["meta_tags"][name.lower()] = content
+
+            # Headings
+            for level in range(1, 7):
+                for heading in soup.find_all(f"h{level}"):
+                    text = heading.get_text(strip=True)
+                    result["heading_structure"].append({"level": level, "text": text})
+                    if level == 1:
+                        result["h1_tags"].append(text)
+
+            # Links
+            parsed_url = urlparse(url)
+            base_domain = parsed_url.netloc
+            for link in soup.find_all("a", href=True):
+                href = urljoin(url, link["href"])
+                link_text = link.get_text(strip=True)
+                parsed_href = urlparse(href)
+                if parsed_href.netloc == base_domain:
+                    result["internal_links"].append({"url": href, "text": link_text})
+                elif parsed_href.scheme in ("http", "https"):
+                    result["external_links"].append({"url": href, "text": link_text})
+
+            # Images
+            for img in soup.find_all("img"):
+                result["images"].append({
+                    "src": img.get("src", ""),
+                    "alt": img.get("alt", ""),
+                    "width": img.get("width"),
+                    "height": img.get("height"),
+                    "loading": img.get("loading"),
+                })
+
+            # Structured data (JSON-LD)
+            for script in soup.find_all("script", type="application/ld+json"):
+                try:
+                    data = json.loads(script.string)
+                    result["structured_data"].append(data)
+                except (json.JSONDecodeError, TypeError):
+                    result["errors"].append("Invalid JSON-LD detected")
+
+            # Security headers from metadata
+            response_headers = metadata.get("headers", {})
+            for header in ["Strict-Transport-Security", "Content-Security-Policy",
+                           "X-Frame-Options", "X-Content-Type-Options",
+                           "Referrer-Policy", "Permissions-Policy"]:
+                result["security_headers"][header] = response_headers.get(header)
+
+    except Exception as e:
+        result["errors"].append(f"Firecrawl error: {str(e)}")
+        # Fall back to regular fetch on Firecrawl failure
+        print(f"Firecrawl failed, falling back to requests: {e}", file=sys.stderr)
+        return fetch_page(url, timeout)
+
+    return result
 
 
 def fetch_page(url: str, timeout: int = 30) -> dict:
@@ -440,15 +572,27 @@ def crawl_sitemap(url: str, max_pages: int = 50, timeout: int = 15) -> list:
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python fetch_page.py <url> [mode]")
+        print("Usage: python fetch_page.py <url> [mode] [--firecrawl]")
         print("Modes: page (default), robots, llms, sitemap, blocks, full")
+        print("Flags: --firecrawl  Force Firecrawl API (requires FIRECRAWL_API_KEY)")
         sys.exit(1)
 
-    target_url = sys.argv[1]
-    mode = sys.argv[2] if len(sys.argv) > 2 else "page"
+    # Parse args (simple, no argparse to keep backward compat)
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    flags = [a for a in sys.argv[1:] if a.startswith("--")]
+    force_firecrawl = "--firecrawl" in flags
+
+    target_url = args[0]
+    mode = args[1] if len(args) > 1 else "page"
+
+    # Select fetch function: Firecrawl if forced or auto-detected
+    use_fc = force_firecrawl or _use_firecrawl()
+    fetch_fn = fetch_page_firecrawl if use_fc else fetch_page
+    if use_fc:
+        print("Using Firecrawl for page fetching", file=sys.stderr)
 
     if mode == "page":
-        data = fetch_page(target_url)
+        data = fetch_fn(target_url)
     elif mode == "robots":
         data = fetch_robots_txt(target_url)
     elif mode == "llms":
@@ -461,7 +605,7 @@ if __name__ == "__main__":
         data = extract_content_blocks(response.text)
     elif mode == "full":
         data = {
-            "page": fetch_page(target_url),
+            "page": fetch_fn(target_url),
             "robots": fetch_robots_txt(target_url),
             "llms": fetch_llms_txt(target_url),
             "sitemap": crawl_sitemap(target_url),

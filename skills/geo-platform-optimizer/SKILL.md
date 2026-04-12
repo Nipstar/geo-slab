@@ -1,9 +1,9 @@
 ---
 name: geo-platform-optimizer
-description: Platform-specific AI search optimization — audit and optimize for Google AI Overviews, ChatGPT, Perplexity, Gemini, and Bing Copilot individually
-version: 1.0.0
-author: geo-seo-claude
-tags: [geo, ai-search, platform-optimization, chatgpt, perplexity, gemini, aio]
+description: Platform-specific AI search optimization — audit and optimize for Google AI Overviews, ChatGPT, Perplexity, Gemini, Bing Copilot, Grok, DeepSeek, Meta AI, and Mistral individually
+version: 2.0.0
+author: antek-automation
+tags: [geo, ai-search, platform-optimization, chatgpt, perplexity, gemini, aio, grok, deepseek, meta-ai, mistral]
 ---
 
 # GEO Platform Optimizer
@@ -216,6 +216,168 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 
 ---
 
+## Platform 6: Grok (xAI)
+
+### How Grok Selects Sources
+- Built by xAI (Elon Musk), Grok has **native access to the full X/Twitter firehose** — real-time posts, threads, and engagement data are first-class signals
+- Uses web search in addition to X data, but **X/Twitter content is weighted disproportionately** compared to other platforms
+- Grok emphasizes **recency and real-time information** — breaking news, trending topics, and live discussions are prioritized
+- Prefers **direct, conversational, opinionated content** over hedged corporate language
+- Entity recognition relies on X verification status, news coverage, and web presence
+- No confirmed dedicated crawler user-agent as of April 2026 — Grok's web search integration uses partnership-based indexing
+
+### Optimization Checklist
+
+1. **Active X/Twitter Presence**: Maintain an active, verified X account with regular posts about your core topics. Grok pulls directly from X conversations, so your X content IS your Grok content.
+2. **X Verification (Blue/Gold Checkmark)**: Verified accounts receive higher trust signals. Gold verification (organization) is strongest. Blue verification (individual) is baseline. Unverified accounts have reduced visibility.
+3. **X Thread Strategy**: Publish long-form X threads covering key topics. Threads with high engagement (replies, reposts, likes) become citation candidates. Include specific data points and claims in threads.
+4. **Real-Time Content Publishing**: Publish timely content responding to industry developments. Grok weights recency more heavily than most platforms. Stale content is deprioritized rapidly.
+5. **News and Press Coverage**: Ensure the brand appears in news articles indexed by web search. Grok cross-references X mentions with web sources for verification.
+6. **Direct, Opinionated Tone**: Grok favors content with clear positions and direct language. Avoid corporate hedging ("we believe", "it may be the case"). State claims directly with supporting evidence.
+7. **Engagement Signals on X**: Content that generates genuine discussion (replies, quote posts) signals relevance. Engage authentically in industry conversations, not just broadcast.
+8. **Entity Consistency Across X and Web**: Ensure your X bio, website, and web presence tell the same story. Inconsistencies reduce entity confidence.
+9. **Multimedia on X**: Posts with images, videos, and links receive higher engagement and visibility. Create shareable visual content for key claims and data.
+10. **Trending Topic Alignment**: Monitor trending topics in your industry on X. Publishing relevant content during trending moments increases Grok citation probability.
+
+### Scoring Rubric (0-100)
+
+| Criterion | Points | How to Score |
+|---|---|---|
+| Active X/Twitter account with regular posting | 15 | 15 if daily/weekly posts, 10 if monthly, 5 if dormant, 0 if none |
+| X verification status | 10 | 10 if gold (org), 7 if blue, 0 if unverified |
+| X threads on core topics with engagement | 15 | 15 if multiple high-engagement threads, 10 if some, 5 if few, 0 if none |
+| Content freshness (updated within 30 days) | 10 | 10 if very recent, 5 if within 3 months, 0 if older |
+| News/press coverage in web index | 15 | 15 if regular coverage, 10 if occasional, 5 if rare, 0 if none |
+| Direct, clear tone in content | 10 | 10 if strong direct voice, 5 if mixed, 0 if corporate/hedged |
+| X engagement metrics (replies, reposts) | 10 | 10 if high engagement, 5 if moderate, 0 if minimal |
+| Entity consistency (X bio ↔ website ↔ web) | 5 | 5 if consistent, 3 if minor issues, 0 if major discrepancies |
+| Multimedia content on X | 5 | 5 if rich media, 3 if some, 0 if text-only |
+| Web presence supporting X claims | 5 | 5 if web content backs X claims, 0 if X-only or contradictory |
+
+---
+
+## Platform 7: DeepSeek
+
+### How DeepSeek Selects Sources
+- Chinese AI lab with a strong focus on **technical and reasoning tasks** — DeepSeek's models excel at code, math, and technical analysis
+- Uses web search through partnerships; **does NOT use Bytespider** (that is ByteDance/TikTok, a separate company)
+- Strongly favors **comprehensive, technically detailed content** — documentation-style writing, code examples, and academic references perform well
+- DeepSeek's training data skews toward **technical, scientific, and programming content**
+- Supports both Chinese and English content, but English-language technical content is heavily represented
+- No confirmed dedicated crawler user-agent as of April 2026
+
+### Optimization Checklist
+
+1. **Technical Documentation Quality**: Ensure technical content is thorough, accurate, and well-structured. DeepSeek excels at technical reasoning and favors content that matches its strengths.
+2. **Code Examples and Snippets**: Include working code examples with proper syntax highlighting (use fenced code blocks). DeepSeek users frequently ask code-related questions.
+3. **Academic and Research Citations**: Reference peer-reviewed research, whitepapers, and technical standards. Include DOIs, paper titles, and author names.
+4. **Structured Technical Content**: Use clear section hierarchies, numbered steps for processes, and specification-style formatting. Tables for comparison data, lists for requirements.
+5. **Comprehensive Topic Coverage**: DeepSeek favors depth over breadth. A single comprehensive page on a topic outperforms multiple thin pages. Target 2000+ words for technical topics.
+6. **API Documentation**: If applicable, provide thorough API documentation with endpoints, parameters, request/response examples, and error codes.
+7. **Mathematical and Scientific Notation**: Use proper notation for formulas, equations, and technical specifications. DeepSeek handles technical notation well.
+8. **Open-Source Presence**: GitHub repositories, open-source contributions, and technical community participation signal expertise in DeepSeek's technical domain.
+9. **Methodology Transparency**: Explain how things work, not just what they do. DeepSeek users tend toward "how" and "why" queries. Show your work.
+10. **Benchmark Data and Performance Metrics**: Include specific performance numbers, benchmarks, and measurable outcomes. DeepSeek's reasoning strength makes it effective at comparing quantitative claims.
+
+### Scoring Rubric (0-100)
+
+| Criterion | Points | How to Score |
+|---|---|---|
+| Technical documentation depth and accuracy | 20 | 20 if comprehensive, 10 if adequate, 5 if basic, 0 if none |
+| Code examples with proper formatting | 15 | 15 if working examples, 10 if snippets, 5 if minimal, 0 if none |
+| Academic/research citations present | 10 | 10 if peer-reviewed sources cited, 5 if some references, 0 if none |
+| Structured content hierarchy | 10 | 10 if clean H1>H2>H3 with lists/tables, 5 if partial, 0 if unstructured |
+| Content comprehensiveness (2000+ words) | 15 | 15 if thorough, 10 if adequate, 5 if thin, 0 if stub |
+| API/technical documentation (if applicable) | 10 | 10 if complete, 5 if partial, N/A if not applicable |
+| Open-source/GitHub presence | 5 | 5 if active repos, 3 if some presence, 0 if none |
+| Methodology explanations ("how" content) | 5 | 5 if explains methods, 3 if some, 0 if outcome-only |
+| Quantitative data and benchmarks | 5 | 5 if specific metrics, 3 if some numbers, 0 if qualitative only |
+| Schema.org structured data | 5 | 5 if comprehensive, 3 if basic, 0 if none |
+
+---
+
+## Platform 8: Meta AI
+
+### How Meta AI Selects Sources
+- Meta AI is integrated across **Facebook, Instagram, WhatsApp, and Messenger** — reaching 3B+ combined users
+- Uses **Bing's search index** for web queries (similar to ChatGPT) plus **Meta's own ecosystem data**
+- **FacebookBot** crawler (Tier 2) indexes content for Meta AI features — already documented in the crawlers skill
+- Strongly weights **social proof signals**: shares, reactions, comments, and community engagement on Meta platforms
+- Open Graph tags are consumed directly for rich content previews and entity understanding
+- Visual content (images, video, Reels) plays a larger role than on text-first platforms
+- Entity recognition draws from Facebook Pages, Instagram business profiles, and the broader web
+
+### Optimization Checklist
+
+1. **FacebookBot Crawler Access**: Verify FacebookBot is allowed in robots.txt. This is the gateway to Meta AI visibility. Block FacebookBot = invisible to Meta AI.
+2. **Facebook Business Page**: Complete all fields: about, services, hours, contact info, story, milestones. Meta AI pulls directly from Page data for entity queries.
+3. **Instagram Business/Creator Profile**: Active Instagram presence with business account. Bio link, highlights, regular content posting. Meta AI surfaces Instagram content for visual and lifestyle queries.
+4. **Open Graph Meta Tags**: Implement `og:title`, `og:description`, `og:image`, `og:type`, `og:url` on every page. Meta AI uses Open Graph for content understanding and rich previews.
+5. **Social Engagement Signals**: Content that generates shares, saves, and comments on Facebook and Instagram signals relevance. Community-validated content ranks higher.
+6. **Bing Index Optimization**: Since Meta AI uses Bing for web search, all Bing optimization applies: Bing Webmaster Tools, IndexNow, meta descriptions, exact-match keywords.
+7. **Visual Content Strategy**: Meta's platforms are visual-first. Include high-quality images with descriptive alt text. Create Reels/short video content covering key topics.
+8. **WhatsApp Business Integration**: For businesses with WhatsApp presence, ensure WhatsApp Business profile is complete and linked to the website. Meta AI can reference WhatsApp catalog data.
+9. **Community and Group Presence**: Active participation in relevant Facebook Groups signals topical authority. Meta AI considers community engagement as a trust signal.
+10. **Entity Consistency Across Meta Properties**: Facebook Page name, Instagram handle, and website brand must be consistent. Meta AI cross-references all Meta properties for entity verification.
+
+### Scoring Rubric (0-100)
+
+| Criterion | Points | How to Score |
+|---|---|---|
+| FacebookBot allowed in robots.txt | 15 | 15 if allowed, 0 if blocked |
+| Facebook Business Page completeness | 15 | 15 if fully optimized, 10 if basic info, 5 if claimed, 0 if none |
+| Instagram business/creator profile | 10 | 10 if active with regular posts, 5 if present but sparse, 0 if none |
+| Open Graph meta tags implemented | 10 | 10 if all key OG tags, 5 if partial, 0 if absent |
+| Social engagement on Meta platforms | 15 | 15 if high engagement, 10 if moderate, 5 if low, 0 if none |
+| Bing index coverage of key pages | 10 | 10 if full coverage, 5 if partial, 0 if poor |
+| Visual content (images, video, Reels) | 10 | 10 if rich visual strategy, 5 if some images, 0 if text-only |
+| Entity consistency across Meta properties | 5 | 5 if consistent, 3 if minor issues, 0 if major discrepancies |
+| Community/Group presence | 5 | 5 if active community, 3 if some presence, 0 if none |
+| WhatsApp Business (if applicable) | 5 | 5 if complete, N/A if not applicable |
+
+---
+
+## Platform 9: Mistral (Le Chat)
+
+### How Mistral Selects Sources
+- French AI company with a focus on the **European market** — Le Chat is Mistral's consumer-facing AI assistant with web search
+- Uses **partnership-based web search** (integrated with Brave Search and other providers) rather than its own crawler
+- Favors **authoritative, well-structured content** with clear sourcing — similar to academic standards
+- **Multilingual capability** is a strength — Mistral models perform well across European languages (French, German, Spanish, Italian, etc.)
+- Content in **structured, professional formats** performs well — documentation, guides, reference material
+- Growing presence in **enterprise and professional use cases** in Europe
+- No confirmed dedicated crawler user-agent as of April 2026 — relies on partner search indexes
+
+### Optimization Checklist
+
+1. **Brave Search and Partner Index Presence**: Verify your site appears in Brave Search results (search.brave.com). Mistral's Le Chat uses Brave Search as a primary web search provider.
+2. **Multilingual Content (hreflang)**: If targeting European audiences, implement hreflang tags and provide content in multiple European languages. Mistral excels at multilingual queries.
+3. **Authoritative Sourcing**: Cite authoritative sources for all claims. Mistral's selection methodology weights source credibility heavily. Include references, footnotes, or inline citations.
+4. **Schema.org Structured Data**: Implement comprehensive Schema.org markup. Mistral's partner search indexes consume structured data for entity understanding and rich results.
+5. **Professional, Formal Tone**: Mistral's training and user base skew professional/enterprise. Content with clear, professional language and expert positioning performs better.
+6. **Content Depth and Completeness**: Comprehensive treatment of topics with proper context. Mistral prefers complete answers from authoritative sources over aggregated snippets.
+7. **European Regulatory Compliance**: GDPR compliance, EU accessibility standards, and transparent data practices signal trustworthiness to European-focused AI platforms.
+8. **Academic and Professional Credentials**: Author pages with credentials, institutional affiliations, and professional backgrounds strengthen authority signals.
+9. **Clear Content Hierarchy**: Well-organized content with logical heading structure, table of contents for long pages, and clear section organization.
+10. **Publication and Update Dates**: Visible publication dates and update timestamps. Content provenance is a trust signal for citation-focused models.
+
+### Scoring Rubric (0-100)
+
+| Criterion | Points | How to Score |
+|---|---|---|
+| Presence in Brave Search / partner indexes | 15 | 15 if well-indexed, 10 if partial, 5 if minimal, 0 if absent |
+| Multilingual content with hreflang | 10 | 10 if multiple languages, 5 if two languages, 0 if English-only (reduce penalty if English-only market) |
+| Authoritative sourcing and citations | 15 | 15 if well-cited, 10 if some citations, 5 if minimal, 0 if none |
+| Schema.org structured data | 15 | 15 if comprehensive, 10 if basic, 5 if minimal, 0 if none |
+| Professional tone and presentation | 10 | 10 if polished professional, 5 if adequate, 0 if informal/low quality |
+| Content depth and comprehensiveness | 10 | 10 if thorough, 5 if adequate, 0 if thin |
+| Author credentials and expertise signals | 10 | 10 if full credentials, 5 if name only, 0 if anonymous |
+| Content hierarchy and organization | 5 | 5 if clean H1>H2>H3, 3 if some structure, 0 if flat |
+| Publication/update dates visible | 5 | 5 if both dates, 3 if one, 0 if none |
+| European compliance signals (GDPR, etc.) | 5 | 5 if compliant, 3 if partial, 0 if no signals |
+
+---
+
 ## Cross-Platform Summary
 
 ### Universal Optimization Actions (help ALL platforms)
@@ -226,14 +388,16 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 5. Fast page load and clean HTML
 6. Author pages with credentials and sameAs links
 7. Regular content updates with visible dates
+8. Active social presence across X, Facebook, Instagram, LinkedIn
+9. Bing index optimization (powers ChatGPT, Copilot, and Meta AI)
 
 ### Platform-Specific Priorities
-| Priority | Google AIO | ChatGPT | Perplexity | Gemini | Copilot |
-|---|---|---|---|---|---|
-| #1 | Top-10 ranking | Wikipedia | Reddit presence | YouTube | IndexNow |
-| #2 | Q&A structure | Entity graph | Original research | Knowledge Panel | Bing WMT |
-| #3 | Tables/lists | Bing SEO | Freshness | Schema.org | LinkedIn |
-| #4 | Featured snippets | Reddit | Community forums | GBP | Meta descriptions |
+| Priority | Google AIO | ChatGPT | Perplexity | Gemini | Copilot | Grok | DeepSeek | Meta AI | Mistral |
+|---|---|---|---|---|---|---|---|---|---|
+| #1 | Top-10 ranking | Wikipedia | Reddit presence | YouTube | IndexNow | X/Twitter presence | Technical depth | Facebook Page | Brave Search index |
+| #2 | Q&A structure | Entity graph | Original research | Knowledge Panel | Bing WMT | Real-time content | Code examples | Social engagement | Authoritative sourcing |
+| #3 | Tables/lists | Bing SEO | Freshness | Schema.org | LinkedIn | News coverage | Comprehensiveness | Open Graph tags | Schema.org markup |
+| #4 | Featured snippets | Reddit | Community forums | GBP | Meta descriptions | Engagement signals | Academic citations | Bing index | Multilingual content |
 
 ---
 
@@ -256,6 +420,10 @@ Date: [Date]
 | Perplexity AI | XX/100 | [Strong/Moderate/Weak] |
 | Google Gemini | XX/100 | [Strong/Moderate/Weak] |
 | Bing Copilot | XX/100 | [Strong/Moderate/Weak] |
+| Grok (xAI) | XX/100 | [Strong/Moderate/Weak] |
+| DeepSeek | XX/100 | [Strong/Moderate/Weak] |
+| Meta AI | XX/100 | [Strong/Moderate/Weak] |
+| Mistral (Le Chat) | XX/100 | [Strong/Moderate/Weak] |
 
 Status thresholds: Strong = 70+, Moderate = 40-69, Weak = 0-39
 

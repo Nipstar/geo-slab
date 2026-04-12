@@ -2,11 +2,11 @@
 set -euo pipefail
 
 # ============================================================
-# GEO-SEO Claude Code Skill Installer
-# Installs the GEO-first SEO analysis tool for Claude Code
+# GEO SLAB — Installer
+# Generative Engine Optimization by Antek Automation
 # ============================================================
 
-REPO_URL="https://github.com/zubair-trabzada/geo-seo-claude.git"
+REPO_URL="https://github.com/AntekAutomation/geo-slab.git"
 CLAUDE_DIR="${HOME}/.claude"
 SKILLS_DIR="${CLAUDE_DIR}/skills"
 AGENTS_DIR="${CLAUDE_DIR}/agents"
@@ -29,8 +29,8 @@ NC='\033[0m' # No Color
 print_header() {
     echo ""
     echo -e "${BLUE}╔══════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║   GEO-SEO Claude Code Skill Installer    ║${NC}"
-    echo -e "${BLUE}║   GEO-First AI Search Optimization       ║${NC}"
+    echo -e "${BLUE}║          GEO SLAB — Installer              ║${NC}"
+    echo -e "${BLUE}║     by Antek Automation                   ║${NC}"
     echo -e "${BLUE}╚══════════════════════════════════════════╝${NC}"
     echo ""
 }
@@ -274,14 +274,17 @@ main() {
     echo "    /geo crawlers <url>   AI crawler access check"
     echo "    /geo llmstxt <url>    Analyze/generate llms.txt"
     echo "    /geo brands <url>     Brand mention scan"
-    echo "    /geo platforms <url>  Platform-specific optimization"
+    echo "    /geo platforms <url>  Platform-specific optimization (9 platforms)"
     echo "    /geo schema <url>     Structured data analysis"
     echo "    /geo technical <url>  Technical SEO audit"
     echo "    /geo content <url>    Content quality & E-E-A-T"
     echo "    /geo report <url>     Client-ready GEO report"
     echo "    /geo report-pdf       Generate PDF report from audit data"
+    echo "    /geo compare <domain> Monthly delta tracking"
+    echo "    /geo proposal <domain> Auto-generate client proposal"
+    echo "    /geo live <url>       Live AI visibility test (requires API keys)"
     echo ""
-    echo "  Documentation: https://github.com/zubair-trabzada/geo-seo-claude"
+    echo "  GEO SLAB by Antek Automation — https://antekautomation.com"
     echo ""
 }
 

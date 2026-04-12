@@ -2,7 +2,7 @@
 name: geo
 description: >
   GEO-first SEO analysis tool. Optimizes websites for AI-powered search engines
-  (ChatGPT, Claude, Perplexity, Gemini, Google AI Overviews) while maintaining
+  (ChatGPT, Claude, Perplexity, Gemini, Google AI Overviews, Grok, DeepSeek, Meta AI, Mistral) while maintaining
   traditional SEO foundations. Performs full GEO audits, citability scoring,
   AI crawler analysis, llms.txt generation, brand mention scanning, platform-specific
   optimization, schema markup, technical SEO, content quality (E-E-A-T), and
@@ -29,12 +29,15 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 | `/geo crawlers <url>` | Check AI crawler access (robots.txt analysis) |
 | `/geo llmstxt <url>` | Analyze or generate llms.txt file |
 | `/geo brands <url>` | Scan brand mentions across AI-cited platforms |
-| `/geo platforms <url>` | Platform-specific optimization (ChatGPT, Perplexity, Google AIO) |
+| `/geo platforms <url>` | Platform-specific optimization (all 9 AI platforms incl. Grok, DeepSeek, Meta AI, Mistral) |
 | `/geo schema <url>` | Detect, validate, and generate structured data |
 | `/geo technical <url>` | Traditional technical SEO audit |
 | `/geo content <url>` | Content quality and E-E-A-T assessment |
 | `/geo report <url>` | Generate client-ready GEO deliverable |
 | `/geo report-pdf <url>` | Generate professional PDF report with charts and scores |
+| `/geo compare <domain>` | Monthly delta tracking — compare two audits over time |
+| `/geo proposal <domain>` | Auto-generate client GEO service proposal from audit data |
+| `/geo live <url>` | Live AI visibility test — query ChatGPT, Claude, Gemini, Perplexity directly |
 | `/geo quick <url>` | 60-second GEO visibility snapshot |
 
 ---
@@ -66,15 +69,23 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 3. Extract key pages from sitemap.xml or internal links (up to 50 pages)
 
 **Phase 2: Parallel Analysis (Delegate to Subagents)**
-Launch these 5 subagents simultaneously:
+Launch these 5 core subagents simultaneously:
 
 | Subagent | File | Responsibility |
 |----------|------|---------------|
 | geo-ai-visibility | `agents/geo-ai-visibility.md` | GEO audit, citability, AI crawlers, llms.txt, brand mentions |
-| geo-platform-analysis | `agents/geo-platform-analysis.md` | Platform-specific optimization (ChatGPT, Perplexity, Google AIO) |
+| geo-platform-analysis | `agents/geo-platform-analysis.md` | Platform-specific optimization (9 platforms: AIO, ChatGPT, Perplexity, Gemini, Copilot, Grok, DeepSeek, Meta AI, Mistral) |
 | geo-technical | `agents/geo-technical.md` | Technical SEO, Core Web Vitals, crawlability, indexability |
 | geo-content | `agents/geo-content.md` | Content quality, E-E-A-T, readability, AI content detection |
 | geo-schema | `agents/geo-schema.md` | Schema markup detection, validation, generation |
+
+**Optional 6th subagent** (runs in parallel if AI API keys are configured):
+
+| Subagent | File | Responsibility |
+|----------|------|---------------|
+| geo-live-visibility | `agents/geo-live-visibility.md` | Live AI brand visibility queries (requires OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.) |
+
+If no AI provider API keys are configured, skip this subagent entirely. Never fabricate live visibility results.
 
 **Phase 3: Synthesis (Sequential)**
 1. Collect all subagent reports
@@ -91,7 +102,7 @@ Launch these 5 subagents simultaneously:
 | Content Quality & E-E-A-T | 20% | Expertise signals, original data, author credentials |
 | Technical Foundations | 15% | SSR, Core Web Vitals, crawlability, mobile, security |
 | Structured Data | 10% | Schema completeness, JSON-LD validation, rich result eligibility |
-| Platform Optimization | 10% | Platform-specific readiness (Google AIO, ChatGPT, Perplexity) |
+| Platform Optimization | 10% | Platform-specific readiness (9 platforms: AIO, ChatGPT, Perplexity, Gemini, Copilot, Grok, DeepSeek, Meta AI, Mistral) |
 
 ---
 
@@ -112,7 +123,7 @@ Adjust recommendations based on detected type. Local businesses need LocalBusine
 
 ---
 
-## Sub-Skills (10 Specialized Components)
+## Sub-Skills (13 Specialized Components)
 
 | # | Skill | Directory | Purpose |
 |---|-------|-----------|---------|
@@ -126,10 +137,13 @@ Adjust recommendations based on detected type. Local businesses need LocalBusine
 | 8 | geo-technical | `skills/geo-technical/` | Technical SEO foundations |
 | 9 | geo-content | `skills/geo-content/` | Content quality and E-E-A-T |
 | 10 | geo-report | `skills/geo-report/` | Client-ready deliverable generation |
+| 11 | geo-compare | `skills/geo-compare/` | Monthly delta tracking and progress reports |
+| 12 | geo-proposal | `skills/geo-proposal/` | Auto-generate client service proposals |
+| 13 | geo-live-visibility | `skills/geo-live-visibility/` | Live AI brand visibility testing |
 
 ---
 
-## Subagents (5 Parallel Workers)
+## Subagents (5 Core + 1 Optional)
 
 | Agent | File | Skills Used |
 |-------|------|-------------|
@@ -138,6 +152,7 @@ Adjust recommendations based on detected type. Local businesses need LocalBusine
 | geo-technical | `agents/geo-technical.md` | geo-technical |
 | geo-content | `agents/geo-content.md` | geo-content |
 | geo-schema | `agents/geo-schema.md` | geo-schema |
+| geo-live-visibility *(optional)* | `agents/geo-live-visibility.md` | geo-live-visibility (requires AI API keys) |
 
 ---
 
@@ -159,6 +174,9 @@ All commands generate structured output:
 | `/geo content` | `GEO-CONTENT-ANALYSIS.md` |
 | `/geo report` | `GEO-CLIENT-REPORT.md` (presentation-ready) |
 | `/geo report-pdf` | `GEO-REPORT.pdf` (professional PDF with charts) |
+| `/geo compare` | `GEO-COMPARE-<domain>-<YYYY-MM>.md` |
+| `/geo proposal` | `GEO-PROPOSAL-<domain>.md` |
+| `/geo live` | `live-visibility.json` + inline report section |
 | `/geo quick` | Inline summary (no file) |
 
 ---

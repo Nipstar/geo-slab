@@ -54,11 +54,13 @@ Fetch `/robots.txt` from the target domain root. Parse it for directives affecti
 | PerplexityBot | Perplexity AI search |
 | Amazonbot | Amazon / Alexa AI |
 | Google-Extended | Google Gemini training (does NOT affect Google Search) |
-| Bytespider | ByteDance / TikTok AI |
+| Bytespider | ByteDance / TikTok AI (NOT DeepSeek) |
 | CCBot | Common Crawl (feeds many AI models) |
 | Applebot-Extended | Apple Intelligence features |
-| FacebookBot | Meta AI features |
+| FacebookBot | Meta AI features (Facebook, Instagram, WhatsApp, Messenger) |
 | Cohere-ai | Cohere models |
+
+**Note:** Grok (xAI), DeepSeek, and Mistral (Le Chat) do not have confirmed dedicated crawlers as of April 2026. They rely on web search partnerships (e.g., Mistral uses Brave Search). Crawler access analysis focuses on platforms with known crawlers; optimization for Grok/DeepSeek/Mistral is handled by the platform-specific analysis agent.
 
 For each crawler, record:
 - **Allowed**: No blocking rules found.
@@ -126,7 +128,8 @@ Search for the brand/site name across platforms frequently cited by AI models:
    - **DO NOT** rely solely on web search (`site:wikipedia.org`) — it frequently returns false negatives.
    - This is the single strongest signal for entity recognition by AI models.
 4. **LinkedIn**: Check for company page presence and completeness.
-5. **Industry/Niche Sources**: Search for the brand on authoritative industry sites, review platforms (G2, Trustpilot, Capterra), and news outlets.
+5. **X/Twitter (CRITICAL for Grok)**: Search for the brand on X/Twitter. Check for verified account (Gold/Blue), posting frequency, engagement levels, and industry thread participation. Grok (xAI) has native access to X data, making X presence a direct visibility signal.
+6. **Industry/Niche Sources**: Search for the brand on authoritative industry sites, review platforms (G2, Trustpilot, Capterra), and news outlets.
 
 For each platform, record:
 - **Present**: Active, recent presence found.
@@ -134,11 +137,12 @@ For each platform, record:
 - **Absent**: No meaningful presence found.
 
 Calculate **Brand Mention Score**:
-- Wikipedia presence: 30 points (0 if absent).
-- Reddit discussion presence: 20 points (scale by recency and sentiment).
+- Wikipedia presence: 25 points (0 if absent).
+- Reddit discussion presence: 15 points (scale by recency and sentiment).
 - YouTube presence: 15 points.
+- X/Twitter presence: 15 points (scale by verification status, engagement, and recency).
 - LinkedIn presence: 10 points.
-- Industry/niche sources: 25 points (scale by number and quality).
+- Industry/niche sources: 20 points (scale by number and quality).
 
 ### Step 6: Compile AI Visibility Report Section
 
@@ -221,6 +225,7 @@ Citation-unlikely areas needing improvement:
 | Wikipedia | [Present/Minimal/Absent] | [Details] |
 | Reddit | [Status] | [Details] |
 | YouTube | [Status] | [Details] |
+| X/Twitter | [Status] | [Verification status, engagement, relevance for Grok] |
 | LinkedIn | [Status] | [Details] |
 | Industry Sources | [Status] | [Details] |
 
