@@ -284,6 +284,12 @@ main() {
     echo "    /geo proposal <domain> Auto-generate client proposal"
     echo "    /geo live <url>       Live AI visibility test (requires API keys)"
     echo ""
+    echo -e "${BLUE}Optional API Keys (for live data):${NC}"
+    echo "    SERPAPI_API_KEY          — Brand mention scanning (serpapi.com, free 100/month)"
+    echo "    GOOGLE_PLACES_API_KEY    — Google Business Profile data"
+    echo "    OPENAI_API_KEY           — Live ChatGPT visibility testing"
+    echo "    ANTHROPIC_API_KEY        — Live Claude visibility testing"
+    echo ""
     echo "  GEO SLAB by Antek Automation — https://antekautomation.com"
     echo ""
 }

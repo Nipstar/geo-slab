@@ -28,7 +28,7 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 | `/geo citability <url>` | Score content for AI citation readiness |
 | `/geo crawlers <url>` | Check AI crawler access (robots.txt analysis) |
 | `/geo llmstxt <url>` | Analyze or generate llms.txt file |
-| `/geo brands <url>` | Scan brand mentions across AI-cited platforms |
+| `/geo brands <url>` | Scan brand mentions across AI-cited platforms (SerpAPI + Google Places when configured) |
 | `/geo platforms <url>` | Platform-specific optimization (all 9 AI platforms incl. Grok, DeepSeek, Meta AI, Mistral) |
 | `/geo schema <url>` | Detect, validate, and generate structured data |
 | `/geo technical <url>` | Traditional technical SEO audit |

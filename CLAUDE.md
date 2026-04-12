@@ -41,15 +41,28 @@ python3 scripts/generate_pdf_report.py data.json GEO-REPORT.pdf
 python3 scripts/live_ai_query.py --company-name "Brand" --url "https://..." --industry "tech"
 ```
 
-### Optional Dependencies for Enhanced Features
+### Optional API Keys for Enhanced Features
 
 ```bash
+# Brand scanning — SerpAPI for live Google search results across all platforms
+export SERPAPI_API_KEY="your-key"       # https://serpapi.com (free: 100 searches/month)
+
+# Brand scanning — Google Places API for GBP data (rating, reviews, categories)
+export GOOGLE_PLACES_API_KEY="your-key" # https://console.cloud.google.com (enable Places API)
+
 # Live AI visibility testing (install providers you want to query)
 pip install openai anthropic google-generativeai
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+export GOOGLE_GENERATIVE_AI_API_KEY="..."
+export PERPLEXITY_API_KEY="pplx-..."
 
-# Firecrawl for JS-heavy site scraping (also set FIRECRAWL_API_KEY env var)
+# Firecrawl for JS-heavy site scraping
 pip install firecrawl-py
+export FIRECRAWL_API_KEY="fc-..."
 ```
+
+All API keys are optional — the toolkit works without them using manual check instructions and URL generation. Each key adds progressively richer live data.
 
 ## Architecture
 
