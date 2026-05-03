@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}{{ p.company }} — {{ brand_name }}{% endblock %}
+
+{% block content %}
+
+<nav class="breadcrumb">
+  <a href="{{ url_for('dashboard') }}">Dashboard</a> / <span>{{ p.company }}</span>
+</nav>
+
+<div class="detail-header">
+  {% set tier = p.geo_score | score_tier %}
+  <div class="score-circle tier-{{ tier }}">
+    <span class="big">{{ p.geo_score or 0 }}</span>
+    <span class="sub">/100</span>
+    <span class="label">{{ p.geo_score | score_label }}</span>
+  </div>
+
+  <div class="meta">
+    <h1>{{ p.company }}</h1>
+    <p class="text-mono muted" style="margin-bottom:14px;">
+      <a href="https://{{ p.domain }}" target="_blank" rel="noopener">{{ p.domain }} ↗</a>
+    </p>
+
+    <div id="status-badge" style="margin-bottom:12px;">
+      {% set meta = p.status | status_meta %}
+      <span class="badge-status tier-{{ meta.tier }}">{{ meta.icon }} {{ meta.label }}</span>
+    </div>
+
+    <form style="display:flex;gap:8px;align-items:center;"
+          hx-post="{{ url_for('update_status', pid=p.id) }}"
+          hx-target="#status-badge"
+          hx-swap="innerHTML">
+      <select name="status" style="width:auto;">
+        {% for s in statuses %}
+          {% set m = s | status_meta %}
+          <option value="{{ s }}" {% if s == p.status %}selected{% endif %}>{{ m.icon }} {{ m.label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-sm">Update</button>
+    </form>
+  </div>
+
+  <div class="actions">
+    <a href="{{ url_for('prospect_edit', pid=p.id) }}" class="btn">Edit</a>
+    <form action="{{ url_for('prospect_delete', pid=p.id) }}" method="post"
+          onsubmit="return confirm('Delete this prospect? This cannot be undone.');" style="margin:0;">
+      <button type="submit" class="btn btn-ghost">Delete</button>
+    </form>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+  <div class="card">
+    <h4>Details</h4>
+    <dl class="dl-grid">
+      <dt>ID</dt><dd class="text-mono">{{ p.id }}</dd>
+      <dt>Industry</dt><dd>{{ p.industry or '—' }}</dd>
+      <dt>Country</dt><dd>{{ p.country or '—' }}</dd>
+      <dt>Audit date</dt><dd>{{ p.audit_date or '—' }}</dd>
+      <dt>MRR</dt><dd><strong>{{ p.monthly_value | format_gbp }}</strong></dd>
+      <dt>Contract</dt><dd>{{ p.contract_months or '—' }} months</dd>
+      {% if p.contact_name %}<dt>Contact</dt><dd>{{ p.contact_name }}</dd>{% endif %}
+      {% if p.contact_email %}<dt>Email</dt><dd><a href="mailto:{{ p.contact_email }}">{{ p.contact_email }}</a></dd>{% endif %}
+      <dt>Updated</dt><dd class="text-mono">{{ p.updated_at[:10] if p.updated_at else '—' }}</dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h4>Artifacts</h4>
+    {% if artefacts.audit_json or artefacts.report_html or artefacts.report_pdf or artefacts.proposal_md %}
+    <dl class="dl-grid">
+      {% if artefacts.audit_json %}
+        <dt>Audit JSON</dt><dd class="text-mono">{{ artefacts.audit_json.name }}</dd>
+      {% endif %}
+      {% if artefacts.report_html %}
+        <dt>Report HTML</dt><dd class="text-mono">{{ artefacts.report_html.name }}</dd>
+      {% endif %}
+      {% if artefacts.report_pdf %}
+        <dt>Report PDF</dt><dd class="text-mono">{{ artefacts.report_pdf.name }}</dd>
+      {% endif %}
+      {% if artefacts.proposal_md %}
+        <dt>Proposal</dt><dd class="text-mono">{{ artefacts.proposal_md.name }}</dd>
+      {% endif %}
+      {% if artefacts.live_visibility_json %}
+        <dt>Live AI</dt><dd class="text-mono">{{ artefacts.live_visibility_json.name }}</dd>
+      {% endif %}
+    </dl>
+
+    <div class="action-grid">
+      {% if artefacts.audit_json %}
+        <a href="{{ url_for('view_audit', pid=p.id) }}" class="btn btn-sm">View Audit</a>
+      {% endif %}
+      {% if artefacts.report_html %}
+        <a href="{{ url_for('view_report', pid=p.id) }}" class="btn btn-sm" target="_blank">Open Report</a>
+      {% endif %}
+      {% if artefacts.report_pdf %}
+        <a href="{{ url_for('download_pdf', pid=p.id) }}" class="btn btn-sm btn-danger">Download PDF</a>
+      {% endif %}
+      {% if artefacts.proposal_md %}
+        <a href="{{ url_for('view_proposal', pid=p.id) }}" class="btn btn-sm btn-secondary">Proposal</a>
+      {% endif %}
+    </div>
+    {% else %}
+    <p class="muted text-mono">No artifacts found in <code>reports/{{ p.domain }}/</code>.</p>
+    <p class="muted" style="font-size:13px;margin-top:8px;">Run <code>/geo audit https://{{ p.domain }}</code> in Claude Code to generate.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="spacer-md"></div>
+
+<div class="card">
+  <h4>Notes</h4>
+  <div id="notes-list">
+    {% include "_notes.html" %}
+  </div>
+  <form class="note-form"
+        hx-post="{{ url_for('add_note', pid=p.id) }}"
+        hx-target="#notes-list"
+        hx-swap="innerHTML"
+        hx-on::after-request="this.reset()">
+    <input type="text" name="text" placeholder="Add a note…" required>
+    <button type="submit" class="btn btn-primary">+ Add</button>
+  </form>
+</div>
+
+{% endblock %}

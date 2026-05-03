@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your GEO Audit — Antek Automation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --coral: #D97757;
+            --cream: #E8DFD0;
+            --sage: #C5D8CC;
+            --charcoal: #1A1A1A;
+            --black: #000000;
+            --off-white: #FAF8F5;
+            --border: 3px solid var(--black);
+            --shadow: 8px 8px 0 var(--black);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--cream);
+            color: var(--charcoal);
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 16px;
+            line-height: 1.65;
+        }
+
+        /* ─── FIXED HEADER ─── */
+        .site-header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            background: var(--charcoal);
+            border-bottom: 3px solid var(--black);
+            padding: 0 48px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .header-brand {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 16px;
+            color: var(--cream);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            white-space: nowrap;
+        }
+
+        .header-nav { display: flex; gap: 28px; }
+
+        .header-nav a {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            color: var(--cream);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            opacity: 0.55;
+            transition: opacity 0.15s;
+        }
+
+        .header-nav a:hover { opacity: 1; }
+
+        .header-score {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+            color: var(--coral);
+            white-space: nowrap;
+        }
+
+        main { padding-top: 56px; }
+
+        /* ─── HERO ─── */
+        .hero {
+            padding: 80px 64px 72px;
+            border-bottom: 3px solid var(--black);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 64px;
+            align-items: start;
+        }
+
+        .label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--coral);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: clamp(80px, 12vw, 140px);
+            line-height: 0.88;
+            margin-bottom: 32px;
+        }
+
+        .score-big { color: var(--coral); display: block; }
+        .score-sub {
+            color: var(--charcoal);
+            font-size: clamp(32px, 4vw, 52px);
+            opacity: 0.35;
+            display: block;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .hero-right { padding-top: 20px; }
+
+        .hero-verdict {
+            font-size: 22px;
+            font-weight: 600;
+            line-height: 1.35;
+            margin-bottom: 24px;
+            color: var(--charcoal);
+        }
+
+        .hero-body { font-size: 16px; line-height: 1.7; color: var(--charcoal); opacity: 0.85; }
+        .hero-body p { margin-bottom: 14px; }
+        .hero-body p:last-child { margin-bottom: 0; }
+
+        /* ─── SCORE GRID ─── */
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            border-bottom: 3px solid var(--black);
+        }
+
+        .score-cell {
+            border-right: 3px solid var(--black);
+            padding: 28px 24px 24px;
+            background: var(--off-white);
+            transition: background 0.15s;
+        }
+
+        .score-cell:last-child { border-right: none; }
+        .score-cell:hover { background: var(--sage); }
+
+        .score-cell.critical { background: var(--coral); }
+        .score-cell.critical .cell-label,
+        .score-cell.critical .cell-number { color: var(--cream); }
+        .score-cell.critical .cell-denom { color: var(--cream); opacity: 0.45; }
+        .score-cell.critical .cell-bar { background: rgba(255,255,255,0.2); }
+        .score-cell.critical .cell-bar-fill { background: var(--cream); }
+
+        .cell-label {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--charcoal);
+            opacity: 0.55;
+            margin-bottom: 14px;
+            line-height: 1.4;
+        }
+
+        .cell-number {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 56px;
+            line-height: 1;
+            color: var(--charcoal);
+        }
+
+        .cell-denom { font-size: 24px; font-weight: 700; opacity: 0.3; }
+
+        .cell-bar { height: 3px; background: rgba(0,0,0,0.12); margin-top: 16px; position: relative; }
+        .cell-bar-fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--charcoal); }
+
+        /* ─── SECTION ─── */
+        .section { border-bottom: 3px solid var(--black); padding: 72px 64px; }
+
+        h2 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: clamp(48px, 7vw, 84px);
+            line-height: 0.92;
+            margin-bottom: 12px;
+        }
+
+        .section-intro {
+            font-size: 17px;
+            color: var(--charcoal);
+            opacity: 0.75;
+            margin-bottom: 48px;
+            max-width: 640px;
+            line-height: 1.65;
+        }
+
+        /* ─── PLATFORMS ─── */
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border: 3px solid var(--black);
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+        }
+
+        .platform-cell { border-right: 3px solid var(--black); border-bottom: 3px solid var(--black); padding: 28px 20px 24px; background: var(--off-white); }
+        .platform-cell:nth-child(3n) { border-right: none; }
+        .platform-cell:nth-last-child(-n+3) { border-bottom: none; }
+
+        .platform-name {
+            display: block;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.5;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+
+        .platform-score {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 60px;
+            line-height: 1;
+        }
+
+        .platform-score.low { color: var(--coral); }
+
+        .platform-bar { height: 3px; background: rgba(0,0,0,0.1); margin-top: 16px; position: relative; }
+        .platform-bar-fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--coral); }
+
+        .callout {
+            background: var(--sage);
+            border: 3px solid var(--black);
+            box-shadow: var(--shadow);
+            padding: 28px 32px;
+        }
+
+        .callout p { font-size: 16px; line-height: 1.65; max-width: 760px; }
+
+        /* ─── PROBLEMS ─── */
+        .problem-list { display: grid; }
+
+        .problem-item {
+            border: 3px solid var(--black);
+            border-bottom: none;
+            padding: 36px 40px;
+            display: grid;
+            grid-template-columns: 72px 1fr;
+            gap: 32px;
+            align-items: start;
+            background: var(--off-white);
+            transition: transform 0.12s, box-shadow 0.12s;
+        }
+
+        .problem-item:last-child { border-bottom: 3px solid var(--black); }
+
+        .problem-item:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 4px 4px 0 var(--black);
+            z-index: 1;
+            position: relative;
+        }
+
+        .problem-item.is-critical { background: var(--coral); }
+        .problem-item.is-critical .problem-num,
+        .problem-item.is-critical h3,
+        .problem-item.is-critical p,
+        .problem-item.is-critical code { color: var(--cream); }
+        .problem-item.is-critical code { background: rgba(0,0,0,0.2); }
+
+        .problem-num {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 64px;
+            line-height: 1;
+            color: var(--charcoal);
+            opacity: 0.15;
+            padding-top: 4px;
+        }
+
+        .problem-content h3 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 30px;
+            line-height: 1;
+            margin-bottom: 16px;
+            color: var(--charcoal);
+        }
+
+        .problem-content p { font-size: 15.5px; line-height: 1.65; margin-bottom: 12px; color: var(--charcoal); }
+        .problem-content p:last-child { margin-bottom: 0; }
+
+        code {
+            background: var(--charcoal);
+            color: var(--cream);
+            padding: 1px 6px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 13px;
+        }
+
+        /* ─── ACTIONS ─── */
+        .action-list { display: grid; }
+
+        .action-item {
+            border: 3px solid var(--black);
+            border-bottom: none;
+            padding: 28px 36px;
+            display: grid;
+            grid-template-columns: 52px 1fr 100px;
+            gap: 24px;
+            align-items: start;
+            background: var(--off-white);
+        }
+
+        .action-item:last-child { border-bottom: 3px solid var(--black); }
+        .action-item:nth-child(even) { background: var(--cream); }
+
+        .action-num {
+            font-family: 'IBM Plex Mono', monospace;
+            font-weight: 500;
+            font-size: 22px;
+            color: var(--coral);
+            padding-top: 3px;
+        }
+
+        .action-content h3 {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 24px;
+            line-height: 1;
+            margin-bottom: 10px;
+            color: var(--charcoal);
+        }
+
+        .action-content p { font-size: 15px; line-height: 1.65; color: var(--charcoal); opacity: 0.8; }
+
+        .action-time {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--charcoal);
+            opacity: 0.4;
+            padding-top: 6px;
+            text-align: right;
+        }
+
+        /* ─── SECTION STRIPES ─── */
+        .section-week    { border-left: 6px solid var(--coral);    padding-left: 58px; }
+        .section-month   { border-left: 6px solid var(--sage);     padding-left: 58px; }
+        .section-quarter { border-left: 6px solid var(--charcoal); padding-left: 58px; }
+
+        /* ─── FOOTER ─── */
+        .site-footer {
+            padding: 40px 64px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 11px;
+            color: var(--charcoal);
+            opacity: 0.4;
+            display: flex;
+            justify-content: space-between;
+            gap: 32px;
+        }
+
+        /* ─── PRINT ─── */
+        @media print {
+            .site-header { position: static; }
+            main { padding-top: 0; }
+            .problem-item:hover { transform: none; box-shadow: none; }
+            .score-grid { grid-template-columns: repeat(3, 1fr); }
+            .platform-grid { grid-template-columns: repeat(3, 1fr); }
+            .platform-cell { border-bottom: 3px solid var(--black); }
+            .platform-cell:nth-child(3n) { border-right: none; }
+            .platform-cell:nth-last-child(-n+3) { border-bottom: none; }
+        }
+
+        /* ─── MOBILE ─── */
+        @media (max-width: 900px) {
+            .site-header { padding: 0 24px; }
+            .header-nav { display: none; }
+            .hero { grid-template-columns: 1fr; gap: 32px; padding: 48px 24px; }
+            .score-grid { grid-template-columns: repeat(3, 1fr); }
+            .platform-grid { grid-template-columns: 1fr; }
+            .platform-cell { border-right: none; border-bottom: 3px solid var(--black); }
+            .platform-cell:last-child { border-bottom: none; }
+            .section { padding: 48px 24px; }
+            .section-week, .section-month, .section-quarter { border-left: none; padding-left: 24px; }
+            .problem-item { grid-template-columns: 48px 1fr; gap: 16px; padding: 24px; }
+            .action-item { grid-template-columns: 40px 1fr; padding: 20px 24px; }
+            .action-time { display: none; }
+            .site-footer { flex-direction: column; padding: 32px 24px; }
+        }
+</style>
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="header-brand">Antek Automation — GEO Audit</div>
+        <nav class="header-nav">
+            <a href="#score">Score</a>
+            <a href="#platforms">Platforms</a>
+            <a href="#problems">Problems</a>
+            <a href='#week'>This week</a>
+            <a href='#month'>This month</a>
+            <a href='#quarter'>This quarter</a>
+        </nav>
+        <div class="header-score">62/100 — 12 April 2026</div>
+    </header>
+
+    <main>
+
+        <!-- ─── HERO ─── -->
+        <section class="hero" id="score">
+            <div class="hero-left">
+                <span class="label">antekautomation.com — 30 pages audited</span>
+                <h1>
+                    <span class="score-big">62</span>
+                    <span class="score-sub">out of 100</span>
+                </h1>
+            </div>
+            <div class="hero-right">
+                <p class="hero-verdict">Strong technical foundations. Brand authority is the bottleneck holding you back from AI search visibility.</p>
+                <div class="hero-body"><p>Your site scores 82/100 on both technical infrastructure and schema markup — significantly ahead of most agencies your size. SSR on Vercel, 20 JSON-LD blocks, all AI crawlers allowed, llms.txt with full companion file. The engineering is done right.</p><p>The problem is entity recognition. At 28/100 for brand authority, AI models can technically crawl your site but don&#x27;t know who you are. No Wikipedia. YouTube has 6 subscribers. LinkedIn has 1 follower. When someone asks &#x27;best AI automation in Hampshire,&#x27; UiPath and Zapier answer instead of you.</p><p>The fix is specific and achievable: create a Wikidata entry, fix your GBP categories, launch a blog, get 10+ reviews on Trustpilot, and start publishing on YouTube. Your technical foundation means these changes will convert into visibility fast. Projected score after one month of action: 75/100.</p></div>
+            </div>
+        </section>
+
+        <!-- ─── CATEGORY SCORES ─── -->
+        <div class="score-grid" id="categories">
+            
+        <div class="score-cell">
+            <span class="cell-label">AI Citability</span>
+            <div class="cell-number">62<span class="cell-denom">/100</span></div>
+            <div class="cell-bar"><div class="cell-bar-fill" style="width:62%"></div></div>
+        </div>
+        <div class="score-cell critical">
+            <span class="cell-label">Brand Authority</span>
+            <div class="cell-number">28<span class="cell-denom">/100</span></div>
+            <div class="cell-bar"><div class="cell-bar-fill" style="width:28%"></div></div>
+        </div>
+        <div class="score-cell">
+            <span class="cell-label">Content E-E-A-T</span>
+            <div class="cell-number">72<span class="cell-denom">/100</span></div>
+            <div class="cell-bar"><div class="cell-bar-fill" style="width:72%"></div></div>
+        </div>
+        <div class="score-cell">
+            <span class="cell-label">Technical GEO</span>
+            <div class="cell-number">82<span class="cell-denom">/100</span></div>
+            <div class="cell-bar"><div class="cell-bar-fill" style="width:82%"></div></div>
+        </div>
+        <div class="score-cell">
+            <span class="cell-label">Schema &amp; Structured Data</span>
+            <div class="cell-number">82<span class="cell-denom">/100</span></div>
+            <div class="cell-bar"><div class="cell-bar-fill" style="width:82%"></div></div>
+        </div>
+        <div class="score-cell">
+            <span class="cell-label">Platform Optimization</span>
+            <div class="cell-number">64<span class="cell-denom">/100</span></div>
+            <div class="cell-bar"><div class="cell-bar-fill" style="width:64%"></div></div>
+        </div>
+        </div>
+
+        <!-- ─── PLATFORM SCORES ─── -->
+        <section class="section" id="platforms">
+            <span class="label">Where each AI platform scores you</span>
+            <h2>platform by platform</h2>
+            <p class="section-intro">All nine platforms are looking for the same signals. Here is how you score on each.</p>
+            <div class="platform-grid">
+                
+                <div class="platform-cell">
+                    <span class="platform-name">Google AI Overviews</span>
+                    <div class="platform-score">74</div>
+                    <div class="platform-bar"><div class="platform-bar-fill" style="width:74%"></div></div>
+                </div>
+                <div class="platform-cell">
+                    <span class="platform-name">ChatGPT Web Search</span>
+                    <div class="platform-score">62</div>
+                    <div class="platform-bar"><div class="platform-bar-fill" style="width:62%"></div></div>
+                </div>
+                <div class="platform-cell">
+                    <span class="platform-name">Perplexity AI</span>
+                    <div class="platform-score">55</div>
+                    <div class="platform-bar"><div class="platform-bar-fill" style="width:55%"></div></div>
+                </div>
+                <div class="platform-cell">
+                    <span class="platform-name">Google Gemini</span>
+                    <div class="platform-score">72</div>
+                    <div class="platform-bar"><div class="platform-bar-fill" style="width:72%"></div></div>
+                </div>
+                <div class="platform-cell">
+                    <span class="platform-name">Bing Copilot</span>
+                    <div class="platform-score">54</div>
+                    <div class="platform-bar"><div class="platform-bar-fill" style="width:54%"></div></div>
+                </div>
+                <div class="platform-cell">
+                    <span class="platform-name">Grok (xAI)</span>
+                    <div class="platform-score">58</div>
+                    <div class="platform-bar"><div class="platform-bar-fill" style="width:58%"></div></div>
+                </div>
+                <div class="platform-cell">
+                    <span class="platform-name">DeepSeek</span>
+                    <div class="platform-score">60</div>
+                    <div class="platform-bar"><div class="platform-bar-fill" style="width:60%"></div></div>
+                </div>
+                <div class="platform-cell">
+                    <span class="platform-name">Meta AI</span>
+                    <div class="platform-score">52</div>
+                    <div class="platform-bar"><div class="platform-bar-fill" style="width:52%"></div></div>
+                </div>
+                <div class="platform-cell">
+                    <span class="platform-name">Mistral (Le Chat)</span>
+                    <div class="platform-score">56</div>
+                    <div class="platform-bar"><div class="platform-bar-fill" style="width:56%"></div></div>
+                </div>
+            </div>
+            <div class="callout"><p>You score highest on Google platforms (AIO 74, Gemini 72) because your schema and technical setup align with Google&#x27;s extraction patterns. Perplexity (55) and Meta AI (52) are weakest — Perplexity weights Reddit presence heavily and you have none; Meta AI relies on its own ecosystem where you&#x27;re barely active.</p></div>
+        </section>
+
+        <!-- ─── KEY PROBLEMS ─── -->
+        <section class="section" id="problems">
+            <span class="label">What's actually broken</span>
+            <h2>the problems</h2>
+            <p class="section-intro">2 critical. 4 high priority. Here is what matters most.</p>
+            <div class="problem-list">
+                
+                <div class="problem-item is-critical">
+                    <div class="problem-num">01</div>
+                    <div class="problem-content">
+                        <h3>No Wikipedia or Wikidata presence</h3>
+                        <p>The single strongest signal for AI entity recognition is absent. All 9 AI platforms use Wikipedia/Wikidata for entity verification. Without it, AI models lack confidence that Antek Automation is a real, notable entity.</p>
+                    </div>
+                </div>
+                <div class="problem-item is-critical">
+                    <div class="problem-num">02</div>
+                    <div class="problem-content">
+                        <h3>Brand authority at 28/100 — near-invisible entity footprint</h3>
+                        <p>YouTube (6 subscribers), LinkedIn (1 follower), Reddit (negligible), no Trustpilot, no G2. Your technical infrastructure is excellent but AI models can&#x27;t verify who you are through third-party signals.</p>
+                    </div>
+                </div>
+                <div class="problem-item">
+                    <div class="problem-num">03</div>
+                    <div class="problem-content">
+                        <h3>Google Business Profile categories are wrong</h3>
+                        <p>Listed as &#x27;manufacturer&#x27; and &#x27;telecommunications_service_provider&#x27; instead of AI consultant or business automation service. GBP feeds directly into Gemini — wrong categories mean wrong query matching.</p>
+                    </div>
+                </div>
+                <div class="problem-item">
+                    <div class="problem-num">04</div>
+                    <div class="problem-content">
+                        <h3>No blog or resource content</h3>
+                        <p>Zero articles, guides, or educational content. This limits topical authority, freshness signals, and citability surfaces across all platforms.</p>
+                    </div>
+                </div>
+                <div class="problem-item">
+                    <div class="problem-num">05</div>
+                    <div class="problem-content">
+                        <h3>No IndexNow support</h3>
+                        <p>Bing Copilot and ChatGPT cannot discover content changes efficiently. A 30-minute fix on Vercel that immediately improves two platform scores.</p>
+                    </div>
+                </div>
+                <div class="problem-item">
+                    <div class="problem-num">06</div>
+                    <div class="problem-content">
+                        <h3>Missing Content-Security-Policy header</h3>
+                        <p>The most significant missing security header. Required for enterprise client trust. Configurable via vercel.json.</p>
+                    </div>
+                </div>
+                <div class="problem-item">
+                    <div class="problem-num">07</div>
+                    <div class="problem-content">
+                        <h3>Founder bio lacks substantiation</h3>
+                        <p>&#x27;30+ years in technology&#x27; is stated but not evidenced with specific roles, companies, or achievements. Detailed career history would significantly boost expertise signals.</p>
+                    </div>
+                </div>
+                <div class="problem-item">
+                    <div class="problem-num">08</div>
+                    <div class="problem-content">
+                        <h3>Only one detailed case study visible</h3>
+                        <p>The Deccan Grill case study is excellent. Adding 2-3 more across trades, finance, and operations would demonstrate breadth of experience.</p>
+                    </div>
+                </div>
+                <div class="problem-item">
+                    <div class="problem-num">09</div>
+                    <div class="problem-content">
+                        <h3>Organization schema missing recommended properties</h3>
+                        <p>No description, email, contactPoint, openingHoursSpecification, or priceRange on the LocalBusiness entity. Easy additions for rich result eligibility.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        
+        <!-- ─── THIS WEEK ─── -->
+        <section class="section section-week" id="week">
+            <span class="label">Quick wins — implement this week</span>
+            <h2>this week</h2>
+            <p class="section-intro">High impact, low effort. None of these require a developer.</p>
+            <div class="action-list">
+                <div class="action-item">
+                    <div class="action-num">01</div>
+                    <div class="action-content">
+                        <h3>Fix GBP categories to &#x27;AI consultant&#x27; / &#x27;software company&#x27;</h3>
+                        <p>Wrong categories mean Gemini matches you to wrong queries. 15-minute fix with immediate impact.</p>
+                    </div>
+                    <div class="action-time">15 min</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">02</div>
+                    <div class="action-content">
+                        <h3>Add missing Organization schema properties</h3>
+                        <p>Add description, email, contactPoint, openingHours, priceRange to LocalBusiness JSON-LD.</p>
+                    </div>
+                    <div class="action-time">30 min</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">03</div>
+                    <div class="action-content">
+                        <h3>Add image and knowsAbout to Person schema</h3>
+                        <p>Tells AI models what Andy Norman is an authority on. Missing author photo weakens trust.</p>
+                    </div>
+                    <div class="action-time">20 min</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">04</div>
+                    <div class="action-content">
+                        <h3>Implement IndexNow on Vercel</h3>
+                        <p>Notify Bing of content changes in real-time. Submit key file and configure API ping on publish.</p>
+                    </div>
+                    <div class="action-time">30 min</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">05</div>
+                    <div class="action-content">
+                        <h3>Add Content-Security-Policy header</h3>
+                        <p>Configure via vercel.json. Start with report-only mode to identify violations.</p>
+                    </div>
+                    <div class="action-time">30 min</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">06</div>
+                    <div class="action-content">
+                        <h3>Add speakable markup to About page</h3>
+                        <p>Only page of the 4 analyzed that lacks it. Consistency strengthens AI-readability.</p>
+                    </div>
+                    <div class="action-time">10 min</div>
+                </div></div>
+        </section>
+        
+        <!-- ─── THIS MONTH ─── -->
+        <section class="section section-month" id="month">
+            <span class="label">30-day actions — schema and infrastructure</span>
+            <h2>this month</h2>
+            <p class="section-intro">These are the changes that move your score into the 60s and beyond.</p>
+            <div class="action-list">
+                <div class="action-item">
+                    <div class="action-num">01</div>
+                    <div class="action-content">
+                        <h3>Create Wikidata entry for Antek Automation</h3>
+                        <p>Instance of: company, industry: AI, location: Andover, founder: Andy Norman. Then add sameAs link to schema. The single highest-impact entity action.</p>
+                    </div>
+                    <div class="action-time">1-2 hrs</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">02</div>
+                    <div class="action-content">
+                        <h3>Add 2-3 detailed case studies with metrics</h3>
+                        <p>Cover trades (electrician/plumber), finance, and operations. Before/after data, named clients, timeframes.</p>
+                    </div>
+                    <div class="action-time">3-4 hrs</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">03</div>
+                    <div class="action-content">
+                        <h3>Write detailed founder bio with career milestones</h3>
+                        <p>Substantiate &#x27;30+ years&#x27; with specific roles, companies, and achievements. Link LinkedIn prominently.</p>
+                    </div>
+                    <div class="action-time">1 hr</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">04</div>
+                    <div class="action-content">
+                        <h3>Launch blog with 4 articles</h3>
+                        <p>Topics: How AI receptionists work, Cost of missed calls for UK trades, AI voice agent comparison guide, GEO explainer.</p>
+                    </div>
+                    <div class="action-time">2 days</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">05</div>
+                    <div class="action-content">
+                        <h3>Set up Trustpilot and G2 profiles with 10+ reviews</h3>
+                        <p>Request reviews from existing clients. AI models weight third-party review signals heavily.</p>
+                    </div>
+                    <div class="action-time">2-3 hrs</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">06</div>
+                    <div class="action-content">
+                        <h3>Publish 5+ YouTube videos with chapters and transcripts</h3>
+                        <p>Demo calls, setup walkthroughs, industry explainers. YouTube has 0.737 correlation with AI citations — the strongest signal.</p>
+                    </div>
+                    <div class="action-time">1 week</div>
+                </div></div>
+        </section>
+        
+        <!-- ─── THIS QUARTER ─── -->
+        <section class="section section-quarter" id="quarter">
+            <span class="label">Strategic initiatives — 60–90 days</span>
+            <h2>this quarter</h2>
+            <p class="section-intro">Longer-term but highest-lasting impact on AI visibility.</p>
+            <div class="action-list">
+                <div class="action-item">
+                    <div class="action-num">01</div>
+                    <div class="action-content">
+                        <h3>Build authentic Reddit presence</h3>
+                        <p>Participate in r/smallbusiness, r/automation, r/UKBusiness with genuine value-add. No self-promotion. Over time, organic mentions build citation signals. Critical for Perplexity.</p>
+                    </div>
+                    <div class="action-time">Ongoing</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">02</div>
+                    <div class="action-content">
+                        <h3>Grow LinkedIn to 500+ followers</h3>
+                        <p>Weekly thought leadership posts, cross-post YouTube content as native video, tag company page.</p>
+                    </div>
+                    <div class="action-time">Ongoing</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">03</div>
+                    <div class="action-content">
+                        <h3>Seek trade publication features and press mentions</h3>
+                        <p>Local Hampshire press, AI industry publications, small business media. Builds notability for Wikipedia.</p>
+                    </div>
+                    <div class="action-time">Ongoing</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">04</div>
+                    <div class="action-content">
+                        <h3>Activate Meta ecosystem</h3>
+                        <p>Regular Facebook and Instagram content, community group participation. Required for Meta AI visibility.</p>
+                    </div>
+                    <div class="action-time">Ongoing</div>
+                </div>
+                <div class="action-item">
+                    <div class="action-num">05</div>
+                    <div class="action-content">
+                        <h3>Pursue Wikipedia article</h3>
+                        <p>Once notability criteria met (press coverage, reviews, third-party sources). Would add 15+ points to Brand Authority.</p>
+                    </div>
+                    <div class="action-time">3+ months</div>
+                </div></div>
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+        <span>GEO SLAB by Antek Automation — antekautomation.com</span>
+        <span>https://www.antekautomation.com — 12 April 2026</span>
+        <span>Confidential</span>
+    </footer>
+
+</body>
+</html>

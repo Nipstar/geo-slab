@@ -1,0 +1,171 @@
+{
+  "url": "https://www.antekautomation.com",
+  "brand_name": "Antek Automation",
+  "date": "12 April 2026",
+  "geo_score": 62,
+  "pages_audited": 30,
+  "verdict": "Strong technical foundations. Brand authority is the bottleneck holding you back from AI search visibility.",
+  "summary": [
+    "Your site scores 82/100 on both technical infrastructure and schema markup \u2014 significantly ahead of most agencies your size. SSR on Vercel, 20 JSON-LD blocks, all AI crawlers allowed, llms.txt with full companion file. The engineering is done right.",
+    "The problem is entity recognition. At 28/100 for brand authority, AI models can technically crawl your site but don't know who you are. No Wikipedia. YouTube has 6 subscribers. LinkedIn has 1 follower. When someone asks 'best AI automation in Hampshire,' UiPath and Zapier answer instead of you.",
+    "The fix is specific and achievable: create a Wikidata entry, fix your GBP categories, launch a blog, get 10+ reviews on Trustpilot, and start publishing on YouTube. Your technical foundation means these changes will convert into visibility fast. Projected score after one month of action: 75/100."
+  ],
+  "scores": {
+    "AI Citability": 62,
+    "Brand Authority": 28,
+    "Content E-E-A-T": 72,
+    "Technical GEO": 82,
+    "Schema & Structured Data": 82,
+    "Platform Optimization": 64
+  },
+  "platforms": {
+    "Google AI Overviews": 74,
+    "ChatGPT Web Search": 62,
+    "Perplexity AI": 55,
+    "Google Gemini": 72,
+    "Bing Copilot": 54,
+    "Grok (xAI)": 58,
+    "DeepSeek": 60,
+    "Meta AI": 52,
+    "Mistral (Le Chat)": 56
+  },
+  "platform_callout": "You score highest on Google platforms (AIO 74, Gemini 72) because your schema and technical setup align with Google's extraction patterns. Perplexity (55) and Meta AI (52) are weakest \u2014 Perplexity weights Reddit presence heavily and you have none; Meta AI relies on its own ecosystem where you're barely active.",
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "title": "No Wikipedia or Wikidata presence",
+      "description": "The single strongest signal for AI entity recognition is absent. All 9 AI platforms use Wikipedia/Wikidata for entity verification. Without it, AI models lack confidence that Antek Automation is a real, notable entity."
+    },
+    {
+      "severity": "CRITICAL",
+      "title": "Brand authority at 28/100 \u2014 near-invisible entity footprint",
+      "description": "YouTube (6 subscribers), LinkedIn (1 follower), Reddit (negligible), no Trustpilot, no G2. Your technical infrastructure is excellent but AI models can't verify who you are through third-party signals."
+    },
+    {
+      "severity": "HIGH",
+      "title": "Google Business Profile categories are wrong",
+      "description": "Listed as 'manufacturer' and 'telecommunications_service_provider' instead of AI consultant or business automation service. GBP feeds directly into Gemini \u2014 wrong categories mean wrong query matching."
+    },
+    {
+      "severity": "HIGH",
+      "title": "No blog or resource content",
+      "description": "Zero articles, guides, or educational content. This limits topical authority, freshness signals, and citability surfaces across all platforms."
+    },
+    {
+      "severity": "HIGH",
+      "title": "No IndexNow support",
+      "description": "Bing Copilot and ChatGPT cannot discover content changes efficiently. A 30-minute fix on Vercel that immediately improves two platform scores."
+    },
+    {
+      "severity": "HIGH",
+      "title": "Missing Content-Security-Policy header",
+      "description": "The most significant missing security header. Required for enterprise client trust. Configurable via vercel.json."
+    },
+    {
+      "severity": "MEDIUM",
+      "title": "Founder bio lacks substantiation",
+      "description": "'30+ years in technology' is stated but not evidenced with specific roles, companies, or achievements. Detailed career history would significantly boost expertise signals."
+    },
+    {
+      "severity": "MEDIUM",
+      "title": "Only one detailed case study visible",
+      "description": "The Deccan Grill case study is excellent. Adding 2-3 more across trades, finance, and operations would demonstrate breadth of experience."
+    },
+    {
+      "severity": "MEDIUM",
+      "title": "Organization schema missing recommended properties",
+      "description": "No description, email, contactPoint, openingHoursSpecification, or priceRange on the LocalBusiness entity. Easy additions for rich result eligibility."
+    }
+  ],
+  "quick_wins": [
+    {
+      "title": "Fix GBP categories to 'AI consultant' / 'software company'",
+      "description": "Wrong categories mean Gemini matches you to wrong queries. 15-minute fix with immediate impact.",
+      "time": "15 min"
+    },
+    {
+      "title": "Add missing Organization schema properties",
+      "description": "Add description, email, contactPoint, openingHours, priceRange to LocalBusiness JSON-LD.",
+      "time": "30 min"
+    },
+    {
+      "title": "Add image and knowsAbout to Person schema",
+      "description": "Tells AI models what Andy Norman is an authority on. Missing author photo weakens trust.",
+      "time": "20 min"
+    },
+    {
+      "title": "Implement IndexNow on Vercel",
+      "description": "Notify Bing of content changes in real-time. Submit key file and configure API ping on publish.",
+      "time": "30 min"
+    },
+    {
+      "title": "Add Content-Security-Policy header",
+      "description": "Configure via vercel.json. Start with report-only mode to identify violations.",
+      "time": "30 min"
+    },
+    {
+      "title": "Add speakable markup to About page",
+      "description": "Only page of the 4 analyzed that lacks it. Consistency strengthens AI-readability.",
+      "time": "10 min"
+    }
+  ],
+  "medium_term": [
+    {
+      "title": "Create Wikidata entry for Antek Automation",
+      "description": "Instance of: company, industry: AI, location: Andover, founder: Andy Norman. Then add sameAs link to schema. The single highest-impact entity action.",
+      "time": "1-2 hrs"
+    },
+    {
+      "title": "Add 2-3 detailed case studies with metrics",
+      "description": "Cover trades (electrician/plumber), finance, and operations. Before/after data, named clients, timeframes.",
+      "time": "3-4 hrs"
+    },
+    {
+      "title": "Write detailed founder bio with career milestones",
+      "description": "Substantiate '30+ years' with specific roles, companies, and achievements. Link LinkedIn prominently.",
+      "time": "1 hr"
+    },
+    {
+      "title": "Launch blog with 4 articles",
+      "description": "Topics: How AI receptionists work, Cost of missed calls for UK trades, AI voice agent comparison guide, GEO explainer.",
+      "time": "2 days"
+    },
+    {
+      "title": "Set up Trustpilot and G2 profiles with 10+ reviews",
+      "description": "Request reviews from existing clients. AI models weight third-party review signals heavily.",
+      "time": "2-3 hrs"
+    },
+    {
+      "title": "Publish 5+ YouTube videos with chapters and transcripts",
+      "description": "Demo calls, setup walkthroughs, industry explainers. YouTube has 0.737 correlation with AI citations \u2014 the strongest signal.",
+      "time": "1 week"
+    }
+  ],
+  "strategic": [
+    {
+      "title": "Build authentic Reddit presence",
+      "description": "Participate in r/smallbusiness, r/automation, r/UKBusiness with genuine value-add. No self-promotion. Over time, organic mentions build citation signals. Critical for Perplexity.",
+      "time": "Ongoing"
+    },
+    {
+      "title": "Grow LinkedIn to 500+ followers",
+      "description": "Weekly thought leadership posts, cross-post YouTube content as native video, tag company page.",
+      "time": "Ongoing"
+    },
+    {
+      "title": "Seek trade publication features and press mentions",
+      "description": "Local Hampshire press, AI industry publications, small business media. Builds notability for Wikipedia.",
+      "time": "Ongoing"
+    },
+    {
+      "title": "Activate Meta ecosystem",
+      "description": "Regular Facebook and Instagram content, community group participation. Required for Meta AI visibility.",
+      "time": "Ongoing"
+    },
+    {
+      "title": "Pursue Wikipedia article",
+      "description": "Once notability criteria met (press coverage, reviews, third-party sources). Would add 15+ points to Brand Authority.",
+      "time": "3+ months"
+    }
+  ]
+}

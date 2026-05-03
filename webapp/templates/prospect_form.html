@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edit {{ p.company }}{% else %}New Prospect{% endif %} — {{ brand_name }}{% endblock %}
+
+{% block content %}
+
+<nav class="breadcrumb">
+  <a href="{{ url_for('dashboard') }}">Dashboard</a>
+  {% if mode == 'edit' %} / <a href="{{ url_for('prospect_detail', pid=p.id) }}">{{ p.company }}</a> / Edit
+  {% else %} / New Prospect
+  {% endif %}
+</nav>
+
+<h1>{% if mode == 'edit' %}Edit Prospect{% else %}New Prospect{% endif %}</h1>
+
+<form method="post" class="card" style="max-width:840px;">
+  <div class="form-grid">
+    <div>
+      <label for="company">Company *</label>
+      <input id="company" name="company" type="text" value="{{ p.company or '' }}" required>
+    </div>
+    <div>
+      <label for="domain">Domain *</label>
+      <input id="domain" name="domain" type="text" value="{{ p.domain or '' }}" placeholder="example.com" required>
+    </div>
+
+    <div>
+      <label for="contact_name">Contact name</label>
+      <input id="contact_name" name="contact_name" type="text" value="{{ p.contact_name or '' }}">
+    </div>
+    <div>
+      <label for="contact_email">Contact email</label>
+      <input id="contact_email" name="contact_email" type="email" value="{{ p.contact_email or '' }}">
+    </div>
+
+    <div>
+      <label for="industry">Industry</label>
+      <input id="industry" name="industry" type="text" value="{{ p.industry or '' }}">
+    </div>
+    <div>
+      <label for="country">Country</label>
+      <input id="country" name="country" type="text" value="{{ p.country or '' }}" placeholder="UK">
+    </div>
+
+    <div>
+      <label for="status">Status</label>
+      <select id="status" name="status">
+        {% for s in statuses %}
+          {% set m = s | status_meta %}
+          <option value="{{ s }}" {% if s == p.status %}selected{% endif %}>{{ m.icon }} {{ m.label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="geo_score">GEO Score (0-100)</label>
+      <input id="geo_score" name="geo_score" type="number" min="0" max="100" value="{{ p.geo_score or 0 }}">
+    </div>
+
+    <div>
+      <label for="audit_date">Audit date</label>
+      <input id="audit_date" name="audit_date" type="date" value="{{ p.audit_date or '' }}">
+    </div>
+    <div>
+      <label for="monthly_value">MRR (£)</label>
+      <input id="monthly_value" name="monthly_value" type="number" min="0" value="{{ p.monthly_value or 0 }}">
+    </div>
+
+    <div>
+      <label for="contract_start">Contract start</label>
+      <input id="contract_start" name="contract_start" type="date" value="{{ p.contract_start or '' }}">
+    </div>
+    <div>
+      <label for="contract_months">Contract months</label>
+      <input id="contract_months" name="contract_months" type="number" min="1" value="{{ p.contract_months or 12 }}">
+    </div>
+
+    <div class="full">
+      <label for="audit_file">Audit file path (optional override — auto-discovery used otherwise)</label>
+      <input id="audit_file" name="audit_file" type="text" value="{{ p.audit_file or '' }}" placeholder="reports/<domain>/audit-data.json">
+    </div>
+    <div class="full">
+      <label for="report_html">Report HTML path (optional override)</label>
+      <input id="report_html" name="report_html" type="text" value="{{ p.report_html or '' }}">
+    </div>
+    <div class="full">
+      <label for="proposal_file">Proposal markdown path (optional override)</label>
+      <input id="proposal_file" name="proposal_file" type="text" value="{{ p.proposal_file or '' }}">
+    </div>
+  </div>
+
+  <div class="form-actions">
+    {% if mode == 'edit' %}
+      <a href="{{ url_for('prospect_detail', pid=p.id) }}" class="btn btn-ghost">Cancel</a>
+    {% else %}
+      <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">Cancel</a>
+    {% endif %}
+    <button type="submit" class="btn btn-primary">{% if mode == 'edit' %}Save Changes{% else %}Create Prospect{% endif %}</button>
+  </div>
+</form>
+
+{% endblock %}

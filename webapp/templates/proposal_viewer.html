@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Proposal — {{ p.company }} — {{ brand_name }}{% endblock %}
+
+{% block content %}
+
+<nav class="breadcrumb">
+  <a href="{{ url_for('dashboard') }}">Dashboard</a> /
+  <a href="{{ url_for('prospect_detail', pid=p.id) }}">{{ p.company }}</a> / Proposal
+</nav>
+
+<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
+  <div>
+    <h1>Proposal</h1>
+    <p class="text-mono muted">{{ proposal_path }}</p>
+  </div>
+  <a href="{{ url_for('prospect_detail', pid=p.id) }}" class="btn btn-ghost">← Back</a>
+</div>
+
+<div class="card proposal-body">
+  {{ body | safe }}
+</div>
+
+{% endblock %}

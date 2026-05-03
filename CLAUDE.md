@@ -80,8 +80,12 @@ For `/geo audit`, the orchestration is:
 | Layer | Location | Purpose |
 |-------|----------|---------|
 | Main skill | `geo/SKILL.md` | Entry point, command routing, orchestration logic |
-| Sub-skills (13) | `skills/geo-*/SKILL.md` | Specialized analysis components invoked by skill or agent |
+| Sub-skills (15) | `skills/geo-*/SKILL.md` | Specialized analysis components invoked by skill or agent |
 | Subagents (5+1) | `agents/geo-*.md` | Parallel workers that bundle related sub-skills |
+
+Sub-skills split into two roles:
+- **Parallel-audit skills** (run via subagents during `/geo audit`): geo-citability, geo-crawlers, geo-llmstxt, geo-brand-mentions, geo-platform-optimizer, geo-technical, geo-content, geo-schema, geo-live-visibility.
+- **Direct-call skills** (invoked from `geo/SKILL.md`, no subagent): geo-audit (orchestrator), geo-report, geo-report-pdf, geo-compare, geo-proposal, geo-prospect.
 
 ### Subagent → Sub-skill Mapping
 
@@ -97,7 +101,7 @@ For `/geo audit`, the orchestration is:
 ### Python Utilities
 
 All scripts in `scripts/` are standalone utilities the skills call via `Bash`:
-- `fetch_page.py` — HTTP fetching and HTML parsing (supports optional Firecrawl for JS-heavy sites)
+- `fetch_page.py` — HTTP fetching and HTML parsing. Auto-switches to Firecrawl when `FIRECRAWL_API_KEY` set (full JS rendering); falls back to `requests` + BeautifulSoup otherwise.
 - `citability_scorer.py` — Passage-level AI citation readiness scoring
 - `brand_scanner.py` — Brand mention detection across platforms
 - `llmstxt_generator.py` — llms.txt validation and generation
@@ -128,13 +132,17 @@ reports/
 | Command | Output |
 |---------|--------|
 | `/geo audit <url>` | `reports/<domain>/GEO-AUDIT-REPORT.md` |
+| `/geo quick <url>` | 60-second snapshot, console only (no file) |
+| `/geo report <url>` | `reports/<domain>/GEO-REPORT-<domain>.md` |
 | `/geo report-pdf <url>` | `reports/<domain>/GEO-REPORT-<domain>.html` + `.pdf` |
 | `/geo schema` | `reports/<domain>/GEO-SCHEMA-REPORT.md` + JSON-LD |
 | `/geo llmstxt` | `reports/<domain>/llms.txt` |
+| `/geo brands <url>` | `reports/<domain>/GEO-BRANDS-<domain>.md` |
+| `/geo content <url>` | `reports/<domain>/GEO-CONTENT-<domain>.md` |
 | `/geo compare <domain>` | `reports/<domain>/GEO-COMPARE-<domain>-<YYYY-MM>.md` |
 | `/geo proposal <domain>` | `reports/<domain>/GEO-PROPOSAL-<domain>.md` |
 | `/geo live <url>` | `reports/<domain>/live-visibility.json` |
-| Prospect/lite report | `reports/<domain>/GEO-PROSPECT-<domain>.html` + `.pdf` |
+| `/geo prospect <url>` (lite) | `reports/<domain>/GEO-PROSPECT-<domain>.html` + `.pdf` |
 
 Always pass the output path explicitly to the report scripts:
 ```bash
@@ -148,6 +156,12 @@ python3 scripts/generate_prospect_report.py --data data.json --output reports/<d
 ```
 GEO_Score = (Citability × 0.25) + (Brand × 0.20) + (EEAT × 0.20) + (Technical × 0.15) + (Schema × 0.10) + (Platform × 0.10)
 ```
+
+## Scoring Heuristics (when tuning)
+
+- **Citability passages**: optimal 134–167 words, self-contained, fact-rich, directly answer question. `citability_scorer.py` thresholds tuned around this band — change with care.
+- **AI crawlers checked**: `geo-crawlers` / `fetch_page.py` parse robots.txt for 14+ bots — GPTBot, ClaudeBot, PerplexityBot, Google-Extended, FacebookBot, Applebot-Extended, Bytespider, CCBot, etc. Add new bots to crawler list when vendors publish UAs.
+- **Prospect (lite) flow**: `/geo prospect` → `geo-prospect` skill → `generate_prospect_report.py --pdf`. Distinct from `/geo audit` — lighter data, top-of-funnel client deliverable, no parallel subagents.
 
 ## Adding a New Sub-Skill
 

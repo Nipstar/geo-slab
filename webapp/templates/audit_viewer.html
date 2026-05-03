@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Audit — {{ p.company }} — {{ brand_name }}{% endblock %}
+
+{% block content %}
+
+<nav class="breadcrumb">
+  <a href="{{ url_for('dashboard') }}">Dashboard</a> /
+  <a href="{{ url_for('prospect_detail', pid=p.id) }}">{{ p.company }}</a> / Audit
+</nav>
+
+<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
+  <div>
+    <h1>Audit Data</h1>
+    <p class="text-mono muted">{{ audit_path }}</p>
+  </div>
+  {% set tier = audit.geo_score | score_tier %}
+  <div class="score-circle tier-{{ tier }}" style="width:100px;height:100px;border-width:4px;">
+    <span class="big" style="font-size:38px;">{{ audit.geo_score }}</span>
+    <span class="sub">/100</span>
+  </div>
+</div>
+
+{% if audit.verdict %}
+<div class="card">
+  <h4>Verdict</h4>
+  <p style="font-size:18px;line-height:1.55;">{{ audit.verdict }}</p>
+</div>
+{% endif %}
+
+{% if audit.scores %}
+<div class="card">
+  <h4>Category Scores</h4>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">
+    {% for name, value in audit.scores.items() %}
+      {% set t = value | score_tier %}
+      <div style="border:2px solid var(--charcoal);background:var(--cream);padding:14px;">
+        <div class="text-mono" style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;opacity:0.65;margin-bottom:4px;">{{ name }}</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;line-height:1;">{{ value }}<span style="font-size:14px;font-weight:400;opacity:0.5;">/100</span></div>
+        <div class="score-bar-wrap tier-{{ t }}" style="margin-top:10px;min-width:0;">
+          <div class="score-bar"><div class="score-bar-fill" style="width:{{ value }}%"></div></div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if audit.platforms %}
+<div class="card">
+  <h4>Platform Readiness</h4>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+    {% for name, value in audit.platforms.items() %}
+      {% set t = value | score_tier %}
+      <div style="border:2px solid var(--charcoal);padding:12px;">
+        <div class="text-mono" style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">{{ name }}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <div class="score-bar" style="flex:1;"><div class="score-bar-fill tier-{{ t }}" style="width:{{ value }}%;background:{% if t == 'good' %}var(--sage){% elif t == 'moderate' %}var(--mustard){% else %}var(--coral){% endif %}"></div></div>
+          <span class="text-mono" style="font-size:13px;font-weight:600;">{{ value }}</span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if audit.findings %}
+<div class="card audit-findings">
+  <h4>Key Findings ({{ audit.findings | length }})</h4>
+  {% for f in audit.findings %}
+    <div class="finding {{ (f.severity or '') | lower }}">
+      <div class="severity">{{ f.severity }}</div>
+      <div class="finding-title">{{ f.title }}</div>
+      <p>{{ f.description }}</p>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if audit.summary %}
+<div class="card">
+  <h4>Summary</h4>
+  {% for para in audit.summary %}
+    <p style="margin-bottom:14px;line-height:1.65;">{{ para }}</p>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div style="margin-top:24px;">
+  <a href="{{ url_for('prospect_detail', pid=p.id) }}" class="btn btn-ghost">← Back to {{ p.company }}</a>
+</div>
+
+{% endblock %}

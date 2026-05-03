@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — {{ brand_name }}{% endblock %}
+
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
+  <div>
+    <h1>Prospects</h1>
+    <p class="text-mono muted">CRM for GEO audits, proposals, and active retainers.</p>
+  </div>
+  <div>
+    <a href="{{ url_for('prospect_new') }}" class="btn btn-primary">+ New Prospect</a>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-value">{{ stats.total }}</div>
+    <div class="kpi-label">Prospects</div>
+  </div>
+  <div class="kpi-card sage">
+    <div class="kpi-value">{{ stats.active }}</div>
+    <div class="kpi-label">Active Clients</div>
+  </div>
+  <div class="kpi-card coral">
+    <div class="kpi-value">{{ stats.mrr }}</div>
+    <div class="kpi-label">MRR</div>
+  </div>
+  <div class="kpi-card mustard">
+    <div class="kpi-value">{{ stats.pipeline }}</div>
+    <div class="kpi-label">Pipeline</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value tier-{{ stats.avg_tier }} score-num" style="font-family:'Barlow Condensed';font-size:44px;font-weight:900;">
+      {{ stats.avg_score }}<span class="denom">/100</span>
+    </div>
+    <div class="kpi-label">Avg GEO Score</div>
+  </div>
+</div>
+
+<div class="pill-row">
+  <span class="label-mono">Status:</span>
+  <a href="{{ url_for('dashboard') }}" class="pill {% if not status_filter %}active{% endif %}">All</a>
+  {% for s in statuses %}
+    {% set meta = s | status_meta %}
+    <a href="{{ url_for('dashboard', status=s, sort=sort) }}" class="pill {% if status_filter == s %}active{% endif %}">{{ meta.icon }} {{ meta.label }}</a>
+  {% endfor %}
+  <span class="pill-spacer"></span>
+  <span class="label-mono">Sort:</span>
+  <a href="{{ url_for('dashboard', status=status_filter, sort='score') }}" class="pill {% if sort == 'score' %}active{% endif %}">Score</a>
+  <a href="{{ url_for('dashboard', status=status_filter, sort='company') }}" class="pill {% if sort == 'company' %}active{% endif %}">Company</a>
+  <a href="{{ url_for('dashboard', status=status_filter, sort='mrr') }}" class="pill {% if sort == 'mrr' %}active{% endif %}">MRR</a>
+  <a href="{{ url_for('dashboard', status=status_filter, sort='updated') }}" class="pill {% if sort == 'updated' %}active{% endif %}">Updated</a>
+</div>
+
+{% if prospects %}
+<table class="prospect-table">
+  <thead>
+    <tr>
+      <th>Company</th>
+      <th>Domain</th>
+      <th>Status</th>
+      <th>GEO Score</th>
+      <th>Audit</th>
+      <th class="text-right">MRR</th>
+      <th class="col-actions">Open</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in prospects %}
+      {% set meta = p.status | status_meta %}
+      {% set tier = p.geo_score | score_tier %}
+      <tr onclick="location.href='{{ url_for('prospect_detail', pid=p.id) }}'" class="tier-{{ tier }}">
+        <td class="col-company">{{ p.company }}</td>
+        <td class="col-domain">{{ p.domain }}</td>
+        <td><span class="badge-status tier-{{ meta.tier }}">{{ meta.icon }} {{ meta.label }}</span></td>
+        <td>
+          <div class="score-bar-wrap tier-{{ tier }}">
+            <div class="score-bar"><div class="score-bar-fill" style="width:{{ p.geo_score or 0 }}%"></div></div>
+            <span class="score-num">{{ p.geo_score or 0 }}/100</span>
+          </div>
+        </td>
+        <td class="text-mono muted">{{ p.audit_date or '—' }}</td>
+        <td class="col-mrr">{{ p.monthly_value | format_gbp }}</td>
+        <td class="col-actions" onclick="event.stopPropagation()">
+          <a href="{{ url_for('prospect_detail', pid=p.id) }}" class="btn btn-sm btn-ghost">View →</a>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+  <div class="big">No prospects yet</div>
+  <p class="muted">Add your first prospect to start tracking audits, proposals, and active retainers.</p>
+  <div class="spacer-sm"></div>
+  <a href="{{ url_for('prospect_new') }}" class="btn btn-primary">+ New Prospect</a>
+  {% if status_filter %}
+    <p class="text-mono muted" style="margin-top:16px;">
+      Filter active: <code>{{ status_filter }}</code> — <a href="{{ url_for('dashboard') }}">clear</a>
+    </p>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

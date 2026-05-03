@@ -39,6 +39,8 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 | `/geo proposal <domain>` | Auto-generate client GEO service proposal from audit data |
 | `/geo live <url>` | Live AI visibility test — query ChatGPT, Claude, Gemini, Perplexity directly |
 | `/geo quick <url>` | 60-second GEO visibility snapshot |
+| `/geo prospect <url>` | Lite prospect deliverable — top problems, no fixes, full-audit CTA |
+| `/geo dashboard` | Launch browser CRM at http://localhost:5050 |
 
 ---
 
@@ -123,7 +125,7 @@ Adjust recommendations based on detected type. Local businesses need LocalBusine
 
 ---
 
-## Sub-Skills (13 Specialized Components)
+## Sub-Skills (16 Specialized Components)
 
 | # | Skill | Directory | Purpose |
 |---|-------|-----------|---------|
@@ -137,9 +139,12 @@ Adjust recommendations based on detected type. Local businesses need LocalBusine
 | 8 | geo-technical | `skills/geo-technical/` | Technical SEO foundations |
 | 9 | geo-content | `skills/geo-content/` | Content quality and E-E-A-T |
 | 10 | geo-report | `skills/geo-report/` | Client-ready deliverable generation |
-| 11 | geo-compare | `skills/geo-compare/` | Monthly delta tracking and progress reports |
-| 12 | geo-proposal | `skills/geo-proposal/` | Auto-generate client service proposals |
-| 13 | geo-live-visibility | `skills/geo-live-visibility/` | Live AI brand visibility testing |
+| 11 | geo-report-pdf | `skills/geo-report-pdf/` | Neo brutalist HTML + Playwright PDF report |
+| 12 | geo-compare | `skills/geo-compare/` | Monthly delta tracking and progress reports |
+| 13 | geo-proposal | `skills/geo-proposal/` | Auto-generate client service proposals |
+| 14 | geo-live-visibility | `skills/geo-live-visibility/` | Live AI brand visibility testing |
+| 15 | geo-prospect | `skills/geo-prospect/` | Lite prospect deliverable for cold outreach |
+| 16 | geo-dashboard | `skills/geo-dashboard/` | Launch the Flask web dashboard / CRM |
 
 ---
 

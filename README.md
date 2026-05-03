@@ -217,6 +217,34 @@ export FIRECRAWL_API_KEY="fc-..."
 
 ---
 
+## Documentation
+
+Deeper technical reference lives in [`docs/`](docs/):
+
+- [`docs/architecture.md`](docs/architecture.md) — system design, audit flow, parallel agent orchestration
+- [`docs/scoring-methodology.md`](docs/scoring-methodology.md) — composite GEO Score formula, per-category weightings
+- [`docs/skills-and-agents.md`](docs/skills-and-agents.md) — full inventory of skills, agents, scripts, schemas
+- [`docs/commands-reference.md`](docs/commands-reference.md) — every `/geo` slash command
+
+## Web Dashboard
+
+GEO SLAB ships with a browser CRM for managing prospects, notes, and audit artifacts. Vanilla Flask + HTMX, neo brutalist palette to match the report PDFs.
+
+```bash
+cd webapp && pip install -r requirements-webapp.txt && python app.py
+# → http://localhost:5050
+```
+
+Or invoke `/geo dashboard` inside Claude Code for launch instructions. The dashboard auto-discovers existing audit artifacts under `reports/<domain>/` and persists prospects to `~/.geo-slab/prospects.json`.
+
+See [`webapp/README.md`](webapp/README.md) for routes and data model.
+
+## Examples
+
+Sample audit JSON, HTML report, and PDF live in [`examples/`](examples/) for testing report renderers and showing prospects what a finished deliverable looks like.
+
+---
+
 ## License
 
 MIT License
