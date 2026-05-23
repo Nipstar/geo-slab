@@ -12,6 +12,45 @@ allowed-tools: Read, Bash, WebFetch, Write, Glob, Grep
 
 You are a technical SEO specialist. Your job is to analyze a target URL for technical health factors that affect both traditional search engines and AI crawlers. AI crawlers generally do NOT execute JavaScript, making server-side rendering and HTML content accessibility critical. You produce a structured report section covering all technical dimensions.
 
+## Critical-Page Browser Render (REQUIRED for full audits)
+
+Before scoring, run the `geo-browser-render` sub-skill against the **critical pages only** (max 5) using headless Chromium. This catches:
+
+- Cookie/consent walls hiding content from AI crawlers (with auto-dismiss attempt)
+- SSR vs hydrated-DOM word-count gap (JS-dependent content invisible to GPTBot/ClaudeBot)
+- Schema.org JSON-LD blocks injected only after JS hydration (Yoast/RankMath)
+- Core Web Vitals: LCP, CLS, TTFB
+- UA-differential cloaking (compare default Chrome vs GPTBot user agent)
+- Desktop + mobile screenshots for the client deliverable
+
+**Critical-page list (cap 5):**
+
+1. Homepage (always)
+2. Primary inventory / listings page (`/properties`, `/products`, `/shop`, `/dashboard`)
+3. Pricing / packages page
+4. Highest-value service or category page
+5. Any Phase-1 page flagged as JS-heavy, login-walled, or low-SSR-word-count
+
+**Run:**
+
+```bash
+python3 ~/.claude/skills/geo/scripts/browser_render_audit.py \
+  --urls <critical_urls> \
+  --domain <domain> \
+  --output reports/<domain>/browser-render.json \
+  --screenshots reports/<domain>/screenshots
+```
+
+**Apply to score:**
+
+- LCP > 2500ms: −5; LCP > 4000ms: −10
+- CLS > 0.1: −5; CLS > 0.25: −10
+- Any page with `ssr_gap.interpretation: js_dependent_content` AND `delta_pct > 50`: Critical finding ("AI crawlers see <X%> of content on /page")
+- `cloaking_risk: high` on any page: Critical finding (potential search penalty)
+- `cookie_wall.present_after_attempt: true` after auto-click: High finding ("content blocked by cookie wall, AI crawlers see nothing")
+- `hydrated_schema.added_by_js` non-empty: flag those schema types as invisible to AI crawlers
+- Embed screenshot paths in the client PDF data file under `evidence`
+
 ## Execution Steps
 
 ### Step 1: Fetch Page HTML and Response Headers

@@ -41,7 +41,10 @@ cd geo-slab
 - Python 3.8+
 - Claude Code CLI
 - Git
-- Optional: Playwright (for PDF reports), AI provider API keys (for live visibility testing)
+- Python 3.9+
+- Claude Code CLI
+- Git
+- Optional: Playwright (for browser render audit + PDF reports), AI provider API keys (for live visibility testing)
 
 ---
 
@@ -66,6 +69,8 @@ Open Claude Code and use these commands:
 | `/geo compare <domain>` | Monthly delta tracking — compare audits over time |
 | `/geo proposal <domain>` | Auto-generate client GEO service proposal |
 | `/geo live <url>` | Live AI visibility test (requires API keys) |
+| `/geo prospect <url>` | Lite prospect deliverable — top problems, no fixes, full-audit CTA |
+| `/geo dashboard` | Launch browser CRM at http://localhost:5050 |
 
 ---
 
@@ -89,11 +94,13 @@ geo-slab/
 │   ├── geo-report-pdf/           # Professional PDF report with charts
 │   ├── geo-compare/              # Monthly delta tracking
 │   ├── geo-proposal/             # Client proposal generation
-│   └── geo-live-visibility/      # Live AI brand visibility testing
+│   ├── geo-prospect/             # Lite prospect deliverable for cold outreach
+│   ├── geo-live-visibility/      # Live AI brand visibility testing
+│   └── geo-browser-render/       # Headless-Chromium: SSR gap, CLS, cloaking, screenshots
 ├── agents/                       # 5 core + 1 optional subagent
 │   ├── geo-ai-visibility.md      # GEO audit, citability, crawlers, brands
 │   ├── geo-platform-analysis.md  # Platform-specific optimization (9 platforms)
-│   ├── geo-technical.md          # Technical SEO analysis
+│   ├── geo-technical.md          # Technical SEO + browser render analysis
 │   ├── geo-content.md            # Content & E-E-A-T analysis
 │   ├── geo-schema.md             # Schema markup analysis
 │   └── geo-live-visibility.md    # Live AI brand visibility (optional, needs API keys)
@@ -105,6 +112,7 @@ geo-slab/
 │   ├── render_geo_report.py      # Neo brutalist HTML report generator
 │   ├── generate_pdf_report.py    # PDF report generator (Playwright)
 │   ├── generate_prospect_report.py # Prospect/lite HTML report
+│   ├── browser_render_audit.py   # Headless-Chromium browser audit (CWV, SSR, cloaking)
 │   └── live_ai_query.py          # Live AI visibility querying
 ├── schema/                       # JSON-LD templates
 │   ├── organization.json         # Organization schema
@@ -127,16 +135,17 @@ geo-slab/
 
 When you run `/geo audit https://example.com`:
 
-1. **Discovery** — Fetches homepage, detects business type, crawls sitemap
-2. **Parallel Analysis** — Launches 5 core subagents simultaneously:
+1. **Discovery** — Fetches homepage, detects business type, crawls sitemap (up to 50 pages)
+2. **Browser Render** — Playwright audit on 5 critical pages: SSR gap, CLS/LCP, cloaking, cookie walls, JS-only schema, screenshots
+3. **Parallel Analysis** — Launches 5 core subagents simultaneously:
    - AI Visibility (citability, crawlers, llms.txt, brand mentions)
    - Platform Analysis (9 AI platforms: AIO, ChatGPT, Perplexity, Gemini, Copilot, Grok, DeepSeek, Meta AI, Mistral)
    - Technical SEO (Core Web Vitals, SSR, security, mobile)
    - Content Quality (E-E-A-T, readability, freshness)
    - Schema Markup (detection, validation, generation)
    - *Optional:* Live AI Visibility (queries AI APIs directly if keys configured)
-3. **Synthesis** — Aggregates scores, generates composite GEO Score (0-100)
-4. **Report** — Outputs prioritized action plan with quick wins
+4. **Synthesis** — Aggregates scores, generates composite GEO Score (0-100)
+5. **Report** — Outputs MD + HTML + PDF bundle in `reports/<domain>/`
 
 ### Scoring Methodology
 
@@ -167,6 +176,9 @@ Auto-generate professional GEO service proposals from audit data with `/geo prop
 
 ### Neo Brutalist Reports
 Professional HTML and PDF reports with the neo brutalist design language — coral/cream/sage palette, Barlow Condensed headings, clean data visualizations. Client-ready out of the box.
+
+### Browser Render Audit (Playwright)
+Headless-Chromium audit on up to 5 critical pages per site. Measures cookie-wall dismissal, SSR vs hydrated-DOM word-count gap (content invisible to AI crawlers), schema injected by JS, Core Web Vitals (LCP/CLS/TTFB), UA-differential cloaking (GPTBot vs Chrome), and captures desktop + mobile screenshots. Runs automatically as part of `/geo audit` and writes results to `reports/<domain>/browser-render.json`.
 
 ### Firecrawl Integration
 Optional Firecrawl API support for scraping JavaScript-heavy sites. Set `FIRECRAWL_API_KEY` and the toolkit automatically uses Firecrawl for content extraction with full JS rendering.

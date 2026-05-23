@@ -145,6 +145,7 @@ Adjust recommendations based on detected type. Local businesses need LocalBusine
 | 14 | geo-live-visibility | `skills/geo-live-visibility/` | Live AI brand visibility testing |
 | 15 | geo-prospect | `skills/geo-prospect/` | Lite prospect deliverable for cold outreach |
 | 16 | geo-dashboard | `skills/geo-dashboard/` | Launch the Flask web dashboard / CRM |
+| 17 | geo-browser-render | `skills/geo-browser-render/` | Headless-Chromium audit on critical pages (cookie wall, SSR gap, CWV, cloaking, screenshots) |
 
 ---
 
@@ -154,7 +155,7 @@ Adjust recommendations based on detected type. Local businesses need LocalBusine
 |-------|------|-------------|
 | geo-ai-visibility | `agents/geo-ai-visibility.md` | geo-citability, geo-crawlers, geo-llmstxt, geo-brand-mentions |
 | geo-platform-analysis | `agents/geo-platform-analysis.md` | geo-platform-optimizer |
-| geo-technical | `agents/geo-technical.md` | geo-technical |
+| geo-technical | `agents/geo-technical.md` | geo-technical, geo-browser-render |
 | geo-content | `agents/geo-content.md` | geo-content |
 | geo-schema | `agents/geo-schema.md` | geo-schema |
 | geo-live-visibility *(optional)* | `agents/geo-live-visibility.md` | geo-live-visibility (requires AI API keys) |

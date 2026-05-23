@@ -80,6 +80,30 @@ For each page in the crawl set, record:
 - Response status code
 - Whether the page has structured data
 
+**Step 4: Identify Critical Pages for Browser Render (cap 5)**
+
+Pick the most critical pages for headless-Chromium render via the `geo-browser-render` sub-skill. Selection rules:
+
+1. **Homepage** (always include)
+2. **Primary inventory / listings page** (e.g. `/properties`, `/products`, `/shop`)
+3. **Pricing / packages page** (`/pricing`, `/plans`, `/product/*` for the flagship plan)
+4. **Highest-value service or category page** (from sitemap signal)
+5. **Any Phase-1 page flagged as JS-heavy, login-walled, or low-SSR-word-count** (under 200 words server-rendered while visually content-rich)
+
+If fewer than 5 critical pages exist, fall back to: homepage, blog index, contact-us. Cap is 5 — script enforces it.
+
+**Step 5: Run Browser Render Audit**
+
+```bash
+python3 ~/.claude/skills/geo/scripts/browser_render_audit.py \
+  --urls <critical_url_1> <critical_url_2> ... \
+  --domain <domain> \
+  --output reports/<domain>/browser-render.json \
+  --screenshots reports/<domain>/screenshots
+```
+
+Pass the resulting `browser-render.json` to the `geo-technical` subagent in Phase 2 (it knows how to interpret cookie-wall, SSR-gap, CWV, cloaking, and JS-only schema signals).
+
 ---
 
 ### Phase 2: Parallel Subagent Delegation
