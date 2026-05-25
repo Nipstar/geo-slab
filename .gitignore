@@ -47,6 +47,11 @@ playwright_chromiumdev_profile-*/
 # GEO SLAB local cache + prospects (lives at ~/.geo-slab; ignore if symlinked into repo)
 .geo-slab/
 
+# Prospecting pipeline output (run artefacts — may contain PII + outreach copy)
+prospects/*
+!prospects/keywords/
+prospects/keywords/*.csv
+
 # Credentials and secrets (never commit these)
 *.key
 *.pem

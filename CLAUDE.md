@@ -126,6 +126,15 @@ All scripts in `scripts/` are standalone utilities the skills call via `Bash`:
 - `live_ai_query.py` — Live AI visibility querying; queries ChatGPT, Claude, Gemini, Perplexity APIs directly (or via OpenRouter fallback)
 - `pagespeed.py` — PageSpeed Insights client. Runs mobile + desktop in parallel, parses Lighthouse scores + CWV (CrUX field data preferred, lab fallback), extracts top opportunities. 24h on-disk cache at `~/.geo-slab/cache/psi/`. Called by `geo-technical` agent.
 
+**Prospecting pipeline scripts** (⚠️ experimental — see "Prospecting (Experimental)" below):
+- `bootstrap_keywords.py` — LLM-generated keyword seeds from a vertical + location.
+- `discover_prospects.py` — SerpAPI driver: pulls positions 9–13 across keyword list, optional Google Places enrichment.
+- `batch_audit.py` — Parallel lite-audit runner over a prospects CSV.
+- `score_prospects.py` — Pitchability scoring (GEO gap × business signal × contactability).
+- `generate_outreach.py` — LLM-drafted email + LinkedIn + voice opener per prospect.
+- `render_proposal.py` — HTML proposal renderer for prospects.
+- `find_decision_makers.py` — **Experimental.** Scrapes public team pages (static + Playwright fallback) for partners/directors/heads. Extracts JSON-LD `Person`, decodes Cloudflare email tokens, falls back to Google search URLs for LinkedIn. Misses non-standard team-page structures.
+
 ### Schema Templates
 
 `schema/` contains ready-to-deploy JSON-LD templates: `organization.json`, `local-business.json`, `article-author.json`, `software-saas.json`, `product-ecommerce.json`, `website-searchaction.json`. Skills inject these as starting points for client recommendations.
@@ -159,6 +168,7 @@ reports/
 | `/geo proposal <domain>` | `reports/<domain>/GEO-PROPOSAL-<domain>.md` |
 | `/geo live <url>` | `reports/<domain>/live-visibility.json` |
 | `/geo prospect <url>` (lite) | `reports/<domain>/GEO-PROSPECT-<domain>.html` + `.pdf` |
+| `/geo prospecting <kw_file> <loc>` ⚠️ experimental | `prospects/<run_id>/{prospects,audited,scored,outreach,contacts}.csv` + `reports/*.html` + `summary.md` |
 | `/geo dashboard` | Launches Flask webapp on `http://localhost:5050` (no file output) |
 
 Always pass the output path explicitly to the report scripts:
@@ -205,6 +215,25 @@ cd webapp && pip install -r requirements-webapp.txt && python app.py
 - `docs/commands-reference.md` — every `/geo` slash command
 
 `examples/` contains sample audit JSON + finished HTML/PDF deliverables — use as fixtures when iterating on `render_geo_report.py` or `generate_pdf_report.py`.
+
+## Prospecting (Experimental)
+
+`/geo prospecting` builds an outbound list rather than auditing a single known URL. Lives in `skills/geo-prospecting/` + `agents/geo-prospecting.md`. Scripts:
+
+```
+bootstrap_keywords → discover_prospects → batch_audit → score_prospects
+                                                       ↓
+                                          generate_outreach + find_decision_makers
+```
+
+**Status:** discovery + audit + scoring are stable. Outreach generation is workable but unpolished. Decision-maker scraping (`find_decision_makers.py`) works for standard team-page structures (heading + photo + title) but **misses non-standard layouts** — Cloudflare-obfuscated emails are decoded, but JS-only people directories, category-card pages (e.g. Duncan Lewis), and span/div layouts without recognisable card classes return zero. Email pattern detection only fires when a published `@firm.tld` mailto exists somewhere on a scraped page; without one, no emails are generated.
+
+Use as a first-pass list builder. Expect to:
+1. Manually verify Google-search fallback URLs to pull real LinkedIn profiles.
+2. Scrape `/contact/` pages by hand for any missing firms.
+3. Fall back to paid enrichment (Blitz / Apollo / PredictLeads) for firms the scraper missed.
+
+Outputs land in `prospects/<run_id>/` — not `reports/`. The `prospects/` directory is gitignored.
 
 ## Adding a New Sub-Skill
 

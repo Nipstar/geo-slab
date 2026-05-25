@@ -40,6 +40,7 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 | `/geo live <url>` | Live AI visibility test — query ChatGPT, Claude, Gemini, Perplexity directly |
 | `/geo quick <url>` | 60-second GEO visibility snapshot |
 | `/geo prospect <url>` | Lite prospect deliverable — top problems, no fixes, full-audit CTA |
+| `/geo prospecting <keywords_file> <location>` | **EXPERIMENTAL** — SERP-driven prospecting pipeline. Discovery + audit + scoring stable. Outreach generation + decision-maker scrape (`find_decision_makers.py`) still under iteration. |
 | `/geo dashboard` | Launch browser CRM at http://localhost:5050 |
 
 ---
@@ -146,6 +147,7 @@ Adjust recommendations based on detected type. Local businesses need LocalBusine
 | 15 | geo-prospect | `skills/geo-prospect/` | Lite prospect deliverable for cold outreach |
 | 16 | geo-dashboard | `skills/geo-dashboard/` | Launch the Flask web dashboard / CRM |
 | 17 | geo-browser-render | `skills/geo-browser-render/` | Headless-Chromium audit on critical pages (cookie wall, SSR gap, CWV, cloaking, screenshots) |
+| 18 | geo-prospecting | `skills/geo-prospecting/` | SERP-driven prospect discovery → lite audit → pitchability score → outreach copy (UK + US) |
 
 ---
 
@@ -159,6 +161,7 @@ Adjust recommendations based on detected type. Local businesses need LocalBusine
 | geo-content | `agents/geo-content.md` | geo-content |
 | geo-schema | `agents/geo-schema.md` | geo-schema |
 | geo-live-visibility *(optional)* | `agents/geo-live-visibility.md` | geo-live-visibility (requires AI API keys) |
+| geo-prospecting | `agents/geo-prospecting.md` | geo-prospecting (SERP discovery → batch audit → pitchability → outreach) |
 
 ---
 
@@ -184,6 +187,7 @@ All commands generate structured output:
 | `/geo proposal` | `GEO-PROPOSAL-<domain>.md` |
 | `/geo live` | `live-visibility.json` + inline report section |
 | `/geo quick` | Inline summary (no file) |
+| `/geo prospecting` | `prospects/<run_id>/` — `prospects.csv`, `audited.csv`, `scored.csv`, `outreach.csv`, `reports/*.html`, `summary.md` |
 
 ---
 
