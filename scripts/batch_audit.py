@@ -303,7 +303,7 @@ def _write_prospect_report(row, audit_out, page, reports_dir):
         },
         "top_problems": problems,
         "working": working,
-        "cta_url": "https://antekautomation.com/book",
+        "cta_url": "https://antekautomation.com/contact",
         "cta_price": "",
         "cta_label": "Book a 15-minute walkthrough",
     }

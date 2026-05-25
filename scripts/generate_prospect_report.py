@@ -31,7 +31,7 @@ Input JSON schema:
         "All major AI crawlers explicitly allowed in robots.txt",
         "Schema sameAs links across 9 platforms"
     ],
-    "cta_url": "https://antekautomation.com/book",
+    "cta_url": "https://antekautomation.com/contact",
     "cta_price": "",
     "cta_label": "Book a 15-minute walkthrough"
 }
@@ -554,7 +554,7 @@ def render(data: dict) -> str:
     scores     = data.get('scores', {})
     problems   = data.get('top_problems', [])
     working    = data.get('working', [])
-    cta_url    = data.get('cta_url', 'https://antekautomation.com/book')
+    cta_url    = data.get('cta_url', 'https://antekautomation.com/contact')
     cta_price  = escape(data.get('cta_price', ''))
     cta_label  = escape(data.get('cta_label', 'Book a 15-minute walkthrough'))
 

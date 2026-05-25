@@ -114,7 +114,7 @@ Assemble this exact JSON structure:
         "Schema sameAs links across 9 platforms — above average for a UK SMB",
         "llms.txt implemented with pricing, services, and contact information"
     ],
-    "cta_url": "https://antekautomation.com/book",
+    "cta_url": "https://antekautomation.com/contact",
     "cta_price": "",
     "cta_label": "Book a 15-minute walkthrough"
 }
