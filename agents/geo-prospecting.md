@@ -122,6 +122,8 @@ If 0 prospects found → ask operator if they want to widen position range or re
 
 ## Step 5 — Audit
 
+Default (cheap, free):
+
 ```bash
 python scripts/batch_audit.py \
     --input prospects/<run_id>/prospects.csv \
@@ -129,6 +131,21 @@ python scripts/batch_audit.py \
     --concurrency 2 \
     --reports-dir prospects/<run_id>/reports
 ```
+
+**Recommended for under-10-prospect batches** — same enrichers the full /geo audit uses (social_harvest + wikidata_lookup + gbp_lookup) per prospect, so the lite audit carries verified identity / Wikidata / Google Business data instead of guessing:
+
+```bash
+python scripts/batch_audit.py \
+    --input prospects/<run_id>/prospects.csv \
+    --output prospects/<run_id>/audited.csv \
+    --concurrency 2 \
+    --reports-dir prospects/<run_id>/reports \
+    --enrich
+```
+
+`--enrich` writes `reports/enrich/<slug>/identity-urls.json`, `gbp.json`, `wikidata.json` per prospect and surfaces summary fields (`has_gbp`, `gbp_rating`, `gbp_review_count`, `gbp_completeness`, `has_wikidata`, `wikidata_qid`, `has_wikipedia`, `identity_url_count`) in `audited.csv`.
+
+Add `--enrich-serpapi` only for batches of ≤10 prospects — it bills 6-7 SerpAPI queries per prospect (Knowledge Panel + Reddit + YouTube + LinkedIn + Wikipedia + review-directory presence). Adds `knowledge_panel` and `reddit_footprint` columns.
 
 Stream stderr. Per-prospect HTML reports land in `reports/{slug}.html`.
 

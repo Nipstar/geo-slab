@@ -43,6 +43,26 @@ import fetch_page  # noqa: E402
 import citability_scorer  # noqa: E402
 import llmstxt_generator  # noqa: E402
 
+# Optional enrichers — only used when --enrich / --enrich-serpapi is passed.
+# Same scripts the full /geo audit uses, so a lite-audited prospect carries
+# real verified data rather than guessed absence.
+try:
+    import gbp_lookup  # noqa: E402
+except Exception:
+    gbp_lookup = None
+try:
+    import wikidata_lookup  # noqa: E402
+except Exception:
+    wikidata_lookup = None
+try:
+    import social_harvest  # noqa: E402
+except Exception:
+    social_harvest = None
+try:
+    import serpapi_scan  # noqa: E402
+except Exception:
+    serpapi_scan = None
+
 
 AUDIT_COLUMNS = [
     "geo_score",
@@ -56,6 +76,17 @@ AUDIT_COLUMNS = [
     "top_gap_1",
     "top_gap_2",
     "top_gap_3",
+    # Enrichment fields — empty unless --enrich / --enrich-serpapi was passed
+    "has_gbp",
+    "gbp_rating",
+    "gbp_review_count",
+    "gbp_completeness",
+    "has_wikidata",
+    "wikidata_qid",
+    "has_wikipedia",
+    "identity_url_count",
+    "knowledge_panel",
+    "reddit_footprint",
     "audit_status",
     "audit_error",
     "audited_at",
@@ -121,7 +152,86 @@ def _top_gaps(flags):
     return [label for label, gap in flags.items() if gap]
 
 
-def audit_one(row, reports_dir=None, industry="", location=""):
+def _enrich_one(row, reports_dir=None, run_serpapi=False, location=""):
+    """Run the same checker scripts the full /geo audit uses, per prospect.
+
+    Cheap (gbp + wikidata + social harvest) by default. SerpAPI behind its own
+    flag because it bills per query and prospect batches can be 20+.
+
+    Returns a dict of summary fields plus, if reports_dir is set, writes the
+    per-prospect raw JSON next to the lite HTML report so the agent or
+    downstream pipeline can read it.
+    """
+    out = {}
+    brand = (row.get("name") or row.get("brand") or row.get("title") or "").strip()
+    domain = (row.get("domain") or "").strip()
+    website = (row.get("website") or "").strip()
+    address = (row.get("address") or "").strip()
+    if not (brand and website):
+        return out
+
+    save_dir = None
+    if reports_dir:
+        slug = (domain or brand).replace(".", "-").replace(" ", "-").lower()
+        save_dir = Path(reports_dir) / "enrich" / slug
+        save_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1) Social harvest — scrape the homepage for sameAs + canonical social URLs
+    if social_harvest is not None:
+        try:
+            harvest = social_harvest.from_urls([website])
+            out["identity_url_count"] = harvest.get("count", 0)
+            if save_dir:
+                (save_dir / "identity-urls.json").write_text(
+                    json.dumps(harvest, indent=2), encoding="utf-8"
+                )
+        except Exception:
+            pass
+
+    # 2) GBP — Google Places API (requires GOOGLE_PLACES_API_KEY)
+    if gbp_lookup is not None and os.environ.get("GOOGLE_PLACES_API_KEY"):
+        try:
+            loc = location or _location_from_address(address)
+            gbp = gbp_lookup.lookup(f"{brand} {loc}".strip(), expected_domain=domain)
+            out["has_gbp"] = _bool_str(gbp.get("found"))
+            if gbp.get("found") and gbp.get("places"):
+                top = gbp["places"][0]
+                out["gbp_rating"] = top.get("rating") or ""
+                out["gbp_review_count"] = top.get("user_ratings_total") or 0
+                out["gbp_completeness"] = gbp.get("completeness_score") or 0
+            if save_dir:
+                (save_dir / "gbp.json").write_text(json.dumps(gbp, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+    # 3) Wikidata — wbsearch + wbgetentities (no auth)
+    if wikidata_lookup is not None:
+        try:
+            wd = wikidata_lookup.lookup(brand, expected_domain=domain)
+            out["has_wikidata"] = _bool_str(wd.get("wikidata", {}).get("found"))
+            out["wikidata_qid"] = wd.get("wikidata", {}).get("qid") or ""
+            out["has_wikipedia"] = _bool_str(wd.get("wikipedia", {}).get("found"))
+            if save_dir:
+                (save_dir / "wikidata.json").write_text(json.dumps(wd, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+    # 4) SerpAPI — opt-in (billed per query)
+    if run_serpapi and serpapi_scan is not None and os.environ.get("SERPAPI_API_KEY"):
+        try:
+            scan = serpapi_scan.full_scan(brand, domain=domain)
+            s = scan.get("summary") or {}
+            out["knowledge_panel"] = _bool_str(s.get("knowledge_panel_present"))
+            out["reddit_footprint"] = s.get("reddit_footprint") or 0
+            if save_dir:
+                (save_dir / "serpapi.json").write_text(json.dumps(scan, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+    return out
+
+
+def audit_one(row, reports_dir=None, industry="", location="", enrich=False, enrich_serpapi=False):
     """Run lite audit for a single prospect row. Returns merged row."""
     out = dict(row)
     out["audit_status"] = "failed"
@@ -220,6 +330,15 @@ def audit_one(row, reports_dir=None, industry="", location=""):
             except Exception as e:
                 out["audit_status"] = "partial"
                 out["audit_error"] = f"report_failed: {e}"
+
+        # Optional enrichment — same checker scripts the full /geo audit uses
+        if enrich or enrich_serpapi:
+            try:
+                enrichment = _enrich_one(row, reports_dir=reports_dir,
+                                          run_serpapi=enrich_serpapi, location=location)
+                out.update(enrichment)
+            except Exception as e:
+                out["audit_error"] = (out.get("audit_error") or "") + f" | enrich_failed: {e}"
 
         return out
 
@@ -387,6 +506,10 @@ def main():
                         help="Industry slug for £-impact line + live query templates (e.g. family_law, personal_injury, conveyancing). See style.py INDUSTRY_VALUES.")
     parser.add_argument("--location", default="",
                         help="Town/city for the live AI proof query (e.g. 'Bristol'). If absent, falls back to address-parsed city. Used for prompts like 'best family law solicitor in Bristol'.")
+    parser.add_argument("--enrich", action="store_true",
+                        help="Run free enrichers per prospect: social_harvest + wikidata_lookup + gbp_lookup (gbp needs GOOGLE_PLACES_API_KEY). Cheap, ~3 extra HTTP calls per prospect.")
+    parser.add_argument("--enrich-serpapi", action="store_true",
+                        help="Additionally run serpapi_scan per prospect. Bills 6-7 SerpAPI queries per prospect — only enable for batches under ~10.")
     args = parser.parse_args()
 
     in_path = Path(args.input)
@@ -414,9 +537,12 @@ def main():
     failures = 0
     started = time.time()
 
+    enrich = args.enrich or args.enrich_serpapi
+
     with ThreadPoolExecutor(max_workers=concurrency) as ex:
         futures = {
-            ex.submit(audit_one, row, args.reports_dir, args.industry, args.location): i
+            ex.submit(audit_one, row, args.reports_dir, args.industry, args.location,
+                      enrich, args.enrich_serpapi): i
             for i, row in enumerate(rows)
         }
         for fut in as_completed(futures):
