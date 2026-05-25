@@ -120,7 +120,7 @@ def _top_gaps(flags):
     return [label for label, gap in flags.items() if gap]
 
 
-def audit_one(row, reports_dir=None):
+def audit_one(row, reports_dir=None, industry=""):
     """Run lite audit for a single prospect row. Returns merged row."""
     out = dict(row)
     out["audit_status"] = "failed"
@@ -215,7 +215,7 @@ def audit_one(row, reports_dir=None):
         # Optional per-prospect HTML report
         if reports_dir:
             try:
-                _write_prospect_report(row, out, page, reports_dir)
+                _write_prospect_report(row, out, page, reports_dir, industry)
             except Exception as e:
                 out["audit_status"] = "partial"
                 out["audit_error"] = f"report_failed: {e}"
@@ -227,7 +227,7 @@ def audit_one(row, reports_dir=None):
         return out
 
 
-def _write_prospect_report(row, audit_out, page, reports_dir):
+def _write_prospect_report(row, audit_out, page, reports_dir, industry=""):
     """Build a lite report data file + call generate_prospect_report.py."""
     domain = (row.get("domain") or "").lower().strip()
     if not domain:
@@ -246,27 +246,27 @@ def _write_prospect_report(row, audit_out, page, reports_dir):
     if blocks_ai:
         problems.append({
             "title": "AI crawlers blocked",
-            "body": "Your robots.txt disallows one or more of GPTBot, ClaudeBot, PerplexityBot, or Google-Extended. The engines your customers use can't index your site.",
+            "body": "Your robots.txt disallows GPTBot, ClaudeBot, PerplexityBot, or Google-Extended — the bots that feed AI search answers. As long as this stays in place, ChatGPT and Perplexity literally cannot read your pages, no matter how good your content is. Roughly 12% of UK firms in your sector accidentally do this. The fix is a one-line robots.txt change, under 10 minutes.",
         })
     if not has_llms:
         problems.append({
             "title": "No llms.txt published",
-            "body": "AI systems use llms.txt to discover and prioritise your content. Without one, you rely on slow crawling and noisy heuristics.",
+            "body": "llms.txt is the file that tells AI engines which of your pages matter most. Without it, ChatGPT and Perplexity guess — and they often guess wrong, citing a competitor's clearer page instead. Roughly 8% of UK firms in your sector have published one. The fix takes under an hour.",
         })
     if not has_schema:
         problems.append({
             "title": "No structured data",
-            "body": "No JSON-LD schema detected on the homepage. AI engines need structured signals to verify your entity and surface you in answers.",
+            "body": "There's no JSON-LD schema on your homepage. Schema is how you tell AI what your business is — a law firm, what services, which locations, who the partners are. Without it, AI engines guess from page text alone and frequently confuse you with another firm. The fix is a single block of code in the page head, typically under two hours.",
         })
     if citability < 40:
         problems.append({
             "title": "Content not citable by AI",
-            "body": "Your passages average below 40/100 for AI citability. AI systems pick competitors with self-contained, fact-rich content instead.",
+            "body": "AI engines prefer paragraphs they can lift whole and quote — 130-170 words, self-contained, fact-rich, directly answering a question. Your pages are written for human skim-reading, which is fine for Google but invisible to AI citation. Competitors who've restructured for citability are being quoted in answers about your specialism.",
         })
     if not mobile_ok:
         problems.append({
             "title": "No mobile viewport",
-            "body": "Missing the mobile viewport meta tag. Modern crawlers and ranking systems treat this as a baseline failure.",
+            "body": "Your site is missing the mobile viewport meta tag. Most prospects search from a phone, and AI engines treat mobile-broken sites as a quality signal that downgrades you. This is a one-line fix in the page head.",
         })
 
     # Cap at 3 but never pad — better to show 1 or 2 real issues than 3 with filler.
@@ -274,14 +274,14 @@ def _write_prospect_report(row, audit_out, page, reports_dir):
 
     working = []
     if has_llms:
-        working.append("llms.txt is published at the root")
+        working.append("llms.txt published — you're in the ~8% of firms in your sector that have done this.")
     if has_schema:
-        working.append("Structured data detected on homepage")
+        working.append("Structured data in place — AI engines can parse what your homepage is about.")
     if not blocks_ai:
-        working.append("AI crawlers are allowed in robots.txt")
+        working.append("AI crawlers welcomed — you haven't accidentally blocked ChatGPT, Claude, or Perplexity from indexing you.")
     if mobile_ok:
-        working.append("Mobile viewport correctly declared")
-    working = working[:3] or ["Site responds and serves content to crawlers"]
+        working.append("Mobile-ready — your site renders correctly on the devices most prospects use to search.")
+    working = working[:3] or ["Site responds and serves content to crawlers."]
 
     data = {
         "url": row.get("website"),
@@ -298,9 +298,12 @@ def _write_prospect_report(row, audit_out, page, reports_dir):
         },
         "top_problems": problems,
         "working": working,
+        "industry": (industry or row.get("industry") or "").strip(),
+        "avg_deal_value_low": int(row.get("avg_deal_value_low") or 0),
+        "avg_deal_value_high": int(row.get("avg_deal_value_high") or 0),
         "cta_url": "https://antekautomation.com/contact",
         "cta_price": "",
-        "cta_label": "Book a 15-minute walkthrough",
+        "cta_label": "Book a walkthrough",
     }
 
     reports_dir = Path(reports_dir)
@@ -345,6 +348,8 @@ def main():
                         help="If set, write per-prospect lite HTML reports here")
     parser.add_argument("--errors-log", default=None,
                         help="Append per-failure error lines here (default: alongside --output)")
+    parser.add_argument("--industry", default="",
+                        help="Industry slug for £-impact line in lite reports (e.g. family_law, personal_injury, conveyancing). See INDUSTRY_VALUES in generate_prospect_report.py.")
     args = parser.parse_args()
 
     in_path = Path(args.input)
@@ -374,7 +379,7 @@ def main():
 
     with ThreadPoolExecutor(max_workers=concurrency) as ex:
         futures = {
-            ex.submit(audit_one, row, args.reports_dir): i
+            ex.submit(audit_one, row, args.reports_dir, args.industry): i
             for i, row in enumerate(rows)
         }
         for fut in as_completed(futures):
