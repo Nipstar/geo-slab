@@ -269,6 +269,8 @@ STATIC_HEAD = """\
             border-bottom: none;
             padding: 32px 36px;
             background: var(--off-white);
+            break-inside: avoid;
+            page-break-inside: avoid;
         }}
         .problem-item:last-child {{ border-bottom: 3px solid var(--black); }}
         .problem-item:nth-child(even) {{ background: var(--cream); }}
@@ -362,11 +364,13 @@ STATIC_HEAD = """\
         .cta-section {{
             background: var(--coral);
             border-bottom: 3px solid var(--black);
-            padding: 72px 56px;
+            padding: 48px 56px;
             display: grid;
             grid-template-columns: 1fr auto;
             gap: 64px;
             align-items: center;
+            break-inside: avoid;
+            page-break-inside: avoid;
         }}
         .cta-left {{}}
         .cta-eyebrow {{
@@ -375,7 +379,7 @@ STATIC_HEAD = """\
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.15em;
-            color: rgba(232,220,200,0.7);
+            color: var(--cream);
             margin-bottom: 16px;
         }}
         .cta-heading {{
@@ -427,11 +431,14 @@ STATIC_HEAD = """\
         }}
         /* Footer */
         .site-footer {{
-            padding: 36px 56px;
+            padding: 24px 56px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 32px;
+            break-inside: avoid;
+            page-break-inside: avoid;
+            page-break-before: avoid;
         }}
         .footer-brand {{
             font-family: 'Barlow Condensed', sans-serif;

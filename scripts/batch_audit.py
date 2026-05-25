@@ -269,12 +269,7 @@ def _write_prospect_report(row, audit_out, page, reports_dir):
             "body": "Missing the mobile viewport meta tag. Modern crawlers and ranking systems treat this as a baseline failure.",
         })
 
-    # Pad to 3 if needed
-    while len(problems) < 3:
-        problems.append({
-            "title": "Generic GEO gap",
-            "body": "Multiple smaller signals are pulling your AI visibility down. The full audit identifies all of them.",
-        })
+    # Cap at 3 but never pad — better to show 1 or 2 real issues than 3 with filler.
     problems = problems[:3]
 
     working = []
