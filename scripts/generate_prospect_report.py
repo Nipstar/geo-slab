@@ -130,7 +130,7 @@ STATIC_HEAD = """\
         }}
         /* Why AI Search Matters — primer above the fold */
         .why-section {{
-            padding: 40px 56px;
+            padding: 28px 56px;
             background: var(--charcoal);
             color: var(--cream);
             border-bottom: 3px solid var(--black);
@@ -186,7 +186,7 @@ STATIC_HEAD = """\
         }}
         /* Hero */
         .hero {{
-            padding: 72px 56px 64px;
+            padding: 48px 56px 40px;
             border-bottom: 3px solid var(--black);
             display: grid;
             grid-template-columns: 340px 1fr;
@@ -249,11 +249,15 @@ STATIC_HEAD = """\
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             border-bottom: 3px solid var(--black);
+            break-inside: avoid;
+            page-break-inside: avoid;
         }}
         .score-cell {{
             border-right: 3px solid var(--black);
             padding: 24px 20px 20px;
             background: var(--off-white);
+            break-inside: avoid;
+            page-break-inside: avoid;
         }}
         .score-cell:last-child {{ border-right: none; }}
         .score-cell.low {{ background: var(--coral); }}
@@ -300,7 +304,7 @@ STATIC_HEAD = """\
         /* Section */
         .section {{
             border-bottom: 3px solid var(--black);
-            padding: 64px 56px;
+            padding: 40px 56px;
         }}
         .section-label {{
             display: block;
