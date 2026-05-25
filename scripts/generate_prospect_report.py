@@ -31,9 +31,9 @@ Input JSON schema:
         "All major AI crawlers explicitly allowed in robots.txt",
         "Schema sameAs links across 9 platforms"
     ],
-    "cta_url": "https://antekautomation.com/services/geo-audit",
-    "cta_price": "from £247",
-    "cta_label": "Get the full audit"
+    "cta_url": "https://antekautomation.com/book",
+    "cta_price": "",
+    "cta_label": "Book a 15-minute walkthrough"
 }
 """
 
@@ -554,9 +554,9 @@ def render(data: dict) -> str:
     scores     = data.get('scores', {})
     problems   = data.get('top_problems', [])
     working    = data.get('working', [])
-    cta_url    = data.get('cta_url', 'https://antekautomation.com/services/geo-audit')
-    cta_price  = escape(data.get('cta_price', 'from £247'))
-    cta_label  = escape(data.get('cta_label', 'Get the full audit'))
+    cta_url    = data.get('cta_url', 'https://antekautomation.com/book')
+    cta_price  = escape(data.get('cta_price', ''))
+    cta_label  = escape(data.get('cta_label', 'Book a 15-minute walkthrough'))
 
     verdict  = score_verdict(score)
     summary  = score_summary(score)
@@ -627,12 +627,12 @@ def render(data: dict) -> str:
     <!-- CTA -->
     <section class="cta-section">
         <div class="cta-left">
-            <span class="cta-eyebrow">Next step</span>
-            <div class="cta-heading">Get the full audit.<br>Know exactly what to fix.</div>
-            <p class="cta-body">The full GEO audit covers 50 pages, all six categories, and gives you a prioritised action plan broken down by this week, this month, and this quarter. No vague recommendations. Exact steps.</p>
+            <span class="cta-eyebrow">Want the full picture?</span>
+            <div class="cta-heading">See your firm through<br>an AI's eyes — live.</div>
+            <p class="cta-body">This scan is a snapshot. On a 15-minute call I'll open ChatGPT, Claude, and Perplexity and ask the questions your clients ask. We'll see together where you show up, where you don't, and which competitor is taking your share. No pitch, no slides. Just the live result and three concrete moves you can make this week.</p>
         </div>
         <div class="cta-right">
-            <span class="cta-price">{cta_price}</span>
+            {('<span class="cta-price">' + cta_price + '</span>') if cta_price else ''}
             <a href="{cta_url}" class="cta-button">{cta_label} &rarr;</a>
         </div>
     </section>

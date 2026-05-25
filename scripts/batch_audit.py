@@ -303,9 +303,9 @@ def _write_prospect_report(row, audit_out, page, reports_dir):
         },
         "top_problems": problems,
         "working": working,
-        "cta_url": "https://antekautomation.com/services/geo-audit",
-        "cta_price": "from £247",
-        "cta_label": "Get the full audit",
+        "cta_url": "https://antekautomation.com/book",
+        "cta_price": "",
+        "cta_label": "Book a 15-minute walkthrough",
     }
 
     reports_dir = Path(reports_dir)
@@ -321,17 +321,19 @@ def _write_prospect_report(row, audit_out, page, reports_dir):
                 str(SCRIPT_DIR / "generate_prospect_report.py"),
                 "--data", tmp_path,
                 "--output", str(reports_dir),
+                "--pdf",
             ],
-            check=False, capture_output=True, timeout=60,
+            check=False, capture_output=True, timeout=120,
         )
         # Rename to slug if generator used a different filename
-        candidate = reports_dir / f"GEO-PROSPECT-{domain}.html"
-        target = reports_dir / f"{slug}.html"
-        if candidate.exists() and candidate != target:
-            try:
-                candidate.replace(target)
-            except Exception:
-                pass
+        for ext in ("html", "pdf"):
+            candidate = reports_dir / f"GEO-PROSPECT-{domain}.{ext}"
+            target = reports_dir / f"{slug}.{ext}"
+            if candidate.exists() and candidate != target:
+                try:
+                    candidate.replace(target)
+                except Exception:
+                    pass
     finally:
         try:
             os.unlink(tmp_path)

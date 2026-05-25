@@ -15,11 +15,11 @@ This skill takes the output of a full GEO audit and produces a condensed prospec
 - **Category scores** — all six, with the weakest highlighted
 - **What's working** — 2–3 genuine positives to build credibility
 - **Full audit teaser** — what the prospect doesn't see in this scan
-- **CTA** — drives to the full audit product
+- **CTA** — soft lead-magnet ask: book a 15-minute walkthrough where Andy opens ChatGPT/Claude/Perplexity live and shows the firm where they appear (and don't). No pricing on the report — it's a teaser.
 
-Use it two ways:
-1. **Cold outreach**: Run on a prospect's site, send the PDF to show them their gaps. CTA drives to the £247 full audit.
-2. **£97 entry product**: Deliver as a paid scan. Same report, slightly more context in the problem bodies.
+Use it as a top-of-funnel lead magnet:
+1. **Cold outreach attachment**: Send the PDF to show the firm their AI-visibility gaps. CTA invites a 15-minute live walkthrough call — not a paid audit.
+2. **Booking-driver**: The report's only job is to get a meeting booked. Pricing conversation happens on the call.
 
 ---
 
@@ -114,9 +114,9 @@ Assemble this exact JSON structure:
         "Schema sameAs links across 9 platforms — above average for a UK SMB",
         "llms.txt implemented with pricing, services, and contact information"
     ],
-    "cta_url": "https://antekautomation.com/services/geo-audit",
-    "cta_price": "from £247",
-    "cta_label": "Get the full audit"
+    "cta_url": "https://antekautomation.com/book",
+    "cta_price": "",
+    "cta_label": "Book a 15-minute walkthrough"
 }
 ```
 
@@ -125,9 +125,9 @@ Assemble this exact JSON structure:
 - `scores`: Use the exact category keys above (snake_case)
 - `top_problems`: Exactly 3 items (2 minimum if genuinely only 2 critical issues exist)
 - `working`: 2–3 items, genuine positives only
-- `cta_url`: Always points to the Antek GEO audit service page
-- `cta_price`: Default "from £247". Change to "£97" if positioning as entry product.
-- `cta_label`: "Get the full audit" for cold outreach. "Upgrade to the full audit" for paid entry product.
+- `cta_url`: Booking link (Cal.com / Calendly / native scheduler). Default `antekautomation.com/book`.
+- `cta_price`: Leave empty by default — the report is a lead-magnet teaser, not a price list. Pricing is discussed on the call.
+- `cta_label`: Default "Book a 15-minute walkthrough". The CTA must invite a meeting, never a purchase decision.
 
 ---
 
@@ -202,11 +202,13 @@ Examples:
 
 ## CTA Configuration by Use Case
 
+The report is positioned as a **free lead-magnet teaser**. The CTA always invites a meeting, never a purchase. Pricing is held back for the call.
+
 | Use case | `cta_price` | `cta_label` |
 |---|---|---|
-| Cold outreach (free teaser) | `"from £247"` | `"Get the full audit"` |
-| £97 paid entry product | `"£97"` | `"Get the full scan"` |
-| Upgrade from £97 to full | `"from £247"` | `"Upgrade to the full audit"` |
+| Cold outreach (default) | `""` | `"Book a 15-minute walkthrough"` |
+| Post-connection LinkedIn follow-up | `""` | `"Grab a 15-min slot"` |
+| Warm referral | `""` | `"Book a quick call"` |
 
 ---
 
