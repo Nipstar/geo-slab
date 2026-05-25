@@ -128,6 +128,62 @@ STATIC_HEAD = """\
             font-size: 12px;
             color: var(--coral);
         }}
+        /* Why AI Search Matters — primer above the fold */
+        .why-section {{
+            padding: 40px 56px;
+            background: var(--charcoal);
+            color: var(--cream);
+            border-bottom: 3px solid var(--black);
+        }}
+        .why-eyebrow {{
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--coral);
+            display: block;
+            margin-bottom: 10px;
+        }}
+        .why-heading {{
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 30px;
+            line-height: 1.05;
+            margin-bottom: 14px;
+            color: var(--cream);
+        }}
+        .why-body {{
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.85;
+            max-width: 760px;
+            margin-bottom: 18px;
+        }}
+        .why-stats {{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-top: 8px;
+        }}
+        .why-stat {{ border-left: 3px solid var(--coral); padding: 4px 0 4px 14px; }}
+        .why-stat-num {{
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 30px;
+            line-height: 1;
+            color: var(--coral);
+            display: block;
+        }}
+        .why-stat-label {{
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--cream);
+            opacity: 0.75;
+            margin-top: 6px;
+            display: block;
+        }}
         /* Hero */
         .hero {{
             padding: 72px 56px 64px;
@@ -584,6 +640,27 @@ def render(data: dict) -> str:
         <div class="header-brand">{brand} — GEO Scan</div>
         <div class="header-meta">{score}/100 &mdash; {date}</div>
     </header>
+
+    <!-- WHY AI SEARCH MATTERS -->
+    <section class="why-section">
+        <span class="why-eyebrow">Why this matters</span>
+        <div class="why-heading">Your next client is asking ChatGPT, not Google.</div>
+        <p class="why-body">AI search engines — ChatGPT, Claude, Perplexity, Gemini, Google AI Overviews — already answer questions that used to land on your website. They quote one or two firms in the answer and ignore the rest. Being optimised for Google is no longer the same as being visible. This scan checks whether AI engines can find you, trust you, and cite you when a prospect asks for a solicitor.</p>
+        <div class="why-stats">
+            <div class="why-stat">
+                <span class="why-stat-num">58%</span>
+                <span class="why-stat-label">of searches end without a click — answered by AI</span>
+            </div>
+            <div class="why-stat">
+                <span class="why-stat-num">1–3</span>
+                <span class="why-stat-label">firms cited in a typical AI answer</span>
+            </div>
+            <div class="why-stat">
+                <span class="why-stat-num">9</span>
+                <span class="why-stat-label">AI search engines now compete with Google</span>
+            </div>
+        </div>
+    </section>
 
     <!-- HERO -->
     <section class="hero">
