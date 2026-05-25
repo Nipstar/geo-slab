@@ -523,6 +523,13 @@ STATIC_HEAD = """\
         @media print {{
             .cta-button {{ box-shadow: none; }}
         }}
+        /* Print — force desktop layout regardless of viewport */
+        @media print {{
+            .teaser-grid {{ grid-template-columns: 1fr 1fr; }}
+            .teaser-item {{ border-right: 3px solid var(--black); }}
+            .teaser-item:nth-child(even) {{ border-right: none; }}
+            .teaser-item:nth-last-child(-n+2) {{ border-bottom: none; }}
+        }}
         /* Mobile */
         @media (max-width: 860px) {{
             .site-header {{ padding: 0 24px; }}
