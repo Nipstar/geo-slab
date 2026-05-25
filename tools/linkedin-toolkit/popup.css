@@ -296,7 +296,11 @@ select.field option { background: var(--card); color: var(--txt); }
 .pc-company { font: 10px var(--m); color: var(--dim); }
 .pc-title { font: 10px var(--m); color: var(--cream-d); margin-top: 1px; }
 .pc-addr { font: 9px var(--m); color: var(--dim); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc-scan { font: 9px var(--m); color: var(--coral); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pc-btn.google-btn { background: transparent; }
+.pc-btn.dm-btn { background: var(--coral); color: var(--bg); border-color: var(--coral); }
+.pc-btn.email-btn { background: var(--char); }
+.pc-btn.dm-btn:hover, .pc-btn.email-btn:hover { background: var(--cream-d); color: var(--bg); }
 .pc-score {
   font: 600 10px var(--m); padding: 2px 6px; border-radius: 3px;
   background: var(--char); color: var(--cream-d); white-space: nowrap;

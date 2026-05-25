@@ -636,7 +636,28 @@ Suggest 6-8 LinkedIn search terms. Mix "people" searches (for finding profiles) 
       const firm_address = row.firm_address || row.address || '';
       const notes = row.notes || row.note || row.summary || '';
 
-      return { id: idx, name, company, domain, title, score, email, phone, linkedin_url, firm_address, notes, found: false };
+      // Audit / scan signals — present when CSV came from enriched_contacts.csv
+      const geo_score = row.geo_score || '';
+      const best_position = row.best_position || '';
+      const top_gap_1 = row.top_gap_1 || row.top_gap || '';
+      const top_gap_2 = row.top_gap_2 || '';
+      const top_gap_3 = row.top_gap_3 || '';
+      const has_llmstxt = (row.has_llmstxt || '').toLowerCase() === 'true';
+      const has_schema = (row.has_schema || '').toLowerCase() === 'true';
+      const keywords = row.keywords || '';
+      const linkedin_dm = row.linkedin_dm || '';
+      const email_subject = row.email_subject || '';
+      const email_body = row.email_body || '';
+      const voice_opener = row.voice_opener || '';
+
+      return {
+        id: idx, name, company, domain, title, score, email, phone,
+        linkedin_url, firm_address, notes,
+        geo_score, best_position, top_gap_1, top_gap_2, top_gap_3,
+        has_llmstxt, has_schema, keywords,
+        linkedin_dm, email_subject, email_body, voice_opener,
+        found: false,
+      };
     }).filter(p => p && p.name);
   }
 
@@ -666,17 +687,35 @@ Suggest 6-8 LinkedIn search terms. Mix "people" searches (for finding profiles) 
         const directLinkedIn = p.linkedin_url && /linkedin\.com\/in\//i.test(p.linkedin_url);
         const titleLine = p.title ? `<div class="pc-title">${esc(p.title)}</div>` : '';
         const addrLine = p.firm_address ? `<div class="pc-addr" title="${esc(p.firm_address)}">📍 ${esc(p.firm_address.substring(0, 60))}${p.firm_address.length > 60 ? '…' : ''}</div>` : '';
+
+        // Audit summary line — only render when audit data present
+        const scanBits = [];
+        if (p.geo_score) scanBits.push(`GEO ${p.geo_score}`);
+        if (p.best_position) scanBits.push(`#${p.best_position}`);
+        if (p.top_gap_1) scanBits.push(esc(p.top_gap_1));
+        if (p.has_llmstxt === false && p.geo_score) scanBits.push('no llms.txt');
+        if (p.has_schema === false && p.geo_score) scanBits.push('no schema');
+        const scanLine = scanBits.length
+          ? `<div class="pc-scan" title="${esc([p.top_gap_1, p.top_gap_2, p.top_gap_3].filter(Boolean).join(' · '))}">⚡ ${scanBits.slice(0, 4).join(' · ')}</div>`
+          : '';
+
+        const hasDM = !!p.linkedin_dm;
+        const hasEmail = !!(p.email_subject || p.email_body);
+
         card.innerHTML = `
           <div class="pc-info">
             <div class="pc-name">${esc(p.name)}</div>
             <div class="pc-company">${esc(p.company)}${p.notes ? ' · ' + esc(p.notes.substring(0, 40)) : ''}</div>
             ${titleLine}
             ${addrLine}
+            ${scanLine}
           </div>
           ${p.score ? `<span class="pc-score${p.score >= 70 ? ' high' : ''}">${p.score}</span>` : ''}
           <div class="pc-btns">
             <button class="pc-btn find-btn" data-id="${p.id}" title="${directLinkedIn ? 'Open LinkedIn profile' : 'Search LinkedIn'}">${directLinkedIn ? 'Open' : 'Find'}</button>
             <button class="pc-btn google-btn" data-id="${p.id}" title="Google site:linkedin.com/in search">G</button>
+            ${hasDM ? `<button class="pc-btn dm-btn" data-id="${p.id}" title="Copy LinkedIn DM to clipboard">DM</button>` : ''}
+            ${hasEmail ? `<button class="pc-btn email-btn" data-id="${p.id}" title="Copy email subject + body to clipboard">@</button>` : ''}
             <button class="pc-btn ${p.found ? 'done' : ''}" data-id="${p.id}" data-action="toggle" title="${p.found ? 'Mark not found' : 'Mark as found'}">${p.found ? '✓' : '○'}</button>
           </div>
         `;
@@ -698,6 +737,33 @@ Suggest 6-8 LinkedIn search terms. Mix "people" searches (for finding profiles) 
           const q = `site:linkedin.com/in/ "${p.name}" "${p.company}"`;
           chrome.tabs.create({ url: `https://www.google.com/search?q=${encodeURIComponent(q)}` });
         });
+
+        // Copy LinkedIn DM
+        const dmBtn = card.querySelector('.dm-btn');
+        if (dmBtn) {
+          dmBtn.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(p.linkedin_dm);
+              toast('DM copied — paste into LinkedIn');
+            } catch {
+              toast('Copy failed');
+            }
+          });
+        }
+
+        // Copy email (subject + body)
+        const emailBtn = card.querySelector('.email-btn');
+        if (emailBtn) {
+          emailBtn.addEventListener('click', async () => {
+            const text = `Subject: ${p.email_subject}\n\n${p.email_body}`;
+            try {
+              await navigator.clipboard.writeText(text);
+              toast('Email copied');
+            } catch {
+              toast('Copy failed');
+            }
+          });
+        }
 
         // Toggle found
         card.querySelector('[data-action="toggle"]').addEventListener('click', async () => {
