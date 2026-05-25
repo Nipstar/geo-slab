@@ -23,6 +23,8 @@ import argparse
 import csv
 import json
 import re
+import shutil
+import subprocess
 import sys
 import time
 from dataclasses import dataclass, field, asdict
@@ -129,6 +131,40 @@ def decode_cf_email(cfemail: str) -> str:
         return "".join(chr(int(cfemail[i:i+2], 16) ^ r) for i in range(2, len(cfemail), 2))
     except Exception:
         return ""
+
+CLAUDE_CLI = "claude"
+CLAUDE_CLI_TIMEOUT = 90
+TEXT_BUDGET = 18_000
+PER_PAGE_TEXT_CAP = 8_000
+
+EMAIL_REGEX = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
+
+LLM_PROMPT = """You are extracting law-firm decision-maker intelligence from raw web page text.
+
+Goal: identify the firm's MANAGING PARTNER / SENIOR PARTNER / HEAD OF FAMILY LAW / FOUNDER plus other PARTNERS, DIRECTORS, and HEADS OF DEPARTMENT. Capture direct emails, direct phone numbers, and LinkedIn profile URLs where present in the page text.
+
+Return STRICT JSON with this shape:
+{
+  "managing_partner": "First Last" or null,
+  "managing_partner_title": "string" or null,
+  "managing_partner_email": "name@firm.com" or null,
+  "managing_partner_linkedin": "https://linkedin.com/in/..." or null,
+  "partners": [
+    {"name": "First Last", "title": "Partner", "email": "name@firm.com" or null, "phone": "+44..." or null, "linkedin": "https://linkedin.com/in/..." or null}
+  ],
+  "all_emails": ["any@email.com", ...]
+}
+
+Rules:
+- Prefer titles: Managing Partner, Senior Partner, Partner, Head of Family Law, Head of [Department], Director, Managing Director, Founder, Principal.
+- Include only people who appear to work at THIS firm. Skip paralegals, trainees, support staff, and clients unless they have a senior title.
+- Return real emails only — never guess email patterns.
+- Return real LinkedIn URLs only if they appear in the page text.
+- If nothing can be extracted, return all fields as null / empty arrays.
+- JSON only, no commentary, no code fences.
+
+PAGE TEXT (truncated):
+{page_text}"""
 
 COOKIE_BUTTON_SELECTORS = [
     'button:has-text("Accept all")', 'button:has-text("Accept All")',
@@ -421,6 +457,161 @@ def linkedin_search_url(name: str, firm: str) -> str:
     return f"https://www.google.com/search?q={q}"
 
 
+def claude_cli_available() -> bool:
+    return shutil.which(CLAUDE_CLI) is not None
+
+
+def fetch_text_playwright(domain: str, paths: list[str]) -> tuple[list[str], str]:
+    """Visit homepage + team paths via Playwright. Return (visited_urls, combined_text)."""
+    if not PLAYWRIGHT_AVAILABLE:
+        return [], ""
+    base = base_url(domain)
+    urls = [base] + [urljoin(base, p) for p in paths]
+    visited = []
+    chunks = []
+    seen = set()
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            ctx = browser.new_context(
+                user_agent=HEADERS["User-Agent"],
+                viewport={"width": 1280, "height": 900},
+                locale="en-GB",
+            )
+            page = ctx.new_page()
+            for url in urls:
+                if url in seen:
+                    continue
+                seen.add(url)
+                try:
+                    resp = page.goto(url, wait_until="domcontentloaded", timeout=15000)
+                except Exception:
+                    continue
+                if not resp or resp.status >= 400:
+                    continue
+                # Dismiss cookies
+                for sel in COOKIE_BUTTON_SELECTORS:
+                    try:
+                        page.locator(sel).first.click(timeout=1000)
+                        break
+                    except Exception:
+                        continue
+                try:
+                    page.wait_for_load_state("networkidle", timeout=5000)
+                except PWTimeout:
+                    pass
+                try:
+                    html = page.content()
+                except Exception:
+                    continue
+                soup = BeautifulSoup(html, "html.parser")
+                for bad in soup(["script", "style", "noscript", "svg"]):
+                    bad.decompose()
+                # Preserve linkedin URLs inline before stripping
+                li_links = []
+                for a in soup.find_all("a", href=re.compile(r"linkedin\.com/in/", re.I)):
+                    li_links.append(a["href"].split("?")[0])
+                text = soup.get_text(separator=" ", strip=True)
+                text = re.sub(r"\s+", " ", text)[:PER_PAGE_TEXT_CAP]
+                if li_links:
+                    text += " LINKEDIN_URLS: " + " ".join(li_links)
+                visited.append(url)
+                chunks.append(f"=== {url} ===\n{text}")
+                if sum(len(c) for c in chunks) >= TEXT_BUDGET:
+                    break
+            browser.close()
+    except Exception as e:
+        print(f"  playwright fetch error: {e}", file=sys.stderr)
+
+    combined = "\n\n".join(chunks)[:TEXT_BUDGET]
+    return visited, combined
+
+
+def llm_extract(page_text: str, firm_name: str, domain: str) -> dict:
+    """Pipe text to `claude -p`, parse JSON response."""
+    prompt = LLM_PROMPT.replace("{page_text}", page_text)
+    full_input = f"Firm: {firm_name or domain}\n\n{prompt}"
+    try:
+        result = subprocess.run(
+            [CLAUDE_CLI, "-p"],
+            input=full_input,
+            capture_output=True,
+            text=True,
+            timeout=CLAUDE_CLI_TIMEOUT,
+        )
+    except subprocess.TimeoutExpired:
+        print("  claude CLI timeout", file=sys.stderr)
+        return {}
+    except FileNotFoundError:
+        print("  claude CLI not found", file=sys.stderr)
+        return {}
+    if result.returncode != 0:
+        print(f"  claude CLI exit {result.returncode}: {result.stderr[:200]}", file=sys.stderr)
+        return {}
+    raw = (result.stdout or "").strip()
+    raw = re.sub(r"^```(?:json)?\s*", "", raw)
+    raw = re.sub(r"\s*```$", "", raw)
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        print(f"  LLM non-JSON, snippet: {raw[:200]}", file=sys.stderr)
+        return {}
+
+
+def llm_to_contacts(extracted: dict, domain: str, firm_name: str, source: str) -> list[Contact]:
+    contacts = []
+    mp = extracted.get("managing_partner")
+    if mp:
+        contacts.append(Contact(
+            domain=domain,
+            name=mp,
+            title=extracted.get("managing_partner_title") or "Managing Partner",
+            email=extracted.get("managing_partner_email") or "",
+            linkedin_url=extracted.get("managing_partner_linkedin") or "",
+            source_page=source,
+            extraction_method="claude-cli",
+            confidence="high",
+        ))
+    for p in extracted.get("partners", []) or []:
+        name = p.get("name") if isinstance(p, dict) else None
+        if not name:
+            continue
+        if mp and name.strip().lower() == mp.strip().lower():
+            continue
+        contacts.append(Contact(
+            domain=domain,
+            name=name,
+            title=p.get("title", "") if isinstance(p, dict) else "",
+            email=(p.get("email") or "") if isinstance(p, dict) else "",
+            linkedin_url=(p.get("linkedin") or "") if isinstance(p, dict) else "",
+            phone=(p.get("phone") or "") if isinstance(p, dict) else "",
+            source_page=source,
+            extraction_method="claude-cli",
+            confidence="high",
+        ))
+    return contacts
+
+
+def enrich_with_llm(domain: str, firm_name: str) -> list[Contact]:
+    visited, text = fetch_text_playwright(domain, TEAM_PATHS)
+    if not text:
+        return []
+    # Email regex safety net
+    raw_emails = sorted({
+        m.group(0).lower() for m in EMAIL_REGEX.finditer(text)
+        if not m.group(0).lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))
+    })
+    extracted = llm_extract(text, firm_name, domain)
+    if not extracted:
+        return []
+    # Merge raw emails into all_emails
+    llm_emails = extracted.get("all_emails") or []
+    extracted["all_emails"] = sorted(set(llm_emails + raw_emails))
+    source = "; ".join(visited[:3])
+    return llm_to_contacts(extracted, domain, firm_name, source)
+
+
 def looks_thin(contacts: list[Contact], html: str) -> bool:
     if len(contacts) >= 3:
         return False
@@ -512,20 +703,48 @@ def main():
     ap.add_argument("--output", required=True, help="contacts.csv output")
     ap.add_argument("--top", type=int, default=6)
     ap.add_argument("--limit-pages", type=int, default=3)
+    ap.add_argument("--llm", dest="llm", action="store_true", default=None,
+                    help="Use Playwright + claude CLI for extraction (default ON when claude CLI available)")
+    ap.add_argument("--no-llm", dest="llm", action="store_false",
+                    help="Disable LLM extraction, use heuristic-only")
     args = ap.parse_args()
 
     if not PLAYWRIGHT_AVAILABLE:
         print("WARN: playwright not installed — JS sites may yield nothing", file=sys.stderr)
+
+    use_llm = args.llm
+    if use_llm is None:
+        use_llm = claude_cli_available() and PLAYWRIGHT_AVAILABLE
+    if use_llm and not claude_cli_available():
+        print("WARN: claude CLI not in PATH — falling back to heuristic", file=sys.stderr)
+        use_llm = False
+    if use_llm and not PLAYWRIGHT_AVAILABLE:
+        print("WARN: playwright unavailable — falling back to heuristic", file=sys.stderr)
+        use_llm = False
+
+    print(f"Mode: {'LLM (Playwright + claude -p)' if use_llm else 'heuristic-only'}", file=sys.stderr)
 
     prospects = load_top_prospects(Path(args.input), args.top)
     print(f"Scraping {len(prospects)} firms…", file=sys.stderr)
 
     all_contacts = []
     for domain, firm in prospects:
+        print(f"\n=== {domain} ({firm or '-'}) ===", file=sys.stderr)
+        contacts = []
         try:
-            contacts = scrape_firm(domain, firm, args.limit_pages)
-            decision_only = [c for c in contacts if is_decision_title(c.title) or not c.title]
-            all_contacts.extend(decision_only)
+            if use_llm:
+                contacts = enrich_with_llm(domain, firm)
+                print(f"  LLM → {len(contacts)} contacts", file=sys.stderr)
+            if not contacts:
+                if use_llm:
+                    print("  LLM yielded zero — falling back to heuristic", file=sys.stderr)
+                contacts = scrape_firm(domain, firm, args.limit_pages)
+                contacts = [c for c in contacts if is_decision_title(c.title) or not c.title]
+            # Add LinkedIn search fallback for any contact missing a profile URL
+            for c in contacts:
+                if not c.linkedin_url:
+                    c.linkedin_url = linkedin_search_url(c.name, firm or domain)
+            all_contacts.extend(contacts)
         except Exception as e:
             print(f"  ERROR {domain}: {e}", file=sys.stderr)
 
