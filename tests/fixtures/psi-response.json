@@ -1,0 +1,90 @@
+{
+  "id": "https://example.com/",
+  "loadingExperience": {
+    "id": "https://example.com/",
+    "metrics": {
+      "LARGEST_CONTENTFUL_PAINT_MS": {
+        "percentile": 2400,
+        "category": "AVERAGE"
+      },
+      "INTERACTION_TO_NEXT_PAINT": {
+        "percentile": 180,
+        "category": "FAST"
+      },
+      "CUMULATIVE_LAYOUT_SHIFT_SCORE": {
+        "percentile": 8,
+        "category": "FAST"
+      }
+    },
+    "overall_category": "AVERAGE"
+  },
+  "lighthouseResult": {
+    "requestedUrl": "https://example.com/",
+    "categories": {
+      "performance": { "id": "performance", "score": 0.78 },
+      "accessibility": { "id": "accessibility", "score": 0.92 },
+      "best-practices": { "id": "best-practices", "score": 0.85 },
+      "seo": { "id": "seo", "score": 0.95 }
+    },
+    "audits": {
+      "largest-contentful-paint": {
+        "id": "largest-contentful-paint",
+        "title": "Largest Contentful Paint",
+        "numericValue": 2350.5,
+        "numericUnit": "millisecond"
+      },
+      "cumulative-layout-shift": {
+        "id": "cumulative-layout-shift",
+        "title": "Cumulative Layout Shift",
+        "numericValue": 0.07,
+        "numericUnit": "unitless"
+      },
+      "total-blocking-time": {
+        "id": "total-blocking-time",
+        "title": "Total Blocking Time",
+        "numericValue": 240,
+        "numericUnit": "millisecond"
+      },
+      "speed-index": {
+        "id": "speed-index",
+        "title": "Speed Index",
+        "numericValue": 3100,
+        "numericUnit": "millisecond"
+      },
+      "first-contentful-paint": {
+        "id": "first-contentful-paint",
+        "title": "First Contentful Paint",
+        "numericValue": 1450,
+        "numericUnit": "millisecond"
+      },
+      "uses-optimized-images": {
+        "id": "uses-optimized-images",
+        "title": "Efficiently encode images",
+        "description": "Optimized images load faster and consume less cellular data.",
+        "numericValue": 1800,
+        "details": { "type": "opportunity" }
+      },
+      "render-blocking-resources": {
+        "id": "render-blocking-resources",
+        "title": "Eliminate render-blocking resources",
+        "description": "Resources blocking first paint.",
+        "numericValue": 950,
+        "details": { "type": "opportunity" }
+      },
+      "unused-css-rules": {
+        "id": "unused-css-rules",
+        "title": "Reduce unused CSS",
+        "description": "Reduce unused rules from stylesheets.",
+        "numericValue": 420,
+        "details": { "type": "opportunity" }
+      },
+      "uses-text-compression": {
+        "id": "uses-text-compression",
+        "title": "Enable text compression",
+        "description": "Text-based resources should be served with compression.",
+        "numericValue": 0,
+        "details": { "type": "opportunity" }
+      }
+    }
+  }
+}

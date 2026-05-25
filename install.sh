@@ -219,22 +219,14 @@ main() {
         }
     fi
 
-    # ---- Optional: Install Playwright ----
-    if [ "$INTERACTIVE" = true ]; then
-        echo ""
-        read -p "Install Playwright for screenshots? (y/n): " -n 1 -r
-        echo ""
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            print_info "Installing Playwright browsers..."
-            $PYTHON_CMD -m playwright install chromium 2>/dev/null && {
-                print_success "Playwright Chromium installed"
-            } || {
-                print_warning "Playwright installation failed. Screenshots won't be available."
-            }
-        fi
-    else
-        print_info "Skipping Playwright (non-interactive mode). Install later with: python3 -m playwright install chromium"
-    fi
+    # ---- Install Playwright (REQUIRED for full audits) ----
+    print_info "Installing Playwright Chromium (required for /geo audit browser render)..."
+    $PYTHON_CMD -m pip install playwright --quiet 2>/dev/null || print_warning "playwright pip install failed"
+    $PYTHON_CMD -m playwright install chromium 2>/dev/null && {
+        print_success "Playwright Chromium installed"
+    } || {
+        print_warning "Playwright Chromium install failed — /geo audit browser render will be unavailable until you run: python3 -m playwright install chromium"
+    }
 
     # ---- Verify Installation ----
     echo ""
@@ -284,11 +276,16 @@ main() {
     echo "    /geo proposal <domain> Auto-generate client proposal"
     echo "    /geo live <url>       Live AI visibility test (requires API keys)"
     echo ""
-    echo -e "${BLUE}Optional API Keys (for live data):${NC}"
-    echo "    SERPAPI_API_KEY          — Brand mention scanning (serpapi.com, free 100/month)"
-    echo "    GOOGLE_PLACES_API_KEY    — Google Business Profile data"
-    echo "    OPENAI_API_KEY           — Live ChatGPT visibility testing"
-    echo "    ANTHROPIC_API_KEY        — Live Claude visibility testing"
+    echo -e "${BLUE}Optional API Keys (for live data — export to ~/.zshrc or .env.local):${NC}"
+    echo "    SERPAPI_API_KEY              — Brand mention scanning (serpapi.com, free 100/month)"
+    echo "    GOOGLE_PLACES_API_KEY        — Google Business Profile data (Places API New)"
+    echo "    PSI_API_KEY                  — PageSpeed Insights (Lighthouse + CWV, 25k/day free)"
+    echo "    FIRECRAWL_API_KEY            — JS-heavy site scraping"
+    echo "    OPENROUTER_API_KEY           — 7 AI providers via one key (ChatGPT/Claude/Gemini/Grok/DeepSeek/Meta/Mistral)"
+    echo "    OPENAI_API_KEY               — Native ChatGPT (overrides OpenRouter)"
+    echo "    ANTHROPIC_API_KEY            — Native Claude (overrides OpenRouter)"
+    echo "    GOOGLE_GENERATIVE_AI_API_KEY — Native Gemini (overrides OpenRouter)"
+    echo "    PERPLEXITY_API_KEY           — Perplexity (only native, no OpenRouter alt)"
     echo ""
     echo "  GEO SLAB by Antek Automation — https://antekautomation.com"
     echo ""

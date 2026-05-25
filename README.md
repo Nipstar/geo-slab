@@ -38,13 +38,23 @@ cd geo-slab
 
 ### Requirements
 
-- Python 3.8+
-- Claude Code CLI
-- Git
 - Python 3.9+
 - Claude Code CLI
 - Git
-- Optional: Playwright (for browser render audit + PDF reports), AI provider API keys (for live visibility testing)
+- **Playwright + Chromium** — required for `/geo audit` browser render phase (SSR gap detection, CWV, cloaking, screenshots). Auto-installed by `install.sh`.
+- Optional: AI provider API keys (live visibility testing), PageSpeed Insights API key (Lighthouse scores)
+
+### What `install.sh` Does (and Doesn't)
+
+**Installs:**
+- Copies skills, agents, scripts, schema, hooks → `~/.claude/`
+- `pip install -r requirements.txt` (requests, beautifulsoup4, lxml + optional SDKs: openai, anthropic, google-generativeai, firecrawl-py)
+- `pip install playwright` + `playwright install chromium` (no longer optional — required for full audit)
+
+**Does NOT install:**
+- API keys — add manually to `.env.local` or shell rc (see [Optional Setup](#optional-setup))
+- Webapp dependencies — `webapp/` runs in place; `pip install -r webapp/requirements-webapp.txt` is a separate step
+- OpenRouter SDK — not needed (uses raw `requests`)
 
 ---
 
@@ -199,7 +209,35 @@ Generates the emerging llms.txt standard file that helps AI crawlers understand 
 
 ## Optional Setup
 
-### Live AI Visibility Testing
+All API keys are optional — the toolkit works without them using URL generation + manual check instructions. Each key adds progressively richer live data. None of these are configured by `install.sh`; export to your shell rc or drop into `.env.local`.
+
+### PageSpeed Insights — Lighthouse + Core Web Vitals
+
+Used by `scripts/pagespeed.py` (wired into `geo-technical` audit). Returns Lighthouse scores (performance / accessibility / best-practices / SEO) + field CWV (LCP / INP / CLS via CrUX) for mobile + desktop. Falls back to lab data when CrUX is absent. Free tier: 25,000 req/day, 240/min.
+
+```bash
+export PSI_API_KEY="..."   # https://console.cloud.google.com — enable "PageSpeed Insights API"
+```
+
+Without the key the technical audit still runs, but Step 7 (Core Web Vitals) reverts to HTML-static risk indicators rather than real Lighthouse scores.
+
+### Brand Mention Scanning — SerpAPI
+
+Used by `brand_scanner.py` for live Google search across YouTube, Reddit, LinkedIn, Wikipedia, X/Twitter, and other AI-cited platforms. Without it, the scanner produces URL lists only (no live mention counts).
+
+```bash
+export SERPAPI_API_KEY="..."   # https://serpapi.com — free tier: 100 searches/month
+```
+
+### Google Business Profile — Google Places API
+
+Used by `brand_scanner.py` to pull live GBP data: rating, review count, business categories. Required for accurate Local Business audits.
+
+```bash
+export GOOGLE_PLACES_API_KEY="..."   # https://console.cloud.google.com — enable "Places API (New)"
+```
+
+### Live AI Visibility — Native Provider SDKs
 
 ```bash
 # Install one or more AI provider SDKs
@@ -212,12 +250,49 @@ export GOOGLE_GENERATIVE_AI_API_KEY="..."
 export PERPLEXITY_API_KEY="pplx-..."
 ```
 
+### Live AI Visibility — OpenRouter (One Key, 7 Providers)
+
+`live_ai_query.py` falls back to OpenRouter for any provider missing a native key. One `OPENROUTER_API_KEY` unlocks ChatGPT, Claude, Gemini, Grok, DeepSeek, Meta Llama, and Mistral via a single OpenAI-compatible endpoint — no extra SDK install required.
+
+```bash
+export OPENROUTER_API_KEY="sk-or-..."   # https://openrouter.ai/keys
+```
+
+Priority order: native keys first, OpenRouter fills the gaps.
+
 ### Firecrawl (JS-Heavy Sites)
 
 ```bash
 pip install firecrawl-py
 export FIRECRAWL_API_KEY="fc-..."
 ```
+
+### `.env.local` Example
+
+Drop in repo root — auto-loaded by scripts via `python-dotenv`:
+
+```bash
+export FIRECRAWL_API_KEY=fc-...
+export SERPAPI_API_KEY=...
+export GOOGLE_PLACES_API_KEY=...
+export PSI_API_KEY=...
+export PERPLEXITY_API_KEY=pplx-...
+export OPENROUTER_API_KEY=sk-or-...
+```
+
+### Key Priority Summary
+
+| Capability | Primary | Fallback | Status if neither set |
+|---|---|---|---|
+| Browser render | Playwright (auto-installed) | — | Audit step skipped, warning emitted |
+| Core Web Vitals | `PSI_API_KEY` | HTML-static risk heuristics | Lab-only via Playwright (less reliable) |
+| Brand SERP scan | `SERPAPI_API_KEY` | — | URL generation only |
+| GBP data | `GOOGLE_PLACES_API_KEY` | — | Skipped |
+| JS-heavy scraping | `FIRECRAWL_API_KEY` | requests + BeautifulSoup | Works for static HTML only |
+| ChatGPT live | `OPENAI_API_KEY` | `OPENROUTER_API_KEY` | Provider skipped |
+| Claude live | `ANTHROPIC_API_KEY` | `OPENROUTER_API_KEY` | Provider skipped |
+| Gemini live | `GOOGLE_GENERATIVE_AI_API_KEY` | `OPENROUTER_API_KEY` | Provider skipped |
+| Perplexity live | `PERPLEXITY_API_KEY` | — | Provider skipped |
 
 ---
 

@@ -104,6 +104,21 @@ python3 ~/.claude/skills/geo/scripts/browser_render_audit.py \
 
 Pass the resulting `browser-render.json` to the `geo-technical` subagent in Phase 2 (it knows how to interpret cookie-wall, SSR-gap, CWV, cloaking, and JS-only schema signals).
 
+**Step 6: Run PageSpeed Insights (when PSI_API_KEY is set)**
+
+For the homepage + each critical page selected in Step 4, fetch real Lighthouse scores + CrUX field CWV. Mobile + desktop run in parallel per call. Skip silently when `PSI_API_KEY` is unset (no key → audit continues with HTML-static CWV fallback).
+
+```bash
+# Per page — script handles mobile + desktop in one invocation
+for page_url in <homepage> <critical_url_1> <critical_url_2> ...; do
+  slug=$(echo "$page_url" | sed 's|https\?://||; s|/|_|g')
+  python3 ~/.claude/skills/geo/scripts/pagespeed.py "$page_url" --pretty \
+    > "reports/<domain>/psi-${slug}.json"
+done
+```
+
+24h on-disk cache at `~/.geo-slab/cache/psi/` — repeat audits within 24h reuse data without hitting the API. Pass the `psi-*.json` paths to the `geo-technical` subagent in Phase 2.
+
 ---
 
 ### Phase 2: Parallel Subagent Delegation

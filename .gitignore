@@ -35,6 +35,17 @@ env/
 /llms.txt
 /llms-full.txt
 /audit-data*.json
+reports/
+platform-readiness-report.md
+
+# Local Claude / Codex state
+.claude/
+
+# Playwright local profile data
+playwright_chromiumdev_profile-*/
+
+# GEO SLAB local cache + prospects (lives at ~/.geo-slab; ignore if symlinked into repo)
+.geo-slab/
 
 # Credentials and secrets (never commit these)
 *.key
@@ -43,6 +54,11 @@ env/
 *.secret
 *.token
 credentials.*
+.env.local
+client_secret*.json
+*.apps.googleusercontent.com.json
+service-account*.json
+gcp-key*.json
 
 # Screenshots
 screenshots/

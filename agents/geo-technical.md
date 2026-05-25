@@ -51,6 +51,47 @@ python3 ~/.claude/skills/geo/scripts/browser_render_audit.py \
 - `hydrated_schema.added_by_js` non-empty: flag those schema types as invisible to AI crawlers
 - Embed screenshot paths in the client PDF data file under `evidence`
 
+## PageSpeed Insights (REQUIRED when PSI_API_KEY is set)
+
+Run `scripts/pagespeed.py` against the target URL **and** each critical page (cap 5) to capture Lighthouse scores + real-user Core Web Vitals from Google's CrUX dataset. PSI replaces HTML-static CWV risk inference (Step 7 below) as the primary signal when available.
+
+**Run:**
+
+```bash
+python3 ~/.claude/skills/geo/scripts/pagespeed.py <url> --pretty \
+  > reports/<domain>/psi-<page_slug>.json
+```
+
+- Mobile + desktop run in parallel (single invocation handles both)
+- 24h on-disk cache at `~/.geo-slab/cache/psi/` — repeat runs within 24h hit cache
+- Status `failed` (no key, bad URL, blocked) → fall back to HTML-static heuristics (Step 7); never block the audit
+- Status `partial` (one strategy succeeded) → use whichever data is present, note in report
+
+**Apply to score (Category 6: Core Web Vitals):**
+
+| Field-data thresholds (mobile, CrUX) | Action |
+|---|---|
+| `category == "FAST"` | full 15 points |
+| `category == "AVERAGE"` | 10 points |
+| `category == "SLOW"` | 5 points |
+| LCP > 4000ms | −5 additional |
+| INP > 500ms | −5 additional |
+| CLS > 0.25 | −5 additional |
+
+**Apply to score (Category 8: Page Speed):**
+
+| Lighthouse mobile performance score | Action |
+|---|---|
+| ≥ 0.9 | full 15 points |
+| 0.5–0.89 | proportional (round to 1pt) |
+| < 0.5 | 5 points + Critical finding |
+
+**Report inclusion (mandatory when status != failed):**
+
+- Mobile + desktop Lighthouse scores (perf / a11y / best-practices / SEO)
+- CWV: LCP, INP, CLS, source (field vs lab), CrUX category
+- Top 5 PSI opportunities sorted by `savings_ms` desc — list under "Quick Wins"
+
 ## Execution Steps
 
 ### Step 1: Fetch Page HTML and Response Headers
@@ -159,6 +200,8 @@ Analyze the HTML source for mobile optimization signals:
 - Font size adequacy (base font size >= 16px for mobile readability)
 
 ### Step 7: Core Web Vitals Assessment
+
+**Primary data source: `pagespeed.py` output (see "PageSpeed Insights" section above)**. The HTML-static indicators below are fallback signals when PSI is unavailable (no `PSI_API_KEY`, network failure, or 4xx from PSI). Always report which source was used.
 
 Assess Core Web Vitals risk from HTML source analysis. Note: This is a static analysis from HTML; actual field data requires CrUX or PageSpeed Insights.
 

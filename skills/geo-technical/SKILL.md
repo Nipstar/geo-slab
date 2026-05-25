@@ -16,9 +16,24 @@ Technical SEO forms the foundation of both traditional search visibility and AI 
 
 1. Collect the target URL (homepage + 2-3 key inner pages)
 2. Fetch each page using curl/WebFetch to get raw HTML and HTTP headers
-3. Run through each of the 8 audit categories below
-4. Score each category using the rubric
-5. Generate GEO-TECHNICAL-AUDIT.md with results
+3. **If `PSI_API_KEY` is set**: run `scripts/pagespeed.py <url>` for each page first — feeds Categories 6 (Core Web Vitals) and 8 (Page Speed) with real Lighthouse + CrUX field data instead of HTML-static heuristics
+4. Run through each of the 8 audit categories below
+5. Score each category using the rubric
+6. Generate GEO-TECHNICAL-AUDIT.md with results, noting CWV data source (PSI field / PSI lab / HTML-static fallback)
+
+### PageSpeed Insights (PSI) Integration
+
+PSI is the **preferred** source for Categories 6 + 8. The audit still completes when PSI is unavailable — falls back to HTML-static risk indicators below.
+
+```bash
+# Per-page, returns mobile + desktop in one call
+python3 scripts/pagespeed.py https://example.com/page --pretty > psi-page.json
+
+# Skip 24h cache for fresh data
+python3 scripts/pagespeed.py https://example.com/page --no-cache
+```
+
+Output shape: `{ status, mobile, desktop, core_web_vitals, top_opportunities[] }`. See `scripts/pagespeed.py` docstring for full field reference. CrUX field data preferred over lab; INP unavailable in lab and will be `null` in fallback mode.
 
 ---
 
@@ -229,6 +244,27 @@ As of **July 2024**, Google crawls ALL sites exclusively with mobile Googlebot. 
 
 ## Category 6: Core Web Vitals (15 points)
 
+### Data Source Priority
+
+1. **PSI field data (CrUX)** — preferred. Run `scripts/pagespeed.py`, parse `core_web_vitals.source == "field"`. Use `category` (FAST/AVERAGE/SLOW) as primary score driver.
+2. **PSI lab data** — used when CrUX is absent (low-traffic URL). `core_web_vitals.source == "lab"`. INP will be null — note in report.
+3. **HTML-static heuristics** (section below) — fallback only when PSI unavailable. Flag in report.
+
+### PSI-Driven Scoring (when available)
+
+| `core_web_vitals.category` | Base points |
+|---|---|
+| FAST | 15 |
+| AVERAGE | 10 |
+| SLOW | 5 |
+
+Then apply deductions:
+- LCP > 4000ms: −5
+- INP > 500ms: −5 (skip if `source == "lab"`)
+- CLS > 0.25: −5
+
+Floor at 0. Cite the PSI JSON file in the report ("source: reports/<domain>/psi-home.json").
+
 ### 2026 Metrics and Thresholds
 Core Web Vitals use the **75th percentile** of real user data (field data) as the benchmark. Lab data is useful for debugging but field data determines the ranking signal.
 
@@ -316,6 +352,22 @@ Even Googlebot, which does execute JavaScript, deprioritizes JS-rendered content
 ---
 
 ## Category 8: Page Speed & Server Performance (15 points)
+
+### PSI Lighthouse Performance Score (preferred)
+
+When PSI data is available, use the mobile Lighthouse `performance` score as the primary signal:
+
+| `mobile.scores.performance` | Points |
+|---|---|
+| ≥ 0.90 | 15 |
+| 0.80–0.89 | 13 |
+| 0.70–0.79 | 11 |
+| 0.50–0.69 | 8 |
+| < 0.50 | 5 + Critical finding |
+
+Then list `top_opportunities[]` from the PSI output as the actionable Quick Wins in the report — each entry already includes title, description, and `savings_ms`. Sort by savings desc, cap at 5.
+
+If PSI is unavailable, drop back to the 8.1–8.6 manual checks below.
 
 ### 8.1 Time to First Byte (TTFB)
 - Target: **< 800ms** (ideally < 200ms)

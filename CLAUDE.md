@@ -13,20 +13,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Installation & Setup
 
 ```bash
-# Install from local clone
+# Install from local clone (auto-installs Playwright Chromium — required for full audit)
 ./install.sh
 
 # Install Python dependencies manually
 pip install -r requirements.txt
 
-# Optional: Playwright for screenshots
+# Required: Playwright Chromium for /geo audit browser render phase
 python3 -m playwright install chromium
 
 # Uninstall
 ./uninstall.sh
 ```
 
-`install.sh` copies skills → `~/.claude/skills/`, agents → `~/.claude/agents/`, scripts → `~/.claude/skills/geo/scripts/`, and schema templates → `~/.claude/skills/geo/schema/`.
+Playwright is **required**, not optional — `/geo audit` runs `browser_render_audit.py` against up to 5 critical pages for SSR-gap detection, CWV measurement, cloaking checks, and screenshots. The full audit fails the browser-render step without it.
+
+`install.sh` copies skills → `~/.claude/skills/`, agents → `~/.claude/agents/`, scripts → `~/.claude/skills/geo/scripts/`, schema templates → `~/.claude/skills/geo/schema/`, and any `hooks/` → `~/.claude/skills/geo/hooks/` (chmod +x).
+
+The Flask dashboard in `webapp/` is **not** installed by `install.sh` — it runs in place from the repo. See [Web Dashboard](#web-dashboard) below.
 
 ## Running the Python Scripts Directly
 
@@ -43,26 +47,35 @@ python3 scripts/live_ai_query.py --company-name "Brand" --url "https://..." --in
 
 ### Optional API Keys for Enhanced Features
 
+All keys optional. Toolkit degrades gracefully — each key unlocks richer live data. Export to `~/.zshrc` or drop into `.env.local` at repo root (auto-loaded via `python-dotenv`).
+
 ```bash
+# PageSpeed Insights — Lighthouse scores + real-user Core Web Vitals (CrUX field data)
+# Wired into geo-technical audit. Free tier: 25k req/day, 240/min.
+export PSI_API_KEY="..."                # https://console.cloud.google.com (enable PageSpeed Insights API)
+
 # Brand scanning — SerpAPI for live Google search results across all platforms
-export SERPAPI_API_KEY="your-key"       # https://serpapi.com (free: 100 searches/month)
+export SERPAPI_API_KEY="..."            # https://serpapi.com (free: 100 searches/month)
 
 # Brand scanning — Google Places API for GBP data (rating, reviews, categories)
-export GOOGLE_PLACES_API_KEY="your-key" # https://console.cloud.google.com (enable Places API)
-
-# Live AI visibility testing (install providers you want to query)
-pip install openai anthropic google-generativeai
-export OPENAI_API_KEY="sk-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-export GOOGLE_GENERATIVE_AI_API_KEY="..."
-export PERPLEXITY_API_KEY="pplx-..."
+export GOOGLE_PLACES_API_KEY="..."      # https://console.cloud.google.com (enable Places API New)
 
 # Firecrawl for JS-heavy site scraping
 pip install firecrawl-py
 export FIRECRAWL_API_KEY="fc-..."
+
+# Live AI visibility — OpenRouter (one key, 7 providers, no SDK install needed)
+export OPENROUTER_API_KEY="sk-or-..."   # https://openrouter.ai/keys
+
+# Live AI visibility — native provider SDKs (override OpenRouter when set)
+pip install openai anthropic google-generativeai
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+export GOOGLE_GENERATIVE_AI_API_KEY="..."
+export PERPLEXITY_API_KEY="pplx-..."    # no OpenRouter fallback — only native
 ```
 
-All API keys are optional — the toolkit works without them using manual check instructions and URL generation. Each key adds progressively richer live data.
+**Live-AI provider priority** (live_ai_query.py): native key > OpenRouter > skipped.
 
 ## Architecture
 
@@ -80,12 +93,13 @@ For `/geo audit`, the orchestration is:
 | Layer | Location | Purpose |
 |-------|----------|---------|
 | Main skill | `geo/SKILL.md` | Entry point, command routing, orchestration logic |
-| Sub-skills (15) | `skills/geo-*/SKILL.md` | Specialized analysis components invoked by skill or agent |
+| Sub-skills (17) | `skills/geo-*/SKILL.md` | Specialized analysis components invoked by skill or agent |
 | Subagents (5+1) | `agents/geo-*.md` | Parallel workers that bundle related sub-skills |
 
-Sub-skills split into two roles:
-- **Parallel-audit skills** (run via subagents during `/geo audit`): geo-citability, geo-crawlers, geo-llmstxt, geo-brand-mentions, geo-platform-optimizer, geo-technical, geo-content, geo-schema, geo-live-visibility.
+Sub-skills split into three roles:
+- **Parallel-audit skills** (run via subagents during `/geo audit`): geo-citability, geo-crawlers, geo-llmstxt, geo-brand-mentions, geo-platform-optimizer, geo-technical, geo-content, geo-schema, geo-live-visibility, geo-browser-render.
 - **Direct-call skills** (invoked from `geo/SKILL.md`, no subagent): geo-audit (orchestrator), geo-report, geo-report-pdf, geo-compare, geo-proposal, geo-prospect.
+- **Launcher skill**: geo-dashboard — boots the Flask webapp (`webapp/app.py`) on port 5050.
 
 ### Subagent → Sub-skill Mapping
 
@@ -93,7 +107,7 @@ Sub-skills split into two roles:
 |-------|----------------|
 | `geo-ai-visibility.md` | geo-citability, geo-crawlers, geo-llmstxt, geo-brand-mentions |
 | `geo-platform-analysis.md` | geo-platform-optimizer |
-| `geo-technical.md` | geo-technical |
+| `geo-technical.md` | geo-technical, geo-browser-render |
 | `geo-content.md` | geo-content |
 | `geo-schema.md` | geo-schema |
 | `geo-live-visibility.md` *(optional)* | geo-live-visibility (requires AI API keys) |
@@ -107,8 +121,10 @@ All scripts in `scripts/` are standalone utilities the skills call via `Bash`:
 - `llmstxt_generator.py` — llms.txt validation and generation
 - `render_geo_report.py` — Neo brutalist HTML report generator (JSON → HTML); canonical template
 - `generate_pdf_report.py` — Playwright PDF printer; imports `render_geo_report.py` then prints via headless Chromium
+- `browser_render_audit.py` — Headless-Chromium audit: cookie wall, SSR gap, CWV, UA-differential cloaking, desktop+mobile screenshots. Python 3.9+ required (`from __future__ import annotations`). Cap of 5 URLs enforced.
 - `generate_prospect_report.py` — Lite/prospect HTML report; `--pdf` flag adds Playwright PDF output
-- `live_ai_query.py` — Live AI visibility querying; queries ChatGPT, Claude, Gemini, Perplexity APIs directly
+- `live_ai_query.py` — Live AI visibility querying; queries ChatGPT, Claude, Gemini, Perplexity APIs directly (or via OpenRouter fallback)
+- `pagespeed.py` — PageSpeed Insights client. Runs mobile + desktop in parallel, parses Lighthouse scores + CWV (CrUX field data preferred, lab fallback), extracts top opportunities. 24h on-disk cache at `~/.geo-slab/cache/psi/`. Called by `geo-technical` agent.
 
 ### Schema Templates
 
@@ -143,6 +159,7 @@ reports/
 | `/geo proposal <domain>` | `reports/<domain>/GEO-PROPOSAL-<domain>.md` |
 | `/geo live <url>` | `reports/<domain>/live-visibility.json` |
 | `/geo prospect <url>` (lite) | `reports/<domain>/GEO-PROSPECT-<domain>.html` + `.pdf` |
+| `/geo dashboard` | Launches Flask webapp on `http://localhost:5050` (no file output) |
 
 Always pass the output path explicitly to the report scripts:
 ```bash
@@ -162,6 +179,32 @@ GEO_Score = (Citability × 0.25) + (Brand × 0.20) + (EEAT × 0.20) + (Technical
 - **Citability passages**: optimal 134–167 words, self-contained, fact-rich, directly answer question. `citability_scorer.py` thresholds tuned around this band — change with care.
 - **AI crawlers checked**: `geo-crawlers` / `fetch_page.py` parse robots.txt for 14+ bots — GPTBot, ClaudeBot, PerplexityBot, Google-Extended, FacebookBot, Applebot-Extended, Bytespider, CCBot, etc. Add new bots to crawler list when vendors publish UAs.
 - **Prospect (lite) flow**: `/geo prospect` → `geo-prospect` skill → `generate_prospect_report.py --pdf`. Distinct from `/geo audit` — lighter data, top-of-funnel client deliverable, no parallel subagents.
+
+## Web Dashboard
+
+Browser CRM for prospect management + audit-artifact viewing. Vanilla **Flask + HTMX**, neo brutalist palette to match the report PDFs.
+
+```bash
+cd webapp && pip install -r requirements-webapp.txt && python app.py
+# → http://localhost:5050
+```
+
+- Entry: `webapp/app.py` (templates in `webapp/templates/`, CSS in `webapp/static/css/slab.css`)
+- Auto-discovers existing audit artifacts under `reports/<domain>/`
+- Persists prospects to `~/.geo-slab/prospects.json` (lives outside the repo)
+- Separate deps file: `webapp/requirements-webapp.txt` (not in root `requirements.txt`)
+- Slash-command entrypoint: `/geo dashboard` (handled by `geo-dashboard` skill)
+
+## Reference Docs (deeper than this file)
+
+`docs/` holds the long-form technical reference — read these instead of grepping the codebase when a topic is broad:
+
+- `docs/architecture.md` — system design, audit flow, parallel-agent orchestration
+- `docs/scoring-methodology.md` — composite GEO Score formula, per-category weightings
+- `docs/skills-and-agents.md` — full inventory of skills, agents, scripts, schemas
+- `docs/commands-reference.md` — every `/geo` slash command
+
+`examples/` contains sample audit JSON + finished HTML/PDF deliverables — use as fixtures when iterating on `render_geo_report.py` or `generate_pdf_report.py`.
 
 ## Adding a New Sub-Skill
 
