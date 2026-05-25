@@ -304,7 +304,7 @@ STATIC_HEAD = """\
         /* Section */
         .section {{
             border-bottom: 3px solid var(--black);
-            padding: 40px 56px;
+            padding: 32px 56px;
         }}
         .section-label {{
             display: block;
@@ -371,13 +371,15 @@ STATIC_HEAD = """\
         .working-item {{
             border: 3px solid var(--black);
             border-bottom: none;
-            padding: 20px 28px;
+            padding: 12px 28px;
             background: rgba(255,255,255,0.35);
             display: flex;
             align-items: baseline;
             gap: 16px;
-            font-size: 15px;
-            line-height: 1.5;
+            font-size: 14px;
+            line-height: 1.45;
+            break-inside: avoid;
+            page-break-inside: avoid;
         }}
         .working-item:last-child {{ border-bottom: 3px solid var(--black); }}
         .check {{
@@ -403,14 +405,16 @@ STATIC_HEAD = """\
         .teaser-item {{
             border-right: 3px solid var(--black);
             border-bottom: 3px solid var(--black);
-            padding: 20px 24px;
+            padding: 11px 22px;
             display: flex;
             align-items: baseline;
             gap: 14px;
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 13px;
+            line-height: 1.45;
             color: var(--charcoal);
-            opacity: 0.7;
+            opacity: 0.78;
+            break-inside: avoid;
+            page-break-inside: avoid;
         }}
         .teaser-item:nth-child(even) {{ border-right: none; }}
         .teaser-item:nth-last-child(-n+2) {{ border-bottom: none; }}
