@@ -530,8 +530,8 @@ STATIC_HEAD = """\
             .teaser-item:nth-child(even) {{ border-right: none; }}
             .teaser-item:nth-last-child(-n+2) {{ border-bottom: none; }}
         }}
-        /* Mobile */
-        @media (max-width: 860px) {{
+        /* Mobile — breakpoint below A4 print width so PDFs render desktop layout */
+        @media (max-width: 760px) {{
             .site-header {{ padding: 0 24px; }}
             .hero {{ grid-template-columns: 1fr; gap: 32px; padding: 48px 24px 40px; }}
             .score-big {{ font-size: 100px; }}
@@ -768,8 +768,9 @@ def html_to_pdf(html_path: Path, pdf_path: Path) -> None:
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page()
+        page = browser.new_page(viewport={"width": 1280, "height": 900})
         page.goto(f"file://{html_path.resolve()}", wait_until="networkidle")
+        page.emulate_media(media="print")
         page.pdf(
             path=str(pdf_path),
             format="A4",
