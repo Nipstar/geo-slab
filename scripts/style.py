@@ -51,6 +51,24 @@ def score_band(score: int) -> dict:
     return SCORE_BANDS[-1]
 
 
+# ── Score labels (compact, for badges + tables) ─────────────────────────────
+# Bands match SCORE_BANDS. Used for "62/100 — Fair" style call-outs.
+
+SCORE_LABELS = [
+    (80, "Good"),
+    (60, "Fair"),
+    (40, "Poor"),
+    (0,  "Critical"),
+]
+
+
+def score_label(score: int) -> str:
+    for floor, label in SCORE_LABELS:
+        if score >= floor:
+            return label
+    return SCORE_LABELS[-1][1]
+
+
 # ── Sub-score card descriptions ─────────────────────────────────────────────
 # One line under each category card. Plain English, no jargon.
 
@@ -298,3 +316,82 @@ def revenue_impact_line(industry: str, deal_low: int = 0, deal_high: int = 0) ->
 def sector_display(slug: str) -> str:
     """Return the human-facing sector label, e.g. 'family law'."""
     return INDUSTRY_DISPLAY_NAMES.get(slug, slug.replace("_", " ").lower())
+
+
+# ── Proposal tier copy ──────────────────────────────────────────────────────
+# Used by render_proposal.py. Tier copy is the most prose-heavy place
+# jargon leaks into client deliverables — keep canonical here.
+
+PROPOSAL_TIERS = {
+    "basic": {
+        "title": "Basic — Monthly AI-search monitoring",
+        "subtitle": "Right for firms in maintenance mode after the heavy lifting is done.",
+        "desc": (
+            "Fixed-scope monthly audit, ongoing checks on the files AI engines read first, "
+            "month-on-month delta tracking, and email support. Suited to the steady-state phase "
+            "once the foundations are in place — not the right shape for closing a wide gap "
+            "from a Poor score."
+        ),
+        "bullets": [
+            "Monthly AI-visibility audit with month-on-month scorecard",
+            "Ongoing checks on the indexing files AI engines look for first",
+            "Schema and structured-data health monitoring",
+            "Email support inside one working day",
+        ],
+    },
+    "standard": {
+        "title": "Standard — Full AI-search optimisation programme",
+        "subtitle": "The right shape for firms scoring 40–70 who want to be cited, not just found.",
+        "desc": (
+            "End-to-end work on the foundations AI engines rely on: clearing crawler blocks, "
+            "publishing the discovery file that points AI at your strongest pages, fixing the "
+            "machine-readable signals that tell AI what your business is, and rewriting "
+            "page passages so AI can quote them whole. Monthly audit + delta tracking + "
+            "priority support."
+        ),
+        "focus": (
+            "Critical fixes — open the door for ChatGPT, Claude, and Perplexity (currently "
+            "blocked at the front door), fix the cookie banner so AI crawlers see the real "
+            "page, address the speed issues holding back search ranking, fix the sitemap, "
+            "tidy LinkedIn, and claim every Google Business Profile listed in your name."
+        ),
+        "bullets": [
+            "Robots and crawler access — unblock the bots that feed AI answers",
+            "Publish and maintain the discovery file AI engines look for",
+            "Schema + structured-data rewrites across the key pages",
+            "Citability rewrites — restructure paragraphs so AI can quote them",
+            "Monthly audit + month-on-month delta tracking",
+            "Priority support, same-day response",
+        ],
+    },
+    "premium": {
+        "title": "Premium — Complete AI-search transformation",
+        "subtitle": "For firms who need to move from invisible to authoritative across every AI engine.",
+        "desc": (
+            "Everything in Standard plus a full brand-authority programme: Wikipedia / Wikidata "
+            "entity work, press and third-party validation outreach, and proactive citation "
+            "tracking across all nine AI search engines. Dedicated account lead. Weekly "
+            "stand-up. Quarterly business review."
+        ),
+        "bullets": [
+            "Everything in Standard",
+            "Wikipedia / Wikidata entity work",
+            "Press + third-party validation outreach (three-month plan)",
+            "Citation tracking across all nine AI engines, monthly",
+            "Dedicated account lead, weekly stand-up, quarterly review",
+        ],
+    },
+}
+
+
+# ── Market-context stats (proposal hero block) ──────────────────────────────
+# Used by render_proposal.py "Why AI search matters now" panel. Sourced from
+# public industry reports — update yearly. Keep numbers, drop jargon.
+
+MARKET_STATS = [
+    {"num": "58%",   "text": "Of UK searches now end without a click — AI answers the question on the results page"},
+    {"num": "1–3",   "text": "Firms typically cited in any given AI answer"},
+    {"num": "9",     "text": "Major AI search engines now competing with Google for the same intent"},
+    {"num": "23%",   "text": "Share of UK marketers actively investing in AI-search visibility — early-mover window is open"},
+]
+

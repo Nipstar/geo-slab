@@ -62,22 +62,20 @@ from html import escape as he
 
 # ── Score helpers ─────────────────────────────────────────────────────────────
 
+# Voice — score-band copy lives in style.py / STYLE.md. Both files
+# must stay in sync. Don't hard-code verdicts or labels here.
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).parent))
+from style import score_band as _score_band, score_label as _score_label  # noqa: E402
+
+
 def score_verdict(score: int) -> str:
-    if score >= 75:
-        return "Strong foundations. Targeted improvements will push you to the top."
-    elif score >= 60:
-        return "Mixed signals. The fixes are specific and actionable."
-    elif score >= 45:
-        return "Significant gaps. AI search is largely passing you by."
-    else:
-        return "Critical issues. You're nearly invisible to AI search."
+    return _score_band(score)["verdict"]
 
 
 def score_label(score: int) -> str:
-    if score >= 75: return "Good"
-    elif score >= 60: return "Fair"
-    elif score >= 40: return "Poor"
-    else: return "Critical"
+    return _score_label(score)
 
 
 def domain_from_url(url: str) -> str:

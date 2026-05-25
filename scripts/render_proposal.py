@@ -14,12 +14,20 @@ import argparse
 from pathlib import Path
 from html import escape as he
 
+# Canonical copy + score labels live in style.py. STYLE.md is the human
+# voice guide. Keep both in sync — don't hard-code copy here.
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).parent))
+from style import (  # noqa: E402
+    score_label as _score_label,
+    PROPOSAL_TIERS,
+    MARKET_STATS,
+)
+
 
 def score_label(s):
-    if s >= 75: return "Good"
-    if s >= 60: return "Fair"
-    if s >= 40: return "Poor"
-    return "Critical"
+    return _score_label(s)
 
 
 def score_cell_class(s):
@@ -390,20 +398,29 @@ CSS = """
 """
 
 
-# ── Hardcoded Standard tier content ──────────────────────────────────────
+# ── Standard tier — recommended scope ────────────────────────────────────
+# Voice rules: no raw technical terms without the plain-English wrapper.
+# Canonical tier copy + market stats imported from style.py above. The
+# inline lists below stay local because they describe THIS proposal's
+# timeline and scope-specific deliverables.
 
 STANDARD_TIER = {
-    "eyebrow": "Recommended Service",
-    "title": "Standard — Full GEO Optimization Program",
-    "pitch": "Your foundations are too strong for a heavy Premium intervention, but the gaps span four categories and won't close from a one-off retainer. The Standard program runs a structured 6-month sequence with monthly measurement.",
+    "eyebrow": "Recommended service",
+    "title": "Standard — Full AI-search optimisation programme",
+    "pitch": (
+        "Your foundations are strong enough that a Premium intervention is overkill, but "
+        "the gaps span four categories and won't close from a one-off retainer. The "
+        "Standard programme runs a structured six-month sequence with monthly "
+        "measurement."
+    ),
     "included": [
-        "Monthly GEO audit and score tracking with the /geo compare delta report",
-        "llms.txt maintenance and expansion as new service pages, portfolios, and blog content go live",
-        "Schema.org monitoring across the whole site — Article/BlogPosting, FAQPage on every service page, Person schema for the team page, sameAs corrections, ongoing validation",
-        "Weekly content recommendations for AI citability — rewriting service-page blocks into the 134–167 word optimal-length band plus new cornerstone definition pages",
-        "Platform-specific optimization across all 9 AI engines — AI Overviews, ChatGPT, Perplexity, Gemini, Bing Copilot, Grok, DeepSeek, Meta AI, Mistral",
-        "Brand mention strategy and tracking — Wikidata entity build, GBP claim and optimisation for both offices, Trustpilot and G2 seeding, press outreach for Wikipedia notability",
-        "Bi-weekly strategy calls with the Antek Automation lead and a shared progress dashboard",
+        "Monthly AI-visibility audit with month-on-month score tracking — see exactly what moved",
+        "Ongoing maintenance of the discovery file AI engines use to find your strongest pages",
+        "Site-wide machine-readable signals — telling AI engines what each page is, who wrote it, and how it relates to the rest",
+        "Weekly content recommendations to make your pages quotable by AI — restructuring long blocks into the 130–170 word answers AI prefers to cite",
+        "Platform-specific tuning across all nine AI engines — ChatGPT, Perplexity, Gemini, Bing Copilot, Google AI Overviews, Grok, DeepSeek, Meta AI, Mistral",
+        "Brand-authority programme — Wikidata entity work, Google Business Profile claim + tidy-up, review-platform seeding, press outreach for third-party validation",
+        "Fortnightly strategy calls with the Antek Automation lead, plus a shared progress dashboard",
         "Competitor visibility monitoring against your top three regional rivals, refreshed every month",
     ],
 }
@@ -413,46 +430,63 @@ TIMELINE_PHASES = [
         "num": "01",
         "phase": "Foundation",
         "weeks": "Weeks 1–2",
-        "focus": "Critical fixes — robots.txt unblocks (ClaudeBot, anthropic-ai, FacebookBot, Amazonbot), cookie banner rework so AI crawlers see hydrated DOM, PSI quick wins (defer unused CSS/JS, hero PNG defer, explicit image dims), sitemap host fix, LinkedIn canonical, claim both Google Business Profiles.",
+        "focus": (
+            "Open the door for AI crawlers (currently blocked at the front door), fix the cookie banner "
+            "so AI sees your real homepage not a consent wall, address the speed issues holding back ranking, "
+            "fix the sitemap, tidy the LinkedIn link, and claim every Google Business Profile in your name."
+        ),
         "impact": "+10–14",
     },
     {
         "num": "02",
-        "phase": "Optimization",
+        "phase": "Optimisation",
         "weeks": "Weeks 3–8",
-        "focus": "FAQPage schema on every service page, Article schema on blog posts, Person schema on team page, restructure top 10 long-form blocks into 150-word Q&A sub-answers, build 3 cornerstone definition pages, seed Trustpilot + G2 review pages.",
+        "focus": (
+            "Add machine-readable signals to every service page and blog post — telling AI what each page is, "
+            "who wrote it, and how trusted the source is. Restructure your top 10 long-form pages into "
+            "AI-citable answers. Build three new cornerstone pages that define the questions prospects ask. "
+            "Seed review platforms for third-party validation."
+        ),
         "impact": "+12–18",
     },
     {
         "num": "03",
         "phase": "Growth",
         "weeks": "Months 3–6",
-        "focus": "Wikidata entity build, press outreach for Wikipedia notability, YouTube content programme (highest correlation with AI citation rates), monthly citability sweeps, ongoing measurement and reporting.",
+        "focus": (
+            "Build the firm's entity record on Wikidata so AI engines can verify you exist. Run a targeted "
+            "press outreach for Wikipedia notability. Launch a video programme — video correlates more "
+            "strongly with AI citation than any other content type. Monthly citability sweeps and ongoing "
+            "measurement."
+        ),
         "impact": "+8–12",
     },
 ]
 
 ALT_TIERS = [
     {
-        "name": "Lighter Alternative",
-        "title": "Basic — Monthly GEO Monitoring",
-        "desc": "Fixed-scope monthly audit, llms.txt and schema monitoring, the /geo compare delta report, and email support. Right for the maintenance phase after Standard has done the heavy lifting — not the right shape for closing a 22-point gap from a Poor score.",
+        "name": "Lighter alternative",
+        "title": "Basic — Monthly AI-search monitoring",
+        "desc": (
+            "Fixed-scope monthly audit, ongoing checks on the indexing files AI engines look for first, "
+            "schema monitoring, month-on-month delta tracking, and email support. Right for the "
+            "maintenance phase after Standard has done the heavy lifting — not the right shape "
+            "for closing a 22-point gap from a Poor score."
+        ),
     },
     {
-        "name": "Heavier Alternative",
-        "title": "Premium — Complete GEO Transformation",
-        "desc": "Everything in Standard plus daily AI visibility monitoring, in-house content production (4–6 long-form articles a month), full Wikipedia and Wikidata entity build, community presence strategy on Reddit and industry forums, dedicated Slack channel, and quarterly executive briefing.",
+        "name": "Heavier alternative",
+        "title": "Premium — Complete AI-search transformation",
+        "desc": (
+            "Everything in Standard plus daily AI visibility monitoring, in-house content production "
+            "(4–6 long-form pieces a month), full Wikipedia + Wikidata entity work, community presence "
+            "strategy on Reddit and industry forums, a dedicated Slack channel, and quarterly executive "
+            "briefings."
+        ),
     },
 ]
 
-MARKET_STATS = [
-    {"num": "$4.3B", "text": "Projected GEO market by 2031 (34% CAGR from $850M in 2025)"},
-    {"num": "4.4×", "text": "Higher conversion rate of AI-referred traffic versus traditional organic search"},
-    {"num": "1.5B", "text": "Monthly users reached by Google AI Overviews across 200+ countries"},
-    {"num": "900M", "text": "Weekly active users searching with ChatGPT"},
-    {"num": "50%", "text": "Projected drop in traditional search traffic by 2028 (Gartner)"},
-    {"num": "23%", "text": "Share of marketers currently investing in GEO — early-mover advantage is open"},
-]
+# MARKET_STATS now sourced from style.py.
 
 NEXT_STEPS = [
     {"num": "STEP 01", "title": "Review this proposal", "desc": "Send any questions and flag areas you want expanded before the review call."},
@@ -556,7 +590,7 @@ def build_html(data):
     else:
         summary_p = f"<p>{he(summary)}</p>"
 
-    verdict = f"You scored {geo_score}/100 — {score_label(geo_score)}. The foundations are strong; four high-impact failures are blocking AI engines from citing you."
+    verdict = f"You scored {geo_score}/100 — {score_label(geo_score)}. The foundations are strong; four high-impact gaps are blocking AI engines from citing you."
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -617,9 +651,9 @@ def build_html(data):
         </div>
 
         <section class="section" id="performance">
-            <span class="label">Your current GEO performance</span>
+            <span class="label">Your AI-search visibility right now</span>
             <h2>where you stand</h2>
-            <p class="section-intro">Overall GEO Score: <strong>{geo_score}/100 — {score_label(geo_score)}</strong>. Six categories make up the composite. E-E-A-T and Schema already hit Good. The other four are the levers that move the headline number.</p>
+            <p class="section-intro">Your overall score: <strong>{geo_score}/100 — {score_label(geo_score)}</strong>. Six categories make up the composite. Content trust signals and machine-readable signals already hit Good. The other four are the levers that move the headline number.</p>
             <div class="score-grid" style="border: 3px solid var(--black); box-shadow: var(--shadow); margin-top: 8px;">
                 {score_cells_html(scores)}
             </div>
@@ -681,7 +715,7 @@ def build_html(data):
         </section>
 
         <section class="section" id="market">
-            <span class="label">Why GEO matters now</span>
+            <span class="label">Why AI search matters now</span>
             <h2>the market</h2>
             <p class="section-intro">The AI search landscape is shifting faster than any reset since mobile. The numbers below are why the next twelve months matter more than the previous five.</p>
             <div class="stats-grid">{stats_html()}</div>
