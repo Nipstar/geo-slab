@@ -45,68 +45,30 @@ from datetime import datetime
 from pathlib import Path
 from html import escape
 
+# Voice + structured data live in style.py. See /STYLE.md for the
+# human-readable companion. Edit both together if voice changes.
+_HERE = Path(__file__).parent
+sys.path.insert(0, str(_HERE))
+from style import (  # noqa: E402
+    score_band,
+    SCORE_CARD_DESCRIPTIONS,
+    INDUSTRY_VALUES,
+    revenue_impact_line,
+)
+
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 def score_verdict(score: int) -> str:
-    if score >= 80:
-        return "Top 20% on the basics. The next move is worth real money."
-    elif score >= 60:
-        return "You're showing up sometimes. Your competitors are showing up more often."
-    elif score >= 40:
-        return "AI engines see your site but skip past it. The fixes are specific."
-    else:
-        return "AI search is happening without you. Every week this continues, instructions go elsewhere."
+    return score_band(score)["verdict"]
 
 
 def score_summary(score: int) -> str:
-    if score >= 80:
-        return "You've done the technical groundwork most haven't. What's missing is the authority signals that turn 'found' into 'cited'."
-    elif score >= 60:
-        return "Your foundations are functional but AI engines can't confirm who you are. Brand signals and citable content are the missing pieces."
-    elif score >= 40:
-        return "Multiple gaps. Competitors with better GEO are taking the AI-driven enquiries that should be yours."
-    else:
-        return "Critical gaps across the basics. AI engines can't reliably find, understand, or cite your firm."
+    return score_band(score)["summary"]
 
 
 def domain_from_url(url: str) -> str:
     return re.sub(r'https?://(www\.)?', '', url).rstrip('/').split('/')[0]
-
-
-# Per-industry average deal value bands. Keys = industry slugs; values = (singular_unit, low_£, high_£).
-# Drives the £-impact line in the Why section. Add new verticals as prospecting expands.
-INDUSTRY_VALUES = {
-    "family_law":         ("instruction", 4000, 20000),
-    "personal_injury":    ("case",        5000, 50000),
-    "private_client":     ("matter",      3000, 15000),
-    "commercial_law":     ("matter",      8000, 60000),
-    "conveyancing":       ("transaction", 1500,  4000),
-    "dentist":            ("treatment plan", 2000, 8000),
-    "plastic_surgery":    ("procedure",   5000, 15000),
-    "fertility":          ("cycle",       6000, 12000),
-    "rehab":              ("admission",   8000, 30000),
-}
-
-
-def revenue_impact_line(industry: str, deal_low: int = 0, deal_high: int = 0) -> str:
-    """Compose the £-impact line for the Why section. Returns empty string if no data."""
-    unit = None
-    low = deal_low or 0
-    high = deal_high or 0
-    if industry and industry in INDUSTRY_VALUES:
-        unit, preset_low, preset_high = INDUSTRY_VALUES[industry]
-        if not low: low = preset_low
-        if not high: high = preset_high
-    if not (unit and low and high):
-        return "If AI search is sending even one prospect a month to a cited competitor, that's months of revenue walking past you every year."
-    annual_low = (low * 12) // 1000
-    annual_high = (high * 12) // 1000
-    return (
-        f"For a UK firm in this sector, one {unit} is worth £{low:,}–£{high:,}. "
-        f"If AI search is sending even one prospect a month to a cited competitor, "
-        f"that's £{annual_low}k–£{annual_high}k a year walking past you."
-    )
 
 
 # ── HTML Sections ─────────────────────────────────────────────────────────────
@@ -490,6 +452,83 @@ STATIC_HEAD = """\
             color: var(--coral);
             flex-shrink: 0;
         }}
+        /* Proof — live AI result block (coral panel) */
+        .proof-section {{
+            background: var(--coral);
+            color: var(--cream);
+            padding: 44px 56px 40px;
+            border-bottom: 3px solid var(--black);
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }}
+        .proof-eyebrow {{
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--cream);
+            opacity: 0.85;
+            margin-bottom: 12px;
+        }}
+        .proof-headline {{
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 30px;
+            line-height: 1.1;
+            color: var(--cream);
+            margin-bottom: 14px;
+            max-width: 760px;
+        }}
+        .proof-body {{
+            font-size: 15px;
+            line-height: 1.55;
+            color: var(--cream);
+            opacity: 0.95;
+            max-width: 720px;
+            margin-bottom: 14px;
+        }}
+        .proof-caveat {{
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--cream);
+            opacity: 0.65;
+            max-width: 720px;
+        }}
+        /* Samples — 3 follow-up queries */
+        .samples-section {{
+            background: var(--charcoal);
+            color: var(--cream);
+            padding: 36px 56px;
+            border-bottom: 3px solid var(--black);
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }}
+        .samples-section .section-label {{ color: var(--coral); }}
+        .samples-heading {{
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--cream);
+            opacity: 0.9;
+            max-width: 740px;
+            margin: 6px 0 18px;
+        }}
+        .samples-list {{
+            list-style: none;
+            display: grid;
+            gap: 8px;
+            max-width: 720px;
+        }}
+        .samples-list li {{
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--cream);
+            border-left: 3px solid var(--coral);
+            padding: 8px 0 8px 14px;
+        }}
         /* CTA */
         .cta-section {{
             background: var(--coral);
@@ -627,16 +666,6 @@ STATIC_HEAD = """\
 </head>"""
 
 
-SCORE_CARD_DESCRIPTIONS = {
-    "ai_citability": "Whether AI engines can lift a paragraph from your site and quote it back to a prospect. Below 60 means they mostly can't.",
-    "brand_authority": "Whether AI engines can confirm you're a real, reputable firm via Wikipedia, Wikidata, trusted directories, and press. Below 60 means you look unverified.",
-    "content_eeat": "Whether your content shows real Experience, Expertise, Authoritativeness, and Trust signals. Below 60 means it reads as generic to AI.",
-    "technical": "Whether AI crawlers can reach your pages and understand the structure. Below 60 usually means crawl access or rendering issues.",
-    "schema": "Whether you've told search engines what each page IS (a service, a person, a location) in machine-readable form.",
-    "platform_optimization": "Aggregate visibility across the 9 major AI search engines (ChatGPT, Perplexity, Gemini, Bing Copilot, Google AI Overviews, Grok, DeepSeek, Meta AI, Mistral).",
-}
-
-
 def build_score_cells(scores: dict) -> str:
     """Build the 6-cell category score grid."""
     cells_config = [
@@ -728,6 +757,8 @@ def render(data: dict) -> str:
     industry   = (data.get('industry') or '').strip()
     deal_low   = int(data.get('avg_deal_value_low') or 0)
     deal_high  = int(data.get('avg_deal_value_high') or 0)
+    live_query    = data.get('live_query') or None
+    sample_queries = data.get('sample_queries') or []
 
     verdict  = score_verdict(score)
     summary  = score_summary(score)
@@ -752,6 +783,54 @@ def render(data: dict) -> str:
     </section>"""
     else:
         problems_block = ""
+
+    # ── Live proof + sample queries blocks (page 4 above CTA) ────────────
+    proof_block = ""
+    if live_query:
+        q_text = escape(live_query.get("query", ""))
+        provider = escape(live_query.get("provider", "Perplexity"))
+        tested_at = escape(live_query.get("tested_at", ""))
+        cited = bool(live_query.get("prospect_cited"))
+        firms = [escape(f) for f in live_query.get("firms_cited") or []][:3]
+        if cited:
+            firms_other = [f for f in firms if f][:2]
+            firms_str = " and ".join(firms_other) if firms_other else "two other firms"
+            headline = (
+                f"When someone asks ChatGPT &ldquo;{q_text}&rdquo;, you're in the answer "
+                f"&mdash; alongside {firms_str}."
+            )
+            body_text = (
+                f"You're sharing the citation with {len(firms_other) or 'a few'} other firms. "
+                f"With the gaps in this report fixed, you'd be the primary answer, not one of three."
+            )
+        else:
+            firms_str = ", ".join(firms) if firms else "competitors with stronger AI signals"
+            headline = (
+                f"Right now, when someone asks ChatGPT &ldquo;{q_text}&rdquo;, "
+                f"your firm doesn't appear in the answer."
+            )
+            body_text = (
+                f"The firms cited are: {firms_str}. That's where this month's enquiries are going."
+            )
+        proof_block = f"""<section class="proof-section">
+        <span class="proof-eyebrow">The question your prospects are asking</span>
+        <div class="proof-headline">{headline}</div>
+        <p class="proof-body">{body_text}</p>
+        <p class="proof-caveat">Tested via {provider} on {tested_at}. Results vary by user and update over time &mdash; this is one snapshot.</p>
+    </section>"""
+
+    samples_block = ""
+    if sample_queries:
+        items = "\n".join(
+            f'            <li>&ldquo;{escape(q)}&rdquo;</li>' for q in sample_queries[:3]
+        )
+        samples_block = f"""<section class="samples-section">
+        <span class="section-label">Three more questions, answered live</span>
+        <h3 class="samples-heading">On a 15-minute call I'll open ChatGPT, Claude, and Perplexity and run these. We'll see, together, where you show up and where you don't.</h3>
+        <ul class="samples-list">
+{items}
+        </ul>
+    </section>"""
 
     head = STATIC_HEAD.format(brand=brand)
 
@@ -824,13 +903,16 @@ def render(data: dict) -> str:
         </div>
     </section>
 
+    <!-- PROOF (live AI result + sample queries) -->
+    {proof_block}
+    {samples_block}
+
     <!-- CTA -->
     <section class="cta-section">
         <div class="cta-left">
             <span class="cta-eyebrow">Want the full picture?</span>
-            <div class="cta-heading">See your firm through an AI's eyes — live.</div>
-            <p class="cta-body">This scan is a snapshot. On a 15-minute call I'll open ChatGPT, Claude, and Perplexity and ask the questions your clients ask. We'll see together where you show up, where you don't, and which competitor is taking your share. No pitch, no slides. Just the live result and three concrete moves you can make this week.</p>
-            <p class="cta-prompt">I'll show you, live, the questions your prospects are asking AI right now — and which competitor is being cited instead of you.</p>
+            <div class="cta-heading">Walk me through my full report.</div>
+            <p class="cta-body">Your full GEO audit covers all 50 pages, six categories, and a prioritised fix plan. The call is me walking you through it, plus the live AI queries above. 15 minutes. No slides.</p>
         </div>
         <div class="cta-right">
             {('<span class="cta-price">' + cta_price + '</span>') if cta_price else ''}

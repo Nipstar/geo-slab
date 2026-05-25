@@ -205,6 +205,14 @@ cd webapp && pip install -r requirements-webapp.txt && python app.py
 - Separate deps file: `webapp/requirements-webapp.txt` (not in root `requirements.txt`)
 - Slash-command entrypoint: `/geo dashboard` (handled by `geo-dashboard` skill)
 
+## Voice + STYLE.md (mandatory for any client-facing output)
+
+`STYLE.md` at repo root is the single source of truth for the voice of every client-facing report. Score-band copy, sub-score descriptions, issue translations, good-news items, banned filler words, and £-impact-by-sector templates all live there. The structured-data companion is `scripts/style.py` — both files must stay in sync.
+
+**Hard rule:** before generating any sentence a prospect or client will read (lite prospect report, full audit PDF, proposal, monthly delta, audit synthesis), open `STYLE.md`. Apply the issue translations, score bands, and tone rules. Grep for banned words and US spellings before shipping. A report that surfaces raw technical jargon (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper is not ready.
+
+Each report skill (`geo-report`, `geo-report-pdf`, `geo-proposal`, `geo-compare`, `geo-audit`) carries a mandatory STYLE.md read in its frontmatter.
+
 ## Reference Docs (deeper than this file)
 
 `docs/` holds the long-form technical reference — read these instead of grepping the codebase when a topic is broad:

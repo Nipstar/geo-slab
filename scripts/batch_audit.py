@@ -24,6 +24,7 @@ import argparse
 import csv
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -120,7 +121,7 @@ def _top_gaps(flags):
     return [label for label, gap in flags.items() if gap]
 
 
-def audit_one(row, reports_dir=None, industry=""):
+def audit_one(row, reports_dir=None, industry="", location=""):
     """Run lite audit for a single prospect row. Returns merged row."""
     out = dict(row)
     out["audit_status"] = "failed"
@@ -215,7 +216,7 @@ def audit_one(row, reports_dir=None, industry=""):
         # Optional per-prospect HTML report
         if reports_dir:
             try:
-                _write_prospect_report(row, out, page, reports_dir, industry)
+                _write_prospect_report(row, out, page, reports_dir, industry, location)
             except Exception as e:
                 out["audit_status"] = "partial"
                 out["audit_error"] = f"report_failed: {e}"
@@ -227,7 +228,23 @@ def audit_one(row, reports_dir=None, industry=""):
         return out
 
 
-def _write_prospect_report(row, audit_out, page, reports_dir, industry=""):
+def _location_from_address(address: str) -> str:
+    """Pull a town/city token out of a Google Places address.
+    Returns empty string when address looks unusable.
+    """
+    if not address:
+        return ""
+    # Strip postcode + country tail
+    addr = re.sub(r",\s*[A-Z]{1,2}\d[A-Z0-9]?\s*\d?[A-Z]{0,2}\b.*$", "", address)
+    addr = re.sub(r",\s*(UK|United Kingdom|England|Scotland|Wales|Northern Ireland)\s*$", "", addr, flags=re.I)
+    parts = [p.strip() for p in addr.split(",") if p.strip()]
+    if not parts:
+        return ""
+    # Last remaining comma chunk is usually the town/city
+    return parts[-1]
+
+
+def _write_prospect_report(row, audit_out, page, reports_dir, industry="", location=""):
     """Build a lite report data file + call generate_prospect_report.py."""
     domain = (row.get("domain") or "").lower().strip()
     if not domain:
@@ -242,46 +259,34 @@ def _write_prospect_report(row, audit_out, page, reports_dir, industry=""):
     blocks_ai = audit_out.get("blocks_ai_crawlers") == "true"
     mobile_ok = audit_out.get("is_mobile_optimised") == "true"
 
+    # Voice + canonical copy live in style.py — never hard-code strings here.
+    from style import ISSUE_COPY, WORKING_COPY
+
     problems = []
     if blocks_ai:
-        problems.append({
-            "title": "AI crawlers blocked",
-            "body": "Your robots.txt disallows GPTBot, ClaudeBot, PerplexityBot, or Google-Extended — the bots that feed AI search answers. As long as this stays in place, ChatGPT and Perplexity literally cannot read your pages, no matter how good your content is. Roughly 12% of UK firms in your sector accidentally do this. The fix is a one-line robots.txt change, under 10 minutes.",
-        })
+        problems.append(dict(ISSUE_COPY["blocks_ai_crawlers"]))
     if not has_llms:
-        problems.append({
-            "title": "No llms.txt published",
-            "body": "llms.txt is the file that tells AI engines which of your pages matter most. Without it, ChatGPT and Perplexity guess — and they often guess wrong, citing a competitor's clearer page instead. Roughly 8% of UK firms in your sector have published one. The fix takes under an hour.",
-        })
+        problems.append(dict(ISSUE_COPY["no_llmstxt"]))
     if not has_schema:
-        problems.append({
-            "title": "No structured data",
-            "body": "There's no JSON-LD schema on your homepage. Schema is how you tell AI what your business is — a law firm, what services, which locations, who the partners are. Without it, AI engines guess from page text alone and frequently confuse you with another firm. The fix is a single block of code in the page head, typically under two hours.",
-        })
+        problems.append(dict(ISSUE_COPY["no_schema"]))
     if citability < 40:
-        problems.append({
-            "title": "Content not citable by AI",
-            "body": "AI engines prefer paragraphs they can lift whole and quote — 130-170 words, self-contained, fact-rich, directly answering a question. Your pages are written for human skim-reading, which is fine for Google but invisible to AI citation. Competitors who've restructured for citability are being quoted in answers about your specialism.",
-        })
+        problems.append(dict(ISSUE_COPY["low_citability"]))
     if not mobile_ok:
-        problems.append({
-            "title": "No mobile viewport",
-            "body": "Your site is missing the mobile viewport meta tag. Most prospects search from a phone, and AI engines treat mobile-broken sites as a quality signal that downgrades you. This is a one-line fix in the page head.",
-        })
+        problems.append(dict(ISSUE_COPY["no_mobile_viewport"]))
 
     # Cap at 3 but never pad — better to show 1 or 2 real issues than 3 with filler.
     problems = problems[:3]
 
     working = []
     if has_llms:
-        working.append("llms.txt published — you're in the ~8% of firms in your sector that have done this.")
+        working.append(WORKING_COPY["has_llmstxt"])
     if has_schema:
-        working.append("Structured data in place — AI engines can parse what your homepage is about.")
+        working.append(WORKING_COPY["has_schema"])
     if not blocks_ai:
-        working.append("AI crawlers welcomed — you haven't accidentally blocked ChatGPT, Claude, or Perplexity from indexing you.")
+        working.append(WORKING_COPY["allows_ai"])
     if mobile_ok:
-        working.append("Mobile-ready — your site renders correctly on the devices most prospects use to search.")
-    working = working[:3] or ["Site responds and serves content to crawlers."]
+        working.append(WORKING_COPY["mobile_ok"])
+    working = working[:3] or [WORKING_COPY["fallback"]]
 
     data = {
         "url": row.get("website"),
@@ -303,8 +308,38 @@ def _write_prospect_report(row, audit_out, page, reports_dir, industry=""):
         "avg_deal_value_high": int(row.get("avg_deal_value_high") or 0),
         "cta_url": "https://antekautomation.com/contact",
         "cta_price": "",
-        "cta_label": "Book a walkthrough",
+        "cta_label": "Walk me through my full report",
     }
+
+    # Live AI proof block — primary query + 3 sample follow-ups.
+    # Skips silently when no industry, no resolvable location, or no
+    # Perplexity key.
+    try:
+        from live_query_proof import (
+            build_primary_query,
+            build_followup_queries,
+            run_primary_query,
+        )
+        sector_slug = data["industry"]
+        loc = (location or row.get("location") or _location_from_address(row.get("address", ""))).strip()
+        if sector_slug and loc:
+            primary_q = build_primary_query(sector_slug, loc)
+            sample_qs = build_followup_queries(sector_slug, loc, count=3)
+            if primary_q:
+                live = run_primary_query(
+                    primary_q,
+                    prospect_domain=domain,
+                    prospect_name=row.get("business_name") or "",
+                    sector_slug=sector_slug,
+                    location=loc,
+                )
+                if live:
+                    # Strip the internal answer blob — it's only kept for cache re-checks.
+                    public = {k: v for k, v in live.items() if k != "_answer_blob"}
+                    data["live_query"] = public
+            data["sample_queries"] = sample_qs
+    except Exception as e:
+        print(f"  live-query skipped: {e}", file=sys.stderr)
 
     reports_dir = Path(reports_dir)
     reports_dir.mkdir(parents=True, exist_ok=True)
@@ -349,7 +384,9 @@ def main():
     parser.add_argument("--errors-log", default=None,
                         help="Append per-failure error lines here (default: alongside --output)")
     parser.add_argument("--industry", default="",
-                        help="Industry slug for £-impact line in lite reports (e.g. family_law, personal_injury, conveyancing). See INDUSTRY_VALUES in generate_prospect_report.py.")
+                        help="Industry slug for £-impact line + live query templates (e.g. family_law, personal_injury, conveyancing). See style.py INDUSTRY_VALUES.")
+    parser.add_argument("--location", default="",
+                        help="Town/city for the live AI proof query (e.g. 'Bristol'). If absent, falls back to address-parsed city. Used for prompts like 'best family law solicitor in Bristol'.")
     args = parser.parse_args()
 
     in_path = Path(args.input)
@@ -379,7 +416,7 @@ def main():
 
     with ThreadPoolExecutor(max_workers=concurrency) as ex:
         futures = {
-            ex.submit(audit_one, row, args.reports_dir, args.industry): i
+            ex.submit(audit_one, row, args.reports_dir, args.industry, args.location): i
             for i, row in enumerate(rows)
         }
         for fut in as_completed(futures):

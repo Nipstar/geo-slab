@@ -17,6 +17,9 @@ allowed-tools:
 
 # GEO Proposal Generator
 
+> **MANDATORY: Read `/STYLE.md` before generating any prose in this proposal.**
+> Every client-facing sentence — executive summary, current-state snapshot, recommendations, pricing rationale, timeline, CTA — must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py`. Do NOT output raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper. The banned-words list in `style.py:BANNED_WORDS` is non-negotiable. UK English throughout.
+
 ## Purpose
 
 Transform GEO audit data into a professional client-facing service proposal. The proposal includes an executive summary, current performance snapshot, recommended service tier with pricing logic, timeline, and next steps. Designed to go from audit to proposal in under 2 minutes.

@@ -8,6 +8,9 @@ tags: [geo, report, client-deliverable, executive-summary, action-plan]
 
 # GEO Client Report Generator
 
+> **MANDATORY: Read `/STYLE.md` before generating any prose in this report.**
+> Every client-facing sentence — score bands, sub-score descriptions, issue cards, good-news items, the £-impact line, the CTA — must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py`. Do NOT output raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper. The banned-words list in `style.py:BANNED_WORDS` is non-negotiable. UK English throughout.
+
 ## Purpose
 
 This skill aggregates outputs from all GEO audit skills into a single, professional report that can be delivered directly to a client or stakeholder. The report is written for **business owners and marketing leaders**, not developers — technical findings are translated into business impact and clear action items with priority levels.

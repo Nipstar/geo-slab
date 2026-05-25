@@ -8,6 +8,9 @@ tags: [geo, pdf, report, client-deliverable, neo-brutalist]
 
 # GEO PDF Report Generator
 
+> **MANDATORY: Read `/STYLE.md` before generating any prose in this report.**
+> Every client-facing sentence — score bands, sub-score descriptions, issue cards, good-news items, the £-impact line, the CTA — must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py`. Do NOT output raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper. The banned-words list in `style.py:BANNED_WORDS` is non-negotiable. UK English throughout.
+
 ## Purpose
 
 Generates a client-ready PDF from GEO audit data. The PDF is produced by:

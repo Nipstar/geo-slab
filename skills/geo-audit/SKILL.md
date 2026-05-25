@@ -12,6 +12,9 @@ allowed-tools:
 
 # GEO Audit Orchestration Skill
 
+> **MANDATORY: Read `/STYLE.md` before writing any client-facing prose this audit will surface.**
+> Score-band copy, sub-score descriptions, issue cards, good-news items, the £-impact line and any synthesised summary must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py`. Do NOT emit raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper. The banned-words list in `style.py:BANNED_WORDS` is non-negotiable. UK English throughout.
+
 ## Purpose
 
 This skill performs a comprehensive Generative Engine Optimization (GEO) audit of any website. GEO is the practice of optimizing web content so that AI systems (ChatGPT, Claude, Perplexity, Gemini, etc.) can discover, understand, cite, and recommend it. This audit measures how well a site performs across all GEO dimensions and produces an actionable improvement plan.

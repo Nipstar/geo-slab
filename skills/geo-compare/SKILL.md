@@ -18,6 +18,9 @@ allowed-tools:
 
 # GEO Monthly Delta Report Generator
 
+> **MANDATORY: Read `/STYLE.md` before generating any prose in this report.**
+> Every client-facing sentence — executive summary, score-delta narratives, what-improved / what-declined sections, action-completion notes, CTA — must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py`. Do NOT output raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper. The banned-words list in `style.py:BANNED_WORDS` is non-negotiable. UK English throughout.
+
 ## Purpose
 
 Track GEO optimization progress over time by comparing two audit snapshots. This skill extracts scores from both audits, calculates deltas, identifies what improved and what declined, and generates a client-ready progress report.
