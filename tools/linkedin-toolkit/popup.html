@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Antek LinkedIn Toolkit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+
+    <header class="header">
+      <div class="logo">
+        <span class="logo-mark">A</span>
+        <span class="logo-text">LinkedIn Toolkit</span>
+      </div>
+      <div class="header-right">
+        <div class="page-detect">
+          <span class="detect-dot" id="detectDot"></span>
+          <span id="detectText">—</span>
+        </div>
+        <button class="gear-btn" id="gearBtn" title="Settings">&#9881;</button>
+      </div>
+    </header>
+
+    <!-- SETTINGS OVERLAY -->
+    <div class="overlay hidden" id="settingsOverlay">
+      <div class="overlay-panel">
+        <div class="overlay-head">
+          <h3 class="section-title" style="margin:0">Settings</h3>
+          <button class="close-btn" id="closeSettings">&times;</button>
+        </div>
+        <label class="setting-label">OpenRouter API Key</label>
+        <input type="password" id="apiKeyInput" class="field" placeholder="sk-or-v1-...">
+        <p class="hint">For AI search recommendations. openrouter.ai/keys</p>
+        <label class="setting-label">AI Model</label>
+        <select id="aiModel" class="field">
+          <option value="anthropic/claude-sonnet-4">Claude Sonnet 4</option>
+          <option value="anthropic/claude-haiku-4">Claude Haiku 4 (cheaper)</option>
+          <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash</option>
+          <option value="openai/gpt-4o-mini">GPT-4o Mini</option>
+        </select>
+        <div class="divider"></div>
+        <label class="setting-label">Voice Notes</label>
+        <p class="hint">Mic button is injected into LinkedIn message boxes automatically. Record up to 60s. Prefers M4A format for native LinkedIn playback.</p>
+        <button class="btn btn-coral full" id="saveSettingsBtn" style="margin-top:8px">Save</button>
+        <div class="api-status" id="apiStatus">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">No key set</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="search">Search</button>
+      <button class="tab" data-tab="posts">Posts</button>
+      <button class="tab" data-tab="groups">Groups</button>
+      <button class="tab" data-tab="prospects">Prospects</button>
+      <button class="tab" data-tab="saved">Saved <span class="badge" id="savedCount">0</span></button>
+    </nav>
+
+    <!-- ==================== SEARCH TAB ==================== -->
+    <section class="panel active" id="panel-search">
+      <div class="icp-toggle">
+        <button class="icp-btn active" data-icp="clients">Direct Clients</button>
+        <button class="icp-btn" data-icp="partners">Channel Partners</button>
+      </div>
+      <div class="ai-box">
+        <div class="ai-head">
+          <span class="ai-label">&#9733; AI Recommend</span>
+          <button class="btn btn-sm btn-coral" id="getAiRecs">Generate</button>
+        </div>
+        <input type="text" id="aiContext" class="field" placeholder='e.g. solo injury lawyers UK who might need a voice agent'>
+        <div id="aiLoading" class="ai-loading hidden"><span class="spinner"></span> Thinking...</div>
+        <div id="aiResults" class="ai-results hidden"></div>
+        <p class="hint" id="aiHint">Describe your target. AI suggests exact-match search terms.</p>
+      </div>
+      <div id="presets-clients" class="presets-section"></div>
+      <div id="presets-partners" class="presets-section hidden"></div>
+      <div class="builder">
+        <h3 class="section-title">Custom Search</h3>
+        <input type="text" id="qTitle" class="field" placeholder='Job title e.g. solicitor, founder'>
+        <input type="text" id="qKeyword" class="field" placeholder='Keyword e.g. personal injury, web design'>
+        <p class="hint" style="margin-top:0;margin-bottom:5px">Keywords wrapped in &quot;quotes&quot; automatically.</p>
+        <select id="qLocation" class="field">
+          <option value="">Any location</option>
+          <option value="101165590" selected>United Kingdom</option>
+          <option value="102257491">London</option>
+          <option value="100699428">South East England</option>
+          <option value="101491331">South West England</option>
+          <option value="103191010">East of England</option>
+          <option value="100936590">West Midlands</option>
+          <option value="100261846">East Midlands</option>
+          <option value="100459496">North West England</option>
+          <option value="100260560">North East England</option>
+          <option value="104815498">Yorkshire</option>
+          <option value="100753002">Scotland</option>
+          <option value="106694796">Wales</option>
+          <option value="103644278">United States</option>
+          <option value="101174742">Canada</option>
+          <option value="104738515">Australia</option>
+        </select>
+        <select id="qDegree" class="field">
+          <option value="S">2nd connections (recommended)</option>
+          <option value="F">1st connections</option>
+          <option value="O">3rd+ connections</option>
+          <option value="">Any connection level</option>
+        </select>
+        <div class="btn-row">
+          <button class="btn btn-coral" id="runSearchBtn">Search People</button>
+          <button class="btn btn-outline" id="runPostBtn">Search Posts</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== POSTS TAB ==================== -->
+    <section class="panel" id="panel-posts">
+      <div class="post-finder">
+        <h3 class="section-title">Find Relevant Posts</h3>
+        <p class="hint">Find posts by keyword. Engagers are confirmed active on LinkedIn.</p>
+        <input type="text" id="postKeyword" class="field" placeholder='e.g. personal injury solicitor'>
+        <select id="postDate" class="field">
+          <option value="past-24h">Past 24 hours</option>
+          <option value="past-week" selected>Past week</option>
+          <option value="past-month">Past month</option>
+        </select>
+        <button class="btn btn-coral full" id="findPostsBtn">Find Posts on LinkedIn</button>
+      </div>
+      <div class="divider"></div>
+      <div class="capture-section">
+        <h3 class="section-title">Capture Current Page</h3>
+        <div id="capturedInfo" class="captured-info">
+          <span class="cap-label" id="capType">&mdash;</span>
+          <span class="cap-url" id="capUrl">Click detect to read current page</span>
+        </div>
+        <button class="btn btn-outline full" id="detectPageBtn">Detect Current Page</button>
+        <div id="captureControls" class="capture-controls hidden">
+          <select id="capCategory" class="field"><option value="post">Post URL</option><option value="search">Search URL</option><option value="profile">Profile</option><option value="other">Other</option></select>
+          <select id="capIcp" class="field"><option value="clients">Direct Clients</option><option value="partners">Channel Partners</option><option value="mixed">Mixed</option></select>
+          <input type="text" id="capNote" class="field" placeholder="Note">
+          <button class="btn btn-coral full" id="savePageBtn">Save This URL</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="paste-section">
+        <h3 class="section-title">Paste URLs</h3>
+        <textarea id="pasteUrls" class="field textarea" placeholder="https://www.linkedin.com/posts/...&#10;https://www.linkedin.com/feed/update/..."></textarea>
+        <div class="inline-row">
+          <select id="pasteIcp" class="field"><option value="clients">Clients</option><option value="partners">Partners</option><option value="mixed">Mixed</option></select>
+          <input type="text" id="pasteNote" class="field" placeholder="Note">
+        </div>
+        <button class="btn btn-coral full" id="savePasteBtn">Save All URLs</button>
+      </div>
+    </section>
+
+    <!-- ==================== GROUPS TAB ==================== -->
+    <section class="panel" id="panel-groups">
+      <div class="groups-status">
+        <div class="gs-row">
+          <span class="gs-dot" id="grpDot"></span>
+          <span id="grpStatusText">Open a LinkedIn group page to start.</span>
+        </div>
+      </div>
+
+      <div class="builder">
+        <h3 class="section-title">Open Group Page</h3>
+        <p class="hint">Paste a LinkedIn group URL to open it, then use the floating panel on the page to scrape posts.</p>
+        <input type="text" id="grpOpenUrl" class="field" placeholder="https://www.linkedin.com/groups/123456/">
+        <button class="btn btn-coral full" id="grpOpenBtn">Open Group</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="capture-section">
+        <h3 class="section-title">Engagement Filter</h3>
+        <p class="hint">Filter scraped posts before exporting. SendPilot users prefer posts that already have engagement — the commenters and likers become your connection targets.</p>
+        <div class="inline-row">
+          <label class="setting-label" style="margin:0;flex:1">Min comments</label>
+          <input type="number" id="grpMinComments" class="field" min="0" value="3" style="width:80px">
+        </div>
+        <div class="inline-row">
+          <label class="setting-label" style="margin:0;flex:1">Min likes</label>
+          <input type="number" id="grpMinLikes" class="field" min="0" value="5" style="width:80px">
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="groups-results">
+        <div class="gr-head">
+          <h3 class="section-title" style="margin:0">Scraped Posts <span class="badge" id="grpCount">0</span></h3>
+          <span class="hint" id="grpFilteredCount" style="margin:0"></span>
+        </div>
+        <div class="prospect-list" id="grpList">
+          <p class="empty">No posts scraped yet. Open a group page and use the floating panel.</p>
+        </div>
+      </div>
+
+      <div class="export-btns">
+        <button class="btn btn-coral full" id="grpExportSendPilot">Export Filtered URLs for SendPilot (CSV)</button>
+        <button class="btn btn-outline full" id="grpExportFull">Export Full Data (CSV)</button>
+        <button class="btn btn-danger full" id="grpClear">Clear All Scraped Posts</button>
+      </div>
+    </section>
+
+    <!-- ==================== PROSPECTS TAB ==================== -->
+    <section class="panel" id="panel-prospects">
+      <div class="prospect-import">
+        <h3 class="section-title">Import Prospects</h3>
+        <p class="hint">Import a CSV from Claude Code (sales scan or GEO SLAB <code>contacts.csv</code>). Supports: <b>name</b>, <b>company</b>/<b>domain</b>/<b>firm</b>/<b>business_name</b>, <b>title</b>, <b>linkedin_url</b>, <b>firm_address</b>, <b>email</b>, <b>phone</b>, <b>score</b>/<b>pitchability_score</b>, <b>notes</b>.</p>
+        <input type="file" id="csvFile" accept=".csv,.tsv,.txt" class="field file-input">
+        <button class="btn btn-outline full" id="bulkOpenBtn" title="Open LinkedIn search for first 10 unfound prospects in background tabs">Bulk Open First 10 in LinkedIn</button>
+        <button class="btn btn-outline full" id="clearProspectsBtn">Clear All Prospects</button>
+      </div>
+      <div class="divider"></div>
+      <div class="prospect-search-bar">
+        <input type="text" id="prospectSearch" class="field" placeholder="Filter prospects...">
+      </div>
+      <div class="prospect-stats" id="prospectStats"></div>
+      <div class="prospect-list" id="prospectList">
+        <p class="empty">No prospects loaded. Import a CSV above.</p>
+      </div>
+    </section>
+
+    <!-- ==================== SAVED TAB ==================== -->
+    <section class="panel" id="panel-saved">
+      <div class="saved-filters">
+        <button class="filter active" data-f="all">All</button>
+        <button class="filter" data-f="post">Posts</button>
+        <button class="filter" data-f="search">Searches</button>
+        <button class="filter" data-f="profile">Profiles</button>
+      </div>
+      <div class="saved-list" id="savedList">
+        <p class="empty" id="emptyMsg">Nothing saved yet.</p>
+      </div>
+      <div class="export-btns">
+        <button class="btn btn-coral full" id="copyPostsBtn">Copy Post URLs for SendPilot</button>
+        <button class="btn btn-outline full" id="copyAllBtn">Copy All URLs</button>
+        <button class="btn btn-danger full" id="clearBtn">Clear All</button>
+      </div>
+    </section>
+
+    <footer class="footer">antekautomation.com &middot; v2.3.0 &middot; voice notes + group scraper active</footer>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -147,6 +147,7 @@ Goal: identify the firm's MANAGING PARTNER / SENIOR PARTNER / HEAD OF FAMILY LAW
 
 Return STRICT JSON with this shape:
 {
+  "firm_name": "The Firm's Proper Display Name (e.g. 'Wards Solicitors', 'The Family Law Practice')" or null,
   "firm_address": "Head office postal address, single line: Building, Street, City, Postcode, Country" or null,
   "office_addresses": ["additional office 1", "additional office 2", ...],
   "managing_partner": "First Last" or null,
@@ -184,6 +185,7 @@ COOKIE_BUTTON_SELECTORS = [
 class Contact:
     domain: str
     name: str
+    business_name: str = ""
     title: str = ""
     email: str = ""
     linkedin_url: str = ""
@@ -569,11 +571,13 @@ def llm_extract(page_text: str, firm_name: str, domain: str) -> dict:
 def llm_to_contacts(extracted: dict, domain: str, firm_name: str, source: str, fallback_address: str = "") -> list[Contact]:
     contacts = []
     firm_addr = (extracted.get("firm_address") or "").strip() or fallback_address
+    biz_name = (extracted.get("firm_name") or "").strip() or firm_name
     mp = extracted.get("managing_partner")
     if mp:
         contacts.append(Contact(
             domain=domain,
             name=mp,
+            business_name=biz_name,
             title=extracted.get("managing_partner_title") or "Managing Partner",
             email=extracted.get("managing_partner_email") or "",
             linkedin_url=extracted.get("managing_partner_linkedin") or "",
@@ -591,6 +595,7 @@ def llm_to_contacts(extracted: dict, domain: str, firm_name: str, source: str, f
         contacts.append(Contact(
             domain=domain,
             name=name,
+            business_name=biz_name,
             title=p.get("title", "") if isinstance(p, dict) else "",
             email=(p.get("email") or "") if isinstance(p, dict) else "",
             linkedin_url=(p.get("linkedin") or "") if isinstance(p, dict) else "",
@@ -751,6 +756,8 @@ def main():
                 for c in contacts:
                     if not c.firm_address and addr:
                         c.firm_address = addr
+                    if not c.business_name and firm:
+                        c.business_name = firm
             for c in contacts:
                 if not c.linkedin_url:
                     c.linkedin_url = linkedin_search_url(c.name, firm or domain)
@@ -761,8 +768,8 @@ def main():
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", newline="") as f:
-        fieldnames = ["domain", "name", "title", "email", "linkedin_url", "phone",
-                      "firm_address", "source_page", "extraction_method", "confidence"]
+        fieldnames = ["domain", "business_name", "name", "title", "email", "linkedin_url",
+                      "phone", "firm_address", "source_page", "extraction_method", "confidence"]
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
         for c in all_contacts:

@@ -71,6 +71,7 @@ screenshots/
 *.jpg
 *.jpeg
 !schema/*.json
+!tools/linkedin-toolkit/icons/*.png
 
 # Test files
 test_output/

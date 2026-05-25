@@ -1,0 +1,66 @@
+/* LinkedIn Voice Notes — injected styles */
+
+.lvn-mic-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border: none; border-radius: 50%;
+  background: transparent; cursor: pointer; padding: 0; margin: 0 4px; transition: background .15s;
+}
+.lvn-mic-btn:hover { background: rgba(0,0,0,.08); }
+.lvn-mic-btn svg { width: 20px; height: 20px; fill: #666; }
+.lvn-mic-btn.lvn-recording svg { fill: #cc1016; animation: lvn-pulse 1s ease-in-out infinite; }
+
+/* Floating variant when toolbar can't be found */
+.lvn-mic-floating {
+  position: absolute; bottom: 8px; right: 50px; z-index: 100;
+  width: 32px; height: 32px;
+  background: #0a66c2; border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.lvn-mic-floating svg { fill: #fff; }
+.lvn-mic-floating:hover { background: #004182; }
+
+@keyframes lvn-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.lvn-recorder {
+  position: absolute; bottom: 100%; right: 0;
+  width: 240px; background: #fff; border: 1px solid #ddd;
+  border-radius: 10px; padding: 14px; z-index: 9999;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15); font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.lvn-recorder-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+}
+.lvn-recorder-title { font-size: 13px; font-weight: 600; color: #333; }
+.lvn-recorder-close {
+  background: none; border: none; font-size: 18px; color: #888; cursor: pointer; line-height: 1;
+}
+.lvn-recorder-close:hover { color: #333; }
+.lvn-timer { text-align: center; font-size: 22px; font-weight: 700; color: #333; font-variant-numeric: tabular-nums; }
+.lvn-waveform {
+  display: flex; align-items: center; justify-content: center; gap: 2px;
+  height: 40px; margin: 10px 0;
+}
+.lvn-waveform-bar {
+  width: 3px; background: #0a66c2; border-radius: 2px;
+  transition: height .05s ease;
+}
+.lvn-controls { display: flex; justify-content: center; gap: 12px; margin-top: 8px; }
+.lvn-btn {
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 50%; cursor: pointer; transition: transform .1s;
+}
+.lvn-btn:hover { transform: scale(1.1); }
+.lvn-btn svg { display: block; }
+.lvn-btn-record { width: 44px; height: 44px; background: #cc1016; }
+.lvn-btn-record svg { width: 18px; height: 18px; fill: #fff; }
+.lvn-btn-record.recording { animation: lvn-pulse 1s ease-in-out infinite; }
+.lvn-btn-stop { width: 44px; height: 44px; background: #cc1016; }
+.lvn-btn-stop svg { width: 18px; height: 18px; fill: #fff; }
+.lvn-btn-play { width: 32px; height: 32px; background: #0a66c2; }
+.lvn-btn-play svg { width: 14px; height: 14px; fill: #fff; }
+.lvn-btn-send { width: 40px; height: 40px; background: #0a66c2; }
+.lvn-btn-send svg { width: 18px; height: 18px; fill: #fff; }
+.lvn-btn-discard { width: 32px; height: 32px; background: #e0e0e0; }
+.lvn-btn-discard svg { width: 14px; height: 14px; fill: #666; }
+.lvn-status { text-align: center; font-size: 11px; color: #888; margin-top: 6px; }
+.lvn-limit { text-align: center; font-size: 11px; color: #cc1016; margin-top: 4px; }
