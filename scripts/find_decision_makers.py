@@ -59,6 +59,8 @@ TEAM_PATHS = [
     "/staff", "/our-staff", "/site/our-people/", "/site/people/", "/site/team/",
     "/about/our-people", "/about/team", "/about-us/our-team", "/about-us/people",
     "/who-we-are", "/about", "/about-us", "/family-law-team",
+    "/contact", "/contact/", "/contact-us", "/contact-us/",
+    "/offices", "/offices/", "/our-offices", "/our-offices/",
 ]
 
 NAME_NOISE_WORDS = {
@@ -145,6 +147,8 @@ Goal: identify the firm's MANAGING PARTNER / SENIOR PARTNER / HEAD OF FAMILY LAW
 
 Return STRICT JSON with this shape:
 {
+  "firm_address": "Head office postal address, single line: Building, Street, City, Postcode, Country" or null,
+  "office_addresses": ["additional office 1", "additional office 2", ...],
   "managing_partner": "First Last" or null,
   "managing_partner_title": "string" or null,
   "managing_partner_email": "name@firm.com" or null,
@@ -156,6 +160,8 @@ Return STRICT JSON with this shape:
 }
 
 Rules:
+- For firm_address: return the head office or first-listed postal address. Format as a single line including building/street, town, postcode, country. UK postcodes look like "BS1 4NH", "SW1A 1AA".
+- For office_addresses: any additional branch office addresses, each as a single line.
 - Prefer titles: Managing Partner, Senior Partner, Partner, Head of Family Law, Head of [Department], Director, Managing Director, Founder, Principal.
 - Include only people who appear to work at THIS firm. Skip paralegals, trainees, support staff, and clients unless they have a senior title.
 - Return real emails only — never guess email patterns.
@@ -182,6 +188,7 @@ class Contact:
     email: str = ""
     linkedin_url: str = ""
     phone: str = ""
+    firm_address: str = ""
     source_page: str = ""
     extraction_method: str = ""
     confidence: str = "low"
@@ -559,8 +566,9 @@ def llm_extract(page_text: str, firm_name: str, domain: str) -> dict:
         return {}
 
 
-def llm_to_contacts(extracted: dict, domain: str, firm_name: str, source: str) -> list[Contact]:
+def llm_to_contacts(extracted: dict, domain: str, firm_name: str, source: str, fallback_address: str = "") -> list[Contact]:
     contacts = []
+    firm_addr = (extracted.get("firm_address") or "").strip() or fallback_address
     mp = extracted.get("managing_partner")
     if mp:
         contacts.append(Contact(
@@ -569,6 +577,7 @@ def llm_to_contacts(extracted: dict, domain: str, firm_name: str, source: str) -
             title=extracted.get("managing_partner_title") or "Managing Partner",
             email=extracted.get("managing_partner_email") or "",
             linkedin_url=extracted.get("managing_partner_linkedin") or "",
+            firm_address=firm_addr,
             source_page=source,
             extraction_method="claude-cli",
             confidence="high",
@@ -586,6 +595,7 @@ def llm_to_contacts(extracted: dict, domain: str, firm_name: str, source: str) -
             email=(p.get("email") or "") if isinstance(p, dict) else "",
             linkedin_url=(p.get("linkedin") or "") if isinstance(p, dict) else "",
             phone=(p.get("phone") or "") if isinstance(p, dict) else "",
+            firm_address=firm_addr,
             source_page=source,
             extraction_method="claude-cli",
             confidence="high",
@@ -593,11 +603,10 @@ def llm_to_contacts(extracted: dict, domain: str, firm_name: str, source: str) -
     return contacts
 
 
-def enrich_with_llm(domain: str, firm_name: str) -> list[Contact]:
+def enrich_with_llm(domain: str, firm_name: str, fallback_address: str = "") -> list[Contact]:
     visited, text = fetch_text_playwright(domain, TEAM_PATHS)
     if not text:
         return []
-    # Email regex safety net
     raw_emails = sorted({
         m.group(0).lower() for m in EMAIL_REGEX.finditer(text)
         if not m.group(0).lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))
@@ -605,11 +614,10 @@ def enrich_with_llm(domain: str, firm_name: str) -> list[Contact]:
     extracted = llm_extract(text, firm_name, domain)
     if not extracted:
         return []
-    # Merge raw emails into all_emails
     llm_emails = extracted.get("all_emails") or []
     extracted["all_emails"] = sorted(set(llm_emails + raw_emails))
     source = "; ".join(visited[:3])
-    return llm_to_contacts(extracted, domain, firm_name, source)
+    return llm_to_contacts(extracted, domain, firm_name, source, fallback_address)
 
 
 def looks_thin(contacts: list[Contact], html: str) -> bool:
@@ -683,7 +691,7 @@ def scrape_firm(domain: str, firm_name: str, page_limit: int = 3) -> list[Contac
     return list(all_contacts.values())
 
 
-def load_top_prospects(csv_path: Path, top: int) -> list[tuple[str, str]]:
+def load_top_prospects(csv_path: Path, top: int) -> list[tuple[str, str, str]]:
     rows = []
     with csv_path.open() as f:
         reader = csv.DictReader(f)
@@ -692,9 +700,9 @@ def load_top_prospects(csv_path: Path, top: int) -> list[tuple[str, str]]:
                 score = float(row.get("pitchability_score") or 0)
             except ValueError:
                 score = 0
-            rows.append((score, row.get("domain", ""), row.get("business_name", "")))
-    rows.sort(reverse=True)
-    return [(d, n) for _, d, n in rows[:top] if d]
+            rows.append((score, row.get("domain", ""), row.get("business_name", ""), row.get("address", "")))
+    rows.sort(reverse=True, key=lambda r: r[0])
+    return [(d, n, a) for _, d, n, a in rows[:top] if d]
 
 
 def main():
@@ -728,19 +736,21 @@ def main():
     print(f"Scraping {len(prospects)} firms…", file=sys.stderr)
 
     all_contacts = []
-    for domain, firm in prospects:
+    for domain, firm, addr in prospects:
         print(f"\n=== {domain} ({firm or '-'}) ===", file=sys.stderr)
         contacts = []
         try:
             if use_llm:
-                contacts = enrich_with_llm(domain, firm)
+                contacts = enrich_with_llm(domain, firm, fallback_address=addr)
                 print(f"  LLM → {len(contacts)} contacts", file=sys.stderr)
             if not contacts:
                 if use_llm:
                     print("  LLM yielded zero — falling back to heuristic", file=sys.stderr)
                 contacts = scrape_firm(domain, firm, args.limit_pages)
                 contacts = [c for c in contacts if is_decision_title(c.title) or not c.title]
-            # Add LinkedIn search fallback for any contact missing a profile URL
+                for c in contacts:
+                    if not c.firm_address and addr:
+                        c.firm_address = addr
             for c in contacts:
                 if not c.linkedin_url:
                     c.linkedin_url = linkedin_search_url(c.name, firm or domain)
@@ -752,7 +762,7 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("w", newline="") as f:
         fieldnames = ["domain", "name", "title", "email", "linkedin_url", "phone",
-                      "source_page", "extraction_method", "confidence"]
+                      "firm_address", "source_page", "extraction_method", "confidence"]
         w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
         for c in all_contacts:
