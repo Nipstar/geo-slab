@@ -193,7 +193,7 @@ def score_passage(text: str, heading: Optional[str] = None) -> dict:
 
     # Original data indicators
     if re.search(
-        r"(?:our (?:research|study|data|analysis|survey|findings)|we (?:found|discovered|analyzed|surveyed|measured))",
+        r"(?:our (?:research|study|data|analysis|survey|findings)|we (?:found|discovered|analysed|surveyed|measured))",
         text,
         re.IGNORECASE,
     ):
@@ -245,7 +245,7 @@ def score_passage(text: str, heading: Optional[str] = None) -> dict:
 
 
 def analyze_page_citability(url: str) -> dict:
-    """Analyze all content blocks on a page for citability."""
+    """Analyse all content blocks on a page for citability."""
     try:
         response = requests.get(
             url,

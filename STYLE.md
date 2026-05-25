@@ -20,7 +20,7 @@ If a sentence in a client report could be written by a developer to another deve
 
 ## TONE RULES
 
-- **UK English throughout.** Optimised, specialise, organisation, behaviour, defence, licence (noun). Never optimize, organize, color, center, behavior.
+- **UK English throughout.** Optimised, specialise, organisation, behaviour, defence, licence (noun). Never optimise, organise, color, center, behavior.
 - **No exclamation marks.** Anywhere.
 - **Short sentences.** A sentence over 25 words is a draft.
 - **Direct.** No hedging — drop "you might want to consider", "perhaps you could", "it may be worth exploring".
@@ -69,18 +69,93 @@ Current slugs:
 
 | Slug | Client title | Plain-English summary |
 |---|---|---|
-| `blocks_ai_crawlers` | AI crawlers blocked | robots.txt is locking ChatGPT/Claude/Perplexity out. Fix is a one-line change, ~10 minutes. |
-| `no_llmstxt` | No llms.txt published | AI engines guess which of your pages matter — and often guess wrong. ~8% of UK firms in sector have one. Fix: under an hour. |
-| `no_schema` | No structured data | No JSON-LD schema = AI engines guess from page text alone and confuse you with another firm. Fix: ~2 hours. |
-| `low_citability` | Content not citable by AI | Pages written for human skim-reading, not AI quote-lifting. Restructure for 130–170-word self-contained paragraphs. |
-| `no_mobile_viewport` | No mobile viewport | Missing meta tag downgrades you with AI engines. One-line fix. |
-| `missing_gbp` | Google Business Profile gaps | GBP is what AI pulls for "best X in Y" answers. ~1 hour to complete. |
-| `nap_inconsistent` | Name, address, phone inconsistent | Inconsistency across web/GBP/directories = AI confidence killer. One-pass audit, ~1 day. |
+| `blocks_ai_crawlers` | AI engines locked out at the front door | Bots that feed ChatGPT/Claude/Perplexity told they're not allowed in. ~10 min fix. |
+| `no_llmstxt` | No AI guidance file published | AI engines guess which of your pages matter and often guess wrong. ~8% of UK firms in sector have one. Under an hour. |
+| `no_schema` | AI engines can't tell what your site is | Platform adds basic tagging but no machine-readable description of the firm. AI guesses from text alone. ~2 hrs. |
+| `no_entity_schema` | AI can't confirm what your firm is | No machine-readable file confirming you're a law firm, what you do, or where your offices are. ~2 hrs. |
+| `no_person_schema` | Solicitor profiles aren't tagged | AI can't connect a named solicitor → firm → specialism. Template work, half a day. |
+| `no_faq_schema` | FAQs aren't tagged for AI quoting | Q&A is the most heavily cited format in AI Overviews + Perplexity. Tag existing blocks. ~2 hrs. |
+| `no_sameas` | Authority links not connected to your site | Reviews, listings, accreditations, Companies House — exist but AI can't confirm they're yours. One config block. |
+| `low_citability` | Pages not written for AI to quote | Pages written for skim-reading, not 130–170-word self-contained answer blocks. |
+| `no_mobile_viewport` | Site not configured for mobile screens | Missing setting downgrades you with AI engines. One-line fix. |
+| `missing_gbp` | Google Business Profile gaps | What AI pulls for "best X in Y" answers. ~1 hr to complete. |
+| `multi_gbp_unclaimed` | Office Google profiles need claim, verify, NAP audit | Multi-office firms: each office needs its profile claimed + NAP matched across web/Google/directories. ~1 week. |
+| `nap_inconsistent` | Name, address, phone inconsistent | Inconsistency across web/Google/directories = AI confidence killer. One-pass audit, ~1 day. |
 | `thin_eeat` | Thin trust signals | No author bios, no case histories, no credentials = generic to AI. |
-| `no_wikipedia` | Not on Wikipedia or Wikidata | Primary trust anchor for entity verification. Wikidata entry: under a day. |
+| `no_wikipedia` | Not on Wikipedia or Wikidata | Primary trust anchor for entity verification. Wikidata entry under a day. |
 | `no_press_clutch` | No press or third-party validation | AI looks beyond your site for third-party signals. ~3 months of targeted outreach. |
+| `slow_mobile` | Homepage too slow on mobile | Real-user speed signals (Google AIO especially) rank faster competitors above you. ~1 engineering day. |
+| `outdated_image_formats` | Outdated image format on the homepage hero | Modern formats load 30–50% faster. Config change, no design work. |
+| `no_author_byline` | Articles don't show who wrote them | Unsigned content treated as less trustworthy. Author data exists in CMS — theme isn't displaying it. 30 min. |
+| `no_article_schema` | Articles not tagged as journalism | AI treats them as generic web pages instead of editorial content. Template change, 2 hrs. |
+| `weak_og_tags` | Social preview images fall back to defaults | Worth fixing for share-quality, not a GEO blocker. |
+| `missing_security_headers` | Standard security hardening missing | Not blocking AI visibility but worth same engineering window. Single config file. |
+| `no_x_account` | No X/Twitter presence — costs you Grok | Grok relies on real-time X content. No account = no Grok citations. Cheapest single lever for Grok. |
+| `service_intros_marketing_prose` | Service pages open with marketing prose | AI skips them. Restructure top 5 around question headings with answer blocks. |
+| `js_only_schema` | Machine-readable tagging only appears after JavaScript runs | AI crawlers don't run JS and miss it. Plugin switch, ~½ day. |
+| `no_ssr_content` | Page is empty until JavaScript runs | Biggest single barrier to AI citation. Server-side rendering switch, multi-week. |
+| `cookie_wall_blocks_bots` | Cookie banner hides content from AI crawlers | Bots see the banner instead of the page. One-line allow. |
 
 **Adding new issues:** Add the slug + entry to `style.py:ISSUE_COPY` AND this table in the same commit. Don't ship a report that surfaces an unmapped slug.
+
+---
+
+## TWO-PDF DELIVERABLE SPLIT (CRITICAL)
+
+Every `/geo audit` run produces **two separate PDFs**:
+
+| File | Audience | Voice |
+|---|---|---|
+| `GEO-REPORT-<domain>.pdf` | Managing partner / owner / marketing director | 100% plain English. Every word translated through `ISSUE_COPY`. Zero raw technical terms in the body. |
+| `GEO-DEV-REPORT-<domain>.pdf` | The client's web team or agency | Technical instructions. Real spec names (JSON-LD, FAQPage, LCP, HSTS, sameAs, etc.) required. Includes file paths, code blocks, exact thresholds. |
+
+The audit data is identical for both. The agents emit two parallel layers
+(`technical_findings` + `client_summary`) and the renderers each consume their
+own field. The partner can forward the dev PDF to their developer without
+ever showing the dev PDF to the board, and vice versa.
+
+**Never** put raw technical language in the client PDF. **Never** dilute the
+dev PDF with marketing prose — the developer wants the exact instruction.
+
+---
+
+## CLIENT-FACING SECTION LABELS (use everywhere)
+
+The client report uses these plain-English category headings — never the
+internal/technical names. Same labels in the prospect report, full client
+PDF, proposal, and compare/delta report:
+
+| Internal name | Client-facing label | One-line subtitle |
+|---|---|---|
+| AI Citability | AI CITABILITY | Whether AI engines can lift a paragraph from your site and quote it back. |
+| Brand Authority | DOES AI TRUST YOU | Whether AI engines treat your firm as a real, reputable entity. |
+| Content E-E-A-T | EXPERTISE SIGNALS | Whether your content shows real experience, expertise, and trust. |
+| Technical GEO | AI CRAWLER ACCESS | Whether AI crawlers can reach your pages and read the content. |
+| Schema & Structured Data | HOW AI READS YOUR SITE | Whether AI engines have a machine-readable description of your business. |
+| Platform Optimisation | VISIBILITY ACROSS AI ENGINES | How visible you are across the nine AI engines that now compete with Google. |
+
+Always pair the label with the subtitle. Source: `style.py:DISPLAY_LABELS`
+and `style.py:SECTION_SUBTITLES`.
+
+The developer PDF keeps the technical names (Technical GEO, Schema, Platform
+Optimisation). UK spelling — "Optimisation", never "Optimisation".
+
+---
+
+## AGENT TWO-LAYER OUTPUT (every analysis agent)
+
+Source: `style.py:AGENT_VOICE_RULES`. The orchestrator passes this string
+verbatim to every subagent prompt. Each subagent must emit both:
+
+- `technical_findings`: raw, accurate, uses real spec names, feeds the dev PDF
+- `client_summary`: rewritten per this STYLE.md, feeds the client PDF
+
+Paired by `slug`. Slugs match `ISSUE_COPY` keys where possible. Adding a new
+slug means updating `ISSUE_COPY` + this table in the same change.
+
+The client_summary fields are the **only** thing the partner ever reads. Grep
+them for every term in the banned-words list at the bottom of this file
+before allowing the renderer to ship a PDF.
 
 ---
 
@@ -126,9 +201,27 @@ Source: `style.py:INDUSTRY_VALUES`. The Why-section "instruction worth £X–Y" 
 
 1. Grep the output for any banned word from `style.py:BANNED_WORDS`.
 2. Grep for any US spelling from `style.py:US_TO_UK_SPELLINGS`.
-3. Grep for raw technical terms: `llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `GEO`, `schema.org`. If found without a plain-English wrapper from the issue table — rewrite.
+3. **Client PDF only:** grep for the banned technical-term list below. Any hit fails the build.
 4. Confirm score bands match `style.py:SCORE_BANDS` verbatim.
-5. Confirm every sub-score has its description line.
+5. Confirm every sub-score has its description line (`SECTION_SUBTITLES`).
 6. Confirm the £-line only renders when the sector is in `INDUSTRY_VALUES`.
+7. Confirm both `GEO-REPORT-<domain>.pdf` AND `GEO-DEV-REPORT-<domain>.pdf` were produced.
 
 If you can't tick every box, the report isn't ready.
+
+## BANNED IN CLIENT PDF (allowed in dev PDF)
+
+These terms must NOT appear anywhere in the client-facing PDF body. They are
+the legitimate vocabulary of the developer PDF.
+
+```
+JSON-LD, Organisation schema, LegalService, LocalBusiness, Person schema,
+Attorney schema, FAQPage, NewsArticle, Article schema, AggregateRating,
+sameAs, Yoast, WordPress, fetchpriority, preconnect, defer, HSTS, CSP,
+X-Frame-Options, Referrer-Policy, WebP, AVIF, LCP, INP, CLS, PageSpeed,
+taxonomy, Open Graph, OG, NAP, GBP, E-E-A-T, schema.org, llms.txt, robots.txt
+```
+
+Grep target: build fails if any of these appear in `GEO-REPORT-<domain>.pdf`.
+Run `scripts/voice_check.py reports/<domain>/GEO-REPORT-<domain>.pdf` before
+delivering.

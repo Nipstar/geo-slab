@@ -105,7 +105,7 @@ def validate_llmstxt(url: str) -> dict:
             if result["link_count"] < 5:
                 result["suggestions"].append("Consider adding more key pages (aim for 10-20)")
             if result["section_count"] < 2:
-                result["suggestions"].append("Add more sections to organize content types")
+                result["suggestions"].append("Add more sections to organise content types")
             if "contact" not in content.lower():
                 result["suggestions"].append("Add a Contact section with email and location")
             if "key fact" not in content.lower() and "about" not in content.lower():

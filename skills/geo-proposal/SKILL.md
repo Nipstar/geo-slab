@@ -18,7 +18,12 @@ allowed-tools:
 # GEO Proposal Generator
 
 > **MANDATORY: Read `/STYLE.md` before generating any prose in this proposal.**
-> Every client-facing sentence — executive summary, current-state snapshot, recommendations, pricing rationale, timeline, CTA — must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py`. Do NOT output raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper. The banned-words list in `style.py:BANNED_WORDS` is non-negotiable. UK English throughout.
+>
+> The proposal body is client-facing — plain English only. Source issue text from the audit's `client_summary` field (never `technical_findings`). Section labels use the client-facing names — `DOES AI TRUST YOU`, `EXPERTISE SIGNALS`, `AI CRAWLER ACCESS`, `HOW AI READS YOUR SITE`, `VISIBILITY ACROSS AI ENGINES`.
+>
+> Banned-in-body list: `llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `LCP`, `HSTS`, `CSP`, `sameAs`, `FAQPage`, `Yoast`, `WordPress`, `fetchpriority`, `Organisation schema`, `LocalBusiness`, `LegalService`, `Person schema`, `Open Graph`, `OG`, `NAP`, `GBP`. Use plain-English wrappers from `scripts/style.py:ISSUE_COPY`.
+>
+> If the proposal includes an implementation appendix, that appendix may pull from the audit's `technical_findings` and use raw spec language — but the main body cannot. UK English. No exclamation marks. No words from `style.py:BANNED_WORDS`.
 
 ## Purpose
 
@@ -51,7 +56,7 @@ Parse the audit file for:
 
 **Scores (required):**
 - Overall GEO Score (0-100)
-- Category scores: AI Citability, Brand Authority, Content E-E-A-T, Technical, Schema, Platform Optimization
+- Category scores: AI Citability, Brand Authority, Content E-E-A-T, Technical, Schema, Platform Optimisation
 - Platform readiness scores (if available)
 
 **Findings (required):**
@@ -67,7 +72,7 @@ Parse the audit file for:
 - Domain and brand name
 - Business type detected (SaaS, Local, E-commerce, Publisher, Agency)
 - Audit date
-- Pages analyzed
+- Pages analysed
 
 ### Step 3: Determine Recommended Tier
 
@@ -76,7 +81,7 @@ Parse the audit file for:
 | GEO Score | Recommended Tier | Rationale |
 |---|---|---|
 | 0-40 | **Premium** | Critical issues across multiple categories require intensive, hands-on work |
-| 41-60 | **Standard** | Significant gaps but foundations exist; structured monthly optimization will close them |
+| 41-60 | **Standard** | Significant gaps but foundations exist; structured monthly optimisation will close them |
 | 61-75 | **Basic** | Solid foundations with specific improvement areas; maintenance + targeted fixes |
 | 76-100 | **Basic** or Retainer | Strong performance; quarterly check-in and monitoring sufficient |
 
@@ -91,10 +96,10 @@ Parse the audit file for:
 - Monthly progress report (`/geo compare`)
 - Email support for GEO questions
 
-#### Standard — Full GEO Optimization Program
+#### Standard — Full GEO Optimisation Program
 - Everything in Basic, plus:
 - Weekly content recommendations for AI citability
-- Platform-specific optimization (all 9 platforms)
+- Platform-specific optimisation (all 9 platforms)
 - Brand mention strategy and tracking
 - Bi-weekly strategy calls
 - Competitor visibility monitoring
@@ -102,7 +107,7 @@ Parse the audit file for:
 #### Premium — Complete GEO Transformation
 - Everything in Standard, plus:
 - Daily AI visibility monitoring
-- Content creation and optimization (X articles/month)
+- Content creation and optimisation (X articles/month)
 - Wikipedia/Wikidata entity building
 - Community presence strategy (Reddit, forums)
 - Priority support and dedicated Slack channel
@@ -119,7 +124,7 @@ If `--client-name` is not provided, derive the client name from the audit file's
 ## Output Format
 
 ```markdown
-# GEO Optimization Proposal
+# GEO Optimisation Proposal
 
 **Prepared for:** [Client Name]
 **Website:** [Domain]
@@ -148,7 +153,7 @@ If `--client-name` is not provided, derive the client name from the audit file's
 | Content Quality & E-E-A-T | [X]/100 | [Status] |
 | Technical Foundations | [X]/100 | [Status] |
 | Schema & Structured Data | [X]/100 | [Status] |
-| Platform Optimization | [X]/100 | [Status] |
+| Platform Optimisation | [X]/100 | [Status] |
 
 Status: Critical (0-29), Poor (30-49), Fair (50-69), Good (70-84), Excellent (85-100)
 
@@ -179,7 +184,7 @@ Based on your GEO score of [X]/100, we recommend our **[Tier]** program. [1-2 se
 | Phase | Duration | Focus | Expected Score Impact |
 |---|---|---|---|
 | **Phase 1: Foundation** | Weeks 1-2 | Critical fixes, schema deployment, crawler access | +10-15 points |
-| **Phase 2: Optimization** | Weeks 3-8 | Platform optimization, content improvements, entity building | +15-25 points |
+| **Phase 2: Optimisation** | Weeks 3-8 | Platform optimisation, content improvements, entity building | +15-25 points |
 | **Phase 3: Growth** | Months 3-6 | Brand authority, community presence, ongoing monitoring | +10-15 points |
 
 **Projected GEO Score After 6 Months:** [Current + estimated improvement]/100
@@ -207,7 +212,7 @@ The AI search landscape is shifting rapidly:
 - **Gartner predicts** traditional search traffic will drop 50% by 2028
 - **Only 23% of marketers** are investing in GEO — early movers have a significant advantage
 
-Companies that optimize for AI search now will dominate their industries in AI-generated recommendations. Those that don't will become invisible as AI search becomes the default.
+Companies that optimise for AI search now will dominate their industries in AI-generated recommendations. Those that don't will become invisible as AI search becomes the default.
 
 ---
 

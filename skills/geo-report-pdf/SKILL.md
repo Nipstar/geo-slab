@@ -8,8 +8,15 @@ tags: [geo, pdf, report, client-deliverable, neo-brutalist]
 
 # GEO PDF Report Generator
 
-> **MANDATORY: Read `/STYLE.md` before generating any prose in this report.**
-> Every client-facing sentence — score bands, sub-score descriptions, issue cards, good-news items, the £-impact line, the CTA — must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py`. Do NOT output raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper. The banned-words list in `style.py:BANNED_WORDS` is non-negotiable. UK English throughout.
+> **MANDATORY: Read `/STYLE.md` before generating any prose in the client PDF.**
+>
+> This skill emits TWO separate PDFs from the same audit data:
+> - `GEO-REPORT-<domain>.pdf` — client-facing, plain English only (managing partner / owner / marketing director reads this). Pulls from `client_summary`.
+> - `GEO-DEV-REPORT-<domain>.pdf` — developer / agency hand-off, technical instructions. Pulls from `technical_findings`.
+>
+> The audit data is identical for both — the agents emit two parallel layers and each renderer consumes its own field. The partner can forward the dev PDF without ever showing the client PDF to their developer, and vice versa.
+>
+> Never put raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `LCP`, `HSTS`, `sameAs`, `Yoast`, etc.) in the client PDF. Run `scripts/voice_check.py` against the client PDF before delivery — any banned term fails the build. UK English throughout.
 
 ## Purpose
 
@@ -45,7 +52,7 @@ Both the full-audit (`render_geo_report.py`) and prospect (`generate_prospect_re
         "Content E-E-A-T": 74,
         "Technical GEO": 72,
         "Schema": 45,
-        "Platform Optimization": 59
+        "Platform Optimisation": 59
     },
     "platforms": {
         "Google AI Overviews": 68,
@@ -71,18 +78,25 @@ Both the full-audit (`render_geo_report.py`) and prospect (`generate_prospect_re
 }
 ```
 
-## Generate Full Audit PDF
+## Generate Full Audit PDFs (BOTH client + developer)
+
+Every audit run must emit both PDFs. Always invoke the two generators in sequence and run the voice check against the client PDF.
 
 ```bash
-# From audit JSON → PDF
-python3 ~/.claude/skills/geo/scripts/generate_pdf_report.py audit-data.json GEO-REPORT-brand.pdf
+# 1) Client PDF — plain English (pulls client_summary)
+python3 ~/.claude/skills/geo/scripts/generate_pdf_report.py \
+  reports/<domain>/data.json reports/<domain>/GEO-REPORT-<domain>.pdf
 
-# Or pipe from stdin
-cat audit-data.json | python3 ~/.claude/skills/geo/scripts/generate_pdf_report.py - GEO-REPORT-brand.pdf
+# 2) Developer PDF — technical hand-off (pulls technical_findings)
+python3 ~/.claude/skills/geo/scripts/generate_dev_pdf_report.py \
+  reports/<domain>/data.json reports/<domain>/GEO-DEV-REPORT-<domain>.pdf
 
-# Output defaults to GEO-REPORT-<domain>.pdf if no output arg given
-python3 ~/.claude/skills/geo/scripts/generate_pdf_report.py audit-data.json
+# 3) Voice gate — fails if any banned tech term leaked into the client PDF
+python3 ~/.claude/skills/geo/scripts/voice_check.py \
+  reports/<domain>/GEO-REPORT-<domain>.pdf
 ```
+
+If voice_check fails, fix the offending entry in the agent's `client_summary` output (translate via `scripts/style.py:ISSUE_COPY`) and re-render the client PDF only — the dev PDF doesn't need regeneration.
 
 ## Generate Prospect (Lite) PDF
 
@@ -113,21 +127,31 @@ Both scripts accept an `--output` / positional argument pointing to the output d
 
 ## Workflow for /geo-report-pdf
 
-1. Check for existing audit data: look for `GEO-AUDIT-REPORT.md` or a `reports/` subdirectory
-2. If no audit data: tell user to run `/geo-audit <url>` first
-3. Parse the markdown report to extract all scores, findings, action items, and platform data
-4. Build the JSON structure (schema above)
-5. Write JSON to `/tmp/geo-audit-data.json`
-6. Determine output folder: `reports/<domain>/`; create if needed
-7. Run the HTML generator:
+1. Check for existing audit data: look for `GEO-AUDIT-REPORT.md` or a `reports/<domain>/data.json`
+2. If no audit data: tell user to run `/geo audit <url>` first
+3. Parse the markdown report to extract scores, platforms, AND both layers — `client_summary` and `technical_findings`
+4. Build the JSON structure (schema above) including both layers
+5. Write JSON to `reports/<domain>/data.json`
+6. Render both PDFs:
    ```bash
-   python3 ~/.claude/skills/geo/scripts/render_geo_report.py /tmp/geo-audit-data.json reports/<domain>/GEO-REPORT-<domain>.html
+   # Client PDF
+   python3 ~/.claude/skills/geo/scripts/render_geo_report.py \
+     reports/<domain>/data.json reports/<domain>/GEO-REPORT-<domain>.html
+   python3 ~/.claude/skills/geo/scripts/generate_pdf_report.py \
+     reports/<domain>/data.json reports/<domain>/GEO-REPORT-<domain>.pdf
+
+   # Developer PDF
+   python3 ~/.claude/skills/geo/scripts/render_dev_report.py \
+     reports/<domain>/data.json reports/<domain>/GEO-DEV-REPORT-<domain>.html
+   python3 ~/.claude/skills/geo/scripts/generate_dev_pdf_report.py \
+     reports/<domain>/data.json reports/<domain>/GEO-DEV-REPORT-<domain>.pdf
    ```
-8. Run the PDF generator:
+7. Run the voice gate against the client PDF:
    ```bash
-   python3 ~/.claude/skills/geo/scripts/generate_pdf_report.py /tmp/geo-audit-data.json reports/<domain>/GEO-REPORT-<domain>.pdf
+   python3 ~/.claude/skills/geo/scripts/voice_check.py \
+     reports/<domain>/GEO-REPORT-<domain>.pdf
    ```
-9. Report both file paths and sizes to the user
+8. Report all four file paths + sizes to the user
 
 ## Design System
 

@@ -18,7 +18,7 @@ This skill handles everything related to the `llms.txt` standard -- an emerging 
 
 ## Why llms.txt Matters
 
-AI language models face a fundamental challenge when processing websites: they must determine which pages are most important, what the site is about, and how content is organized -- typically by crawling many pages and inferring structure. `llms.txt` solves this by providing an explicit, machine-readable (and human-readable) summary.
+AI language models face a fundamental challenge when processing websites: they must determine which pages are most important, what the site is about, and how content is organised -- typically by crawling many pages and inferring structure. `llms.txt` solves this by providing an explicit, machine-readable (and human-readable) summary.
 
 **Benefits of having a well-crafted llms.txt:**
 
@@ -80,7 +80,7 @@ The file uses Markdown formatting with specific conventions:
 
 **3. Main Sections (Required -- at least one)**
 
-Use H2 headings (`##`) to organize pages by category. Common section names:
+Use H2 headings (`##`) to organise pages by category. Common section names:
 
 | Section Name | Purpose | Example Content |
 |---|---|---|
@@ -107,7 +107,7 @@ Rules for page entries:
 - **URL:** Must be a full, absolute URL (not relative paths).
 - **Description:** 10-30 words describing what the page covers. Be specific about the information available.
 - **Order:** List pages in order of importance within each section.
-- **Limit:** Include 10-30 page entries total. Prioritize your most authoritative and useful pages.
+- **Limit:** Include 10-30 page entries total. Prioritise your most authoritative and useful pages.
 
 **5. Key Facts Section (Recommended)**
 
@@ -206,7 +206,7 @@ Rate the llms.txt on these dimensions:
 - Would an AI system understand the site's purpose from this file alone?
 - Are descriptions specific enough to differentiate pages?
 - Are the most citation-worthy pages highlighted?
-- Is the organization logical and intuitive?
+- Is the organisation logical and intuitive?
 
 **Overall llms.txt Score** = (Completeness * 0.40) + (Accuracy * 0.35) + (Usefulness * 0.25)
 

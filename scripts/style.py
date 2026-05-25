@@ -93,38 +93,70 @@ SCORE_CARD_DESCRIPTIONS = {
 
 ISSUE_COPY = {
     "blocks_ai_crawlers": {
-        "title": "AI crawlers blocked",
+        "title": "AI engines locked out at the front door",
         "body": (
-            "Your robots.txt disallows GPTBot, ClaudeBot, PerplexityBot, or Google-Extended — "
-            "the bots that feed AI search answers. As long as this stays in place, ChatGPT "
-            "and Perplexity literally cannot read your pages, no matter how good your "
-            "content is. Roughly 12% of UK firms in your sector accidentally do this. The "
-            "fix is a one-line robots.txt change, under 10 minutes."
+            "Your site is telling the bots that feed ChatGPT, Claude, and Perplexity that "
+            "they're not allowed in. As long as this stays in place, those AI engines "
+            "literally cannot read your pages, no matter how good your content is. Roughly "
+            "12% of UK firms in your sector do this by accident. Under 10 minutes to fix."
         ),
     },
     "no_llmstxt": {
-        "title": "No llms.txt published",
+        "title": "No AI guidance file published",
         "body": (
-            "llms.txt is the file that tells AI engines which of your pages matter most. "
-            "Without it, ChatGPT and Perplexity guess — and they often guess wrong, citing "
-            "a competitor's clearer page instead. Roughly 8% of UK firms in your sector "
-            "have published one. The fix takes under an hour."
+            "AI engines look for a small file that tells them which of your pages matter "
+            "most. Without it, ChatGPT and Perplexity guess — and they often guess wrong, "
+            "citing a competitor's clearer page instead. Roughly 8% of UK firms in your "
+            "sector have one. Under an hour to fix."
         ),
     },
     "no_schema": {
-        "title": "No structured data",
+        "title": "AI engines can't tell what your site is",
         "body": (
-            "There's no JSON-LD schema on your homepage. Schema is how you tell AI what "
-            "your business is — a law firm, what services, which locations, who the "
-            "partners are. Without it, AI engines guess from page text alone and "
-            "frequently confuse you with another firm. The fix is a single block of code "
-            "in the page head, typically under two hours."
+            "AI engines can't tell what your site is. Your platform adds basic tagging but "
+            "no machine-readable description of the firm, your services, or your offices. "
+            "AI has to guess from page text alone, which is unreliable. Fix is a single "
+            "block of code in the page head, typically under two hours."
+        ),
+    },
+    "no_entity_schema": {
+        "title": "AI can't confirm what your firm is",
+        "body": (
+            "AI engines don't have a machine-readable file confirming you're a law firm, "
+            "what you do, or where your offices are. They guess from page text, which is "
+            "unreliable. The fix is a single block of code in the page head, typically "
+            "under two hours of developer time."
+        ),
+    },
+    "no_person_schema": {
+        "title": "Solicitor profiles aren't tagged",
+        "body": (
+            "Your solicitor profiles aren't tagged in a way AI engines can read. AI can't "
+            "connect the named solicitor to your firm or to the specialism without this. "
+            "Standard template work, half a day to roll out across every bio."
+        ),
+    },
+    "no_faq_schema": {
+        "title": "FAQs aren't tagged for AI quoting",
+        "body": (
+            "FAQ blocks on your service pages aren't tagged in a way AI can quote. "
+            "Question-and-answer style is one of the most heavily cited formats in Google "
+            "AI Overviews and Perplexity. Tag the blocks you already have — under two hours."
+        ),
+    },
+    "no_sameas": {
+        "title": "Authority links not connected to your site",
+        "body": (
+            "Your reviews, professional listings, accreditations and Companies House "
+            "record aren't linked to your site in a way AI engines verify. The "
+            "credentials exist but AI can't confirm they're yours. One config block "
+            "sitewide."
         ),
     },
     "low_citability": {
-        "title": "Content not citable by AI",
+        "title": "Pages not written for AI to quote",
         "body": (
-            "AI engines prefer paragraphs they can lift whole and quote — 130-170 words, "
+            "AI engines prefer paragraphs they can lift whole and quote — 130–170 words, "
             "self-contained, fact-rich, directly answering a question. Your pages are "
             "written for human skim-reading, which is fine for Google but invisible to AI "
             "citation. Competitors who've restructured for citability are being quoted in "
@@ -132,11 +164,11 @@ ISSUE_COPY = {
         ),
     },
     "no_mobile_viewport": {
-        "title": "No mobile viewport",
+        "title": "Site not configured for mobile screens",
         "body": (
-            "Your site is missing the mobile viewport meta tag. Most prospects search from "
-            "a phone, and AI engines treat mobile-broken sites as a quality signal that "
-            "downgrades you. This is a one-line fix in the page head."
+            "Your site is missing the setting that tells phones how to display the page. "
+            "Most prospects search from a phone, and AI engines treat mobile-broken sites "
+            "as a quality signal that downgrades you. One-line fix in the page head."
         ),
     },
     "missing_gbp": {
@@ -144,8 +176,17 @@ ISSUE_COPY = {
         "body": (
             "Your Google Business Profile is missing fields AI search engines lean on for "
             "local recommendations — opening hours, services, photos, or reviews. AI "
-            "answers about 'best [service] in [town]' pull straight from GBP. A complete "
-            "profile usually takes under an hour to fix."
+            "answers about 'best [service] in [town]' pull straight from this profile. A "
+            "complete profile usually takes under an hour to fix."
+        ),
+    },
+    "multi_gbp_unclaimed": {
+        "title": "Office Google profiles need claim, verify, and consistency audit",
+        "body": (
+            "Each office needs its Google profile claimed and verified. Name, address, "
+            "and phone must match exactly across your site, Google, and major directories. "
+            "AI engines pull these for 'best solicitor in [town]' answers — any mismatch "
+            "makes AI skip you. One-pass audit, typically a week across a multi-office firm."
         ),
     },
     "nap_inconsistent": {
@@ -153,39 +194,227 @@ ISSUE_COPY = {
         "body": (
             "Your firm name, address, or phone number is different across your website, "
             "Google Business Profile, and the major UK directories. AI engines treat "
-            "inconsistency as a confidence-killer and demote you in local answers. The fix "
-            "is a one-pass directory audit — usually under a day."
+            "inconsistency as a confidence-killer and demote you in local answers. "
+            "One-pass directory audit — usually under a day."
         ),
     },
     "thin_eeat": {
         "title": "Thin trust signals",
         "body": (
             "Your content shows little of who you are — no author bios, no case histories, "
-            "no specific credentials. AI engines weight Experience, Expertise, "
-            "Authoritativeness, and Trust signals heavily when picking who to cite. "
-            "Without them you read as generic, even if your work is excellent."
+            "no specific credentials. AI engines look hard for evidence of real experience, "
+            "expertise, and trust when picking who to cite. Without it you read as generic, "
+            "even if your work is excellent."
         ),
     },
     "no_wikipedia": {
         "title": "Not on Wikipedia or Wikidata",
         "body": (
-            "AI engines use Wikipedia and Wikidata as a primary trust anchor for entity "
+            "AI engines use Wikipedia and Wikidata as the primary trust anchor for entity "
             "verification — does this firm actually exist as a real, notable thing? "
-            "Without an entry, you start every AI query at zero. A Wikidata entry is "
-            "cheap (under a day) and surprisingly underused in UK SMB sectors."
+            "Without an entry, your AI confidence score starts at zero even with a century "
+            "of trading behind you. A Wikidata entry is cheap (under a day) and "
+            "surprisingly underused in UK SMB sectors."
         ),
     },
     "no_press_clutch": {
         "title": "No press or third-party validation",
         "body": (
-            "AI engines look for third-party signals — press mentions, Clutch profiles, "
-            "Reddit threads, industry awards — to decide whether to cite a firm. With "
-            "none of these, you depend entirely on your own pages, which AI weights less. "
-            "A targeted three-month outreach plan typically lands enough signals to shift "
-            "this category."
+            "AI engines look for third-party signals — press mentions, listings on "
+            "industry review sites, forum discussions, industry awards — to decide whether "
+            "to cite a firm. With none of these, you depend entirely on your own pages, "
+            "which AI weights less. A targeted three-month outreach plan typically lands "
+            "enough signals to shift this category."
+        ),
+    },
+    "slow_mobile": {
+        "title": "Homepage too slow on mobile",
+        "body": (
+            "Your homepage takes several seconds to render its largest element on mobile. "
+            "AI engines that use real-user speed signals (Google AI Overviews especially) "
+            "will rank faster competitors above you. Desktop is usually fine — the gap is "
+            "mobile only. Image format and loading-hint changes, typically one engineering "
+            "day."
+        ),
+    },
+    "outdated_image_formats": {
+        "title": "Outdated image format on the homepage hero",
+        "body": (
+            "Image format and loading hints on your homepage hero are out of date. Modern "
+            "formats load 30–50% faster. Configuration change only — no design work."
+        ),
+    },
+    "no_author_byline": {
+        "title": "Articles don't show who wrote them",
+        "body": (
+            "Your articles don't show who wrote them. AI engines treat unsigned content as "
+            "less trustworthy. The author data exists in your CMS — the page template just "
+            "isn't displaying it. 30 minutes of work."
+        ),
+    },
+    "no_article_schema": {
+        "title": "Articles not tagged as journalism",
+        "body": (
+            "Your news and insight articles aren't tagged as authored journalism. AI "
+            "engines treat them as generic web pages instead of editorial content from an "
+            "established firm. Template change, two hours."
+        ),
+    },
+    "weak_og_tags": {
+        "title": "Social preview images fall back to defaults",
+        "body": (
+            "When someone shares your pages on social media, the preview image and "
+            "description fall back to generic banners. Worth fixing for share-quality but "
+            "not blocking AI search visibility."
+        ),
+    },
+    "missing_security_headers": {
+        "title": "Standard security hardening missing",
+        "body": (
+            "Standard security hardening is missing. Not blocking AI search visibility but "
+            "worth fixing during the same engineering window — typically a single config "
+            "file change."
+        ),
+    },
+    "no_x_account": {
+        "title": "No X/Twitter presence — costs you Grok",
+        "body": (
+            "Grok (Elon Musk's AI) relies heavily on real-time X/Twitter content. With no "
+            "active account, Grok cannot cite you on topics where you'd otherwise be a "
+            "credible source. This is the cheapest single way to lift your Grok score."
+        ),
+    },
+    "service_intros_marketing_prose": {
+        "title": "Service pages open with marketing prose",
+        "body": (
+            "AI engines prefer paragraphs they can lift whole — 130–170 words, "
+            "self-contained, fact-rich, directly answering a question. Your service pages "
+            "open with marketing prose AI engines skip. Restructure the top five around "
+            "question headings with answer blocks."
+        ),
+    },
+    "js_only_schema": {
+        "title": "Machine-readable tagging only appears after JavaScript runs",
+        "body": (
+            "Your tagging is added by the page's JavaScript instead of the page itself. AI "
+            "crawlers don't run JavaScript and miss it entirely. Switch the relevant "
+            "plugin to render the tags on the server — typically half a day."
+        ),
+    },
+    "no_ssr_content": {
+        "title": "Page is empty until JavaScript runs",
+        "body": (
+            "Most of the page only appears once a browser runs your JavaScript. AI crawlers "
+            "don't run JavaScript and see a near-empty page. This is the biggest single "
+            "barrier to AI citation a site can have. Requires switching to server-side "
+            "rendering — typically multi-week, but unavoidable."
+        ),
+    },
+    "cookie_wall_blocks_bots": {
+        "title": "Cookie banner hides content from AI crawlers",
+        "body": (
+            "Your cookie banner covers the page content and AI crawlers can't dismiss it. "
+            "They see the banner instead of the real page. One-line change to allow content "
+            "behind the banner."
         ),
     },
 }
+
+
+# ── Section labels (used by every renderer) ─────────────────────────────────
+# Plain-English category headings — consistent across prospect, client full
+# audit, proposal, and compare reports. Don't mix terminology between
+# deliverables. The developer report keeps technical labels — see DEV_LABELS.
+
+DISPLAY_LABELS = {
+    "AI Citability":             "AI CITABILITY",
+    "Brand Authority":           "DOES AI TRUST YOU",
+    "Content E-E-A-T":           "EXPERTISE SIGNALS",
+    "Technical GEO":             "AI CRAWLER ACCESS",
+    "Schema & Structured Data":  "HOW AI READS YOUR SITE",
+    "Schema":                    "HOW AI READS YOUR SITE",
+    "Platform Optimization":     "VISIBILITY ACROSS AI ENGINES",
+    "Platform Optimisation":     "VISIBILITY ACROSS AI ENGINES",
+}
+
+# Subtitles render under each category card in the client report.
+SECTION_SUBTITLES = {
+    "AI CITABILITY":               "Whether AI engines can lift a paragraph from your site and quote it back.",
+    "DOES AI TRUST YOU":           "Whether AI engines treat your firm as a real, reputable entity.",
+    "EXPERTISE SIGNALS":           "Whether your content shows real experience, expertise, and trust.",
+    "AI CRAWLER ACCESS":           "Whether AI crawlers can reach your pages and read the content.",
+    "HOW AI READS YOUR SITE":      "Whether AI engines have a machine-readable description of your business.",
+    "VISIBILITY ACROSS AI ENGINES":"How visible you are across the nine AI engines that now compete with Google.",
+}
+
+# Developer report keeps technical category names — that audience wants them.
+DEV_LABELS = {
+    "AI Citability":             "AI CITABILITY",
+    "Brand Authority":           "BRAND AUTHORITY",
+    "Content E-E-A-T":           "CONTENT E-E-A-T",
+    "Technical GEO":             "TECHNICAL GEO",
+    "Schema & Structured Data":  "SCHEMA & STRUCTURED DATA",
+    "Schema":                    "SCHEMA & STRUCTURED DATA",
+    "Platform Optimization":     "PLATFORM OPTIMISATION",
+    "Platform Optimisation":     "PLATFORM OPTIMISATION",
+}
+
+
+# ── Agent voice prompt (every analysis agent imports this) ──────────────────
+# Every analysis agent emits two layers. The technical_findings field feeds
+# the developer PDF. The client_summary field is the only thing the partner
+# sees — every sentence rewritten per /STYLE.md. The orchestrator passes this
+# string into every subagent prompt and reminds the agent before output time.
+
+AGENT_VOICE_RULES = """
+TWO-LAYER OUTPUT — MANDATORY.
+
+Your findings are rendered into TWO separate PDFs:
+  - GEO-REPORT-<domain>.pdf       (client; partner reads this; plain English only)
+  - GEO-DEV-REPORT-<domain>.pdf   (developer/agency; technical instructions)
+
+You must output BOTH of these top-level fields in your structured response:
+
+technical_findings: list of objects, each {
+    "slug":     "<internal_slug>",        # matches ISSUE_COPY where possible
+    "severity": "CRITICAL|HIGH|MEDIUM|LOW",
+    "title":    "<short technical name>", # raw spec language OK here
+    "detail":   "<specifics: LCP ms, schema types, headers, file paths, code>",
+    "fix":      "<technical instruction for the developer/agency>"
+}
+
+client_summary: list of objects, each {
+    "slug":        "<same slug as the matching technical_findings entry>",
+    "severity":    "CRITICAL|HIGH|MEDIUM|LOW",
+    "title":       "<plain-English headline a partner understands>",
+    "description": "<3–4 plain-English sentences: what this means for me, what it costs me, how hard the fix is>"
+}
+
+Pair entries by slug. Every technical finding must have a matching client_summary entry.
+
+CLIENT_SUMMARY RULES — read /STYLE.md before writing this field.
+The managing partner does NOT know what any of these mean and they must NEVER
+appear in client_summary text:
+JSON-LD, FAQPage, LCP, INP, CLS, HSTS, CSP, X-Frame-Options, Referrer-Policy,
+sameAs, OG, Open Graph, Yoast, WordPress, fetchpriority, preconnect, defer,
+WebP, AVIF, PageSpeed, taxonomy, NAP, GBP, E-E-A-T, schema.org, llms.txt,
+robots.txt, NewsArticle, Article schema, LegalService, LocalBusiness, Person
+schema, Attorney schema, AggregateRating, Organization schema.
+
+Translate every technical concept through the issue map in
+scripts/style.py:ISSUE_COPY. Re-use existing slugs where they fit. If you add
+a new slug, add the entry to ISSUE_COPY in the same change.
+
+UK English only — never optimize, organize, analyze, color, center, behavior.
+No exclamation marks. No words in style.py:BANNED_WORDS. Sentences over 25
+words are drafts. No corporate filler.
+
+TECHNICAL_FINDINGS RULES — accuracy first.
+Raw spec names allowed and encouraged. Cite exact thresholds, schema type
+names, header names, file paths, screenshot paths. The agency reading this
+needs enough to act without a second pass.
+""".strip()
+
 
 
 # ── Good-news translation table ─────────────────────────────────────────────

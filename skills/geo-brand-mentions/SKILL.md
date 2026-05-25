@@ -14,7 +14,7 @@ allowed-tools:
 
 ## Core Insight
 
-Brand mentions correlate approximately 3x more strongly with AI visibility than traditional backlinks. An Ahrefs study published in December 2025, analyzing 75,000 brands across AI search platforms, found that **unlinked brand mentions** -- references to a brand name without a hyperlink -- are a stronger predictor of whether AI systems cite and recommend a brand than Domain Rating or backlink count.
+Brand mentions correlate approximately 3x more strongly with AI visibility than traditional backlinks. An Ahrefs study published in December 2025, analysing 75,000 brands across AI search platforms, found that **unlinked brand mentions** -- references to a brand name without a hyperlink -- are a stronger predictor of whether AI systems cite and recommend a brand than Domain Rating or backlink count.
 
 The critical finding: **the platform where the mention appears matters enormously.** Not all mentions are equal. A mention on YouTube or Reddit carries far more weight for AI citation than a mention on a low-authority blog, because AI training data and retrieval systems disproportionately index high-engagement platforms.
 
@@ -160,7 +160,7 @@ These platforms have lower but still meaningful correlation with AI visibility:
 
 #### GitHub
 - **Relevance:** Critical for open-source and developer-focused brands.
-- **What to check:** Does the brand have a GitHub organization? Stars on repositories? Mentions in other repos' documentation or discussions?
+- **What to check:** Does the brand have a GitHub organisation? Stars on repositories? Mentions in other repos' documentation or discussions?
 - **Signal strength:** High for dev tools and open-source, low for non-technical brands.
 
 #### Industry Forums and Communities
@@ -202,9 +202,9 @@ Brand_Authority_Score = (YouTube * 0.25) + (Reddit * 0.25) + (Wikipedia * 0.20) 
 | Score Range | Rating | Interpretation |
 |---|---|---|
 | 85-100 | Dominant | Brand is a well-recognized entity across AI platforms. Highly likely to be cited and recommended by AI systems. |
-| 70-84 | Strong | Brand has solid cross-platform presence. AI systems likely recognize and cite it for relevant queries. |
+| 70-84 | Strong | Brand has solid cross-platform presence. AI systems likely recognise and cite it for relevant queries. |
 | 50-69 | Moderate | Brand has presence on some platforms but gaps exist. AI citation is inconsistent. |
-| 30-49 | Weak | Brand has limited platform presence. AI systems may not recognize it as a distinct entity. |
+| 30-49 | Weak | Brand has limited platform presence. AI systems may not recognise it as a distinct entity. |
 | 0-29 | Minimal | Brand has negligible platform presence. AI systems are unlikely to cite or recommend it. |
 
 ---
@@ -293,7 +293,7 @@ if entities:
 
 ### Step 3: Sentiment Assessment
 
-For Reddit and other discussion platforms, assess sentiment by analyzing the most recent and most prominent mentions:
+For Reddit and other discussion platforms, assess sentiment by analysing the most recent and most prominent mentions:
 
 | Sentiment | Indicators |
 |---|---|
@@ -421,7 +421,7 @@ Generate a file called `GEO-BRAND-MENTIONS.md`:
 
 ## Competitive Context
 
-[If competitors were analyzed, show a brief comparison table]
+[If competitors were analysed, show a brief comparison table]
 
 | Brand | YouTube | Reddit | Wikipedia | LinkedIn | Other | Total |
 |---|---|---|---|---|---|---|
@@ -450,7 +450,7 @@ Generate a file called `GEO-BRAND-MENTIONS.md`:
 | Backlink count | ~0.266 | Very High |
 | Organic traffic | Moderate | Very High |
 
-**Key insight:** The signals that matter most for AI visibility (YouTube, Reddit) are almost irrelevant in traditional SEO, and the signals that matter most for traditional SEO (backlinks, DR) are weak predictors of AI visibility. This requires a fundamentally different optimization strategy.
+**Key insight:** The signals that matter most for AI visibility (YouTube, Reddit) are almost irrelevant in traditional SEO, and the signals that matter most for traditional SEO (backlinks, DR) are weak predictors of AI visibility. This requires a fundamentally different optimisation strategy.
 
 ### Platform-Specific Tips for Building Presence
 
@@ -474,7 +474,7 @@ Generate a file called `GEO-BRAND-MENTIONS.md`:
 - Contribute to industry-relevant articles where your brand can be naturally cited as a source.
 
 **LinkedIn Quick Wins:**
-- Optimize your company page with complete information and regular posting.
+- Optimise your company page with complete information and regular posting.
 - Encourage leadership to post thought leadership content weekly.
 - Publish LinkedIn articles on topics where your brand has unique expertise.
 - Engage with industry discussions to increase brand visibility in professional contexts.

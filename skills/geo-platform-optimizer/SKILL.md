@@ -1,16 +1,16 @@
 ---
 name: geo-platform-optimizer
-description: Platform-specific AI search optimization — audit and optimize for Google AI Overviews, ChatGPT, Perplexity, Gemini, Bing Copilot, Grok, DeepSeek, Meta AI, and Mistral individually
+description: Platform-specific AI search optimisation — audit and optimise for Google AI Overviews, ChatGPT, Perplexity, Gemini, Bing Copilot, Grok, DeepSeek, Meta AI, and Mistral individually
 version: 2.0.0
 author: antek-automation
-tags: [geo, ai-search, platform-optimization, chatgpt, perplexity, gemini, aio, grok, deepseek, meta-ai, mistral]
+tags: [geo, ai-search, platform-optimisation, chatgpt, perplexity, gemini, aio, grok, deepseek, meta-ai, mistral]
 ---
 
 # GEO Platform Optimizer
 
 ## Core Insight
 
-Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for the same query. Each AI search platform uses different indexes, ranking logic, and source preferences. A page optimized for Google AI Overviews may be invisible to ChatGPT, and vice versa. Platform-specific optimization is not optional — it is the foundation of any serious GEO strategy.
+Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for the same query. Each AI search platform uses different indexes, ranking logic, and source preferences. A page optimised for Google AI Overviews may be invisible to ChatGPT, and vice versa. Platform-specific optimisation is not optional — it is the foundation of any serious GEO strategy.
 
 ## How to Use This Skill
 
@@ -27,10 +27,10 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 - 92% of AIO citations come from pages already ranking in the **top 10 organic results** — traditional SEO is the gateway
 - However, 47% of citations come from pages ranking **below position 5** — AIO has its own selection logic favoring clarity and directness over raw rank
 - AIO strongly favors pages with **clean structure, direct answers, and scannable formatting**
-- Featured snippet optimization has ~70% overlap with AIO optimization
+- Featured snippet optimisation has ~70% overlap with AIO optimisation
 - AIO prefers **concise, factual, unambiguous answers** — hedging and filler reduce citation probability
 
-### Optimization Checklist
+### Optimisation Checklist
 
 1. **Question-Based Headings**: Use H2/H3 headings phrased as questions matching real user queries. Check Google's "People Also Ask" for the target topic and mirror those exact phrasings.
 2. **Direct Answer in First Paragraph**: After each question heading, provide a clear 1-2 sentence answer immediately. Then expand with supporting detail. The first sentence should be a standalone citation candidate.
@@ -70,7 +70,7 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 - Longer, more comprehensive articles get cited more often than short pieces
 - ChatGPT tends to cite **the most canonical source** for a claim rather than the original
 
-### Optimization Checklist
+### Optimisation Checklist
 
 1. **Wikipedia Presence**: Check if the brand/person/product has a Wikipedia article. If not, assess notability criteria. If notable, create a draft. If an article exists, ensure it is accurate and current.
 2. **Wikidata Entity**: Verify the entity exists on Wikidata (wikidata.org). If not, create a Wikidata item with key properties: instance of, official website, social media links, founding date, headquarters location.
@@ -109,7 +109,7 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 - Cites **multiple sources per answer** (typically 5-15), so there is more opportunity for mid-authority sites to appear
 - Uses its own crawling infrastructure in addition to search APIs
 
-### Optimization Checklist
+### Optimisation Checklist
 
 1. **Active Reddit Presence**: The brand or its representatives should participate authentically in relevant subreddit discussions. Not promotional — helpful, specific, and community-oriented.
 2. **Reddit AMAs and Threads**: Encourage or participate in AMAs, detailed discussion threads, and community Q&As. Perplexity treats these as high-signal content.
@@ -148,16 +148,16 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 - Structured data (Schema.org) is consumed directly by Gemini for entity understanding
 - Gemini multi-modal: can reference images, videos, and text together
 
-### Optimization Checklist
+### Optimisation Checklist
 
 1. **Google Knowledge Panel**: Check if the brand has a Google Knowledge Panel. If not, claim it through Google Business Profile or structured data. Ensure all information is accurate.
-2. **Google Business Profile**: Complete and optimize GBP with all fields: hours, services, photos, posts, Q&A. Gemini pulls directly from GBP for local queries.
-3. **YouTube Strategy**: Create YouTube content for every key topic. Optimize titles, descriptions, timestamps, and closed captions. Gemini cites YouTube more than any other AI platform.
+2. **Google Business Profile**: Complete and optimise GBP with all fields: hours, services, photos, posts, Q&A. Gemini pulls directly from GBP for local queries.
+3. **YouTube Strategy**: Create YouTube content for every key topic. Optimise titles, descriptions, timestamps, and closed captions. Gemini cites YouTube more than any other AI platform.
 4. **YouTube Chapters and Timestamps**: Use chapters (timestamps in description) so Gemini can reference specific segments of videos.
 5. **Google Merchant Center**: For e-commerce, ensure products are in Google Merchant Center. Gemini references product data directly.
 6. **Structured Data (Schema.org)**: Implement comprehensive Schema.org markup. Gemini uses this for entity understanding more aggressively than other platforms.
 7. **Google Sites Ecosystem**: Ensure presence across Google ecosystem: Google Scholar (for research), Google News (for publishers), Google Maps (for local).
-8. **Image Optimization**: Gemini is multi-modal. Use descriptive alt text, structured image filenames, and high-quality images. Include relevant images with every piece of content.
+8. **Image Optimisation**: Gemini is multi-modal. Use descriptive alt text, structured image filenames, and high-quality images. Include relevant images with every piece of content.
 9. **Google E-E-A-T Signals**: All standard Google E-E-A-T signals apply with extra weight. Author pages, about pages, editorial policies, and expertise demonstrations.
 10. **Chrome Web Store / Google Workspace Marketplace**: For software companies, presence on Google platforms adds entity signals.
 
@@ -166,11 +166,11 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 | Criterion | Points | How to Score |
 |---|---|---|
 | Google Knowledge Panel exists | 15 | 15 if complete, 10 if partial, 0 if none |
-| Google Business Profile complete | 10 | 10 if fully optimized, 5 if basic, 0 if none |
+| Google Business Profile complete | 10 | 10 if fully optimised, 5 if basic, 0 if none |
 | YouTube channel with topic-relevant content | 20 | 20 if active with chapters, 10 if present, 0 if none |
 | Schema.org structured data implemented | 15 | 15 if comprehensive, 10 if basic, 5 if minimal, 0 if none |
 | Google ecosystem presence (Scholar, News, Maps) | 10 | 10 if 3+, 5 if 1-2, 0 if none |
-| Image optimization (alt text, filenames) | 10 | 10 if all images optimized, 5 if partial, 0 if none |
+| Image optimisation (alt text, filenames) | 10 | 10 if all images optimised, 5 if partial, 0 if none |
 | E-E-A-T signals (author pages, about, editorial) | 10 | 10 if strong, 5 if partial, 0 if weak |
 | Google Merchant Center (if e-commerce) | 5 | 5 if applicable and active, N/A otherwise |
 | Multi-modal content (text + images + video) | 5 | 5 if rich multi-modal, 3 if some, 0 if text-only |
@@ -186,7 +186,7 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 - Microsoft ecosystem integration: LinkedIn, GitHub, Microsoft Learn content is weighted
 - Copilot prefers pages with clear, structured markup and fast load times
 
-### Optimization Checklist
+### Optimisation Checklist
 
 1. **Bing Webmaster Tools**: Register and verify site. Submit XML sitemap. Review and fix any crawl issues.
 2. **IndexNow Implementation**: Implement the IndexNow protocol to notify Bing of content changes in real-time. Submit a key file at `/.well-known/indexnow-key.txt` and ping the IndexNow API on content publish/update.
@@ -197,7 +197,7 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 7. **Clear Meta Descriptions**: Bing/Copilot weights meta descriptions more heavily than Google does. Write compelling, keyword-rich meta descriptions for every page.
 8. **Social Signals**: Bing has historically weighted social signals (shares, likes, engagement) more than Google. Maintain active social media presence.
 9. **Exact-Match Keywords**: Bing's algorithm is more literal about keyword matching than Google. Include exact target phrases in titles, headings, and body content.
-10. **Fast Page Load**: Copilot deprioritizes slow pages. Target sub-2-second load time. Optimize images, enable compression, minimize render-blocking resources.
+10. **Fast Page Load**: Copilot deprioritizes slow pages. Target sub-2-second load time. Optimise images, enable compression, minimize render-blocking resources.
 
 ### Scoring Rubric (0-100)
 
@@ -208,9 +208,9 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 | Bing index coverage of key pages | 10 | 10 if full, 5 if partial, 0 if poor |
 | LinkedIn company page (complete) | 10 | 10 if complete, 5 if basic, 0 if none |
 | GitHub presence (if applicable) | 5 | 5 if active, N/A if not applicable |
-| Meta descriptions optimized | 10 | 10 if all key pages, 5 if partial, 0 if missing |
+| Meta descriptions optimised | 10 | 10 if all key pages, 5 if partial, 0 if missing |
 | Social media engagement signals | 10 | 10 if active engagement, 5 if present, 0 if none |
-| Exact-match keywords in titles/headings | 10 | 10 if well-optimized, 5 if partial, 0 if not |
+| Exact-match keywords in titles/headings | 10 | 10 if well-optimised, 5 if partial, 0 if not |
 | Page load speed < 2 seconds | 10 | 10 if < 2s, 5 if < 4s, 0 if > 4s |
 | Bing Places configured (if local) | 5 | 5 if complete, N/A if not local |
 
@@ -221,15 +221,15 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 ### How Grok Selects Sources
 - Built by xAI (Elon Musk), Grok has **native access to the full X/Twitter firehose** — real-time posts, threads, and engagement data are first-class signals
 - Uses web search in addition to X data, but **X/Twitter content is weighted disproportionately** compared to other platforms
-- Grok emphasizes **recency and real-time information** — breaking news, trending topics, and live discussions are prioritized
+- Grok emphasises **recency and real-time information** — breaking news, trending topics, and live discussions are prioritised
 - Prefers **direct, conversational, opinionated content** over hedged corporate language
 - Entity recognition relies on X verification status, news coverage, and web presence
 - No confirmed dedicated crawler user-agent as of April 2026 — Grok's web search integration uses partnership-based indexing
 
-### Optimization Checklist
+### Optimisation Checklist
 
 1. **Active X/Twitter Presence**: Maintain an active, verified X account with regular posts about your core topics. Grok pulls directly from X conversations, so your X content IS your Grok content.
-2. **X Verification (Blue/Gold Checkmark)**: Verified accounts receive higher trust signals. Gold verification (organization) is strongest. Blue verification (individual) is baseline. Unverified accounts have reduced visibility.
+2. **X Verification (Blue/Gold Checkmark)**: Verified accounts receive higher trust signals. Gold verification (organisation) is strongest. Blue verification (individual) is baseline. Unverified accounts have reduced visibility.
 3. **X Thread Strategy**: Publish long-form X threads covering key topics. Threads with high engagement (replies, reposts, likes) become citation candidates. Include specific data points and claims in threads.
 4. **Real-Time Content Publishing**: Publish timely content responding to industry developments. Grok weights recency more heavily than most platforms. Stale content is deprioritized rapidly.
 5. **News and Press Coverage**: Ensure the brand appears in news articles indexed by web search. Grok cross-references X mentions with web sources for verification.
@@ -266,7 +266,7 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 - Supports both Chinese and English content, but English-language technical content is heavily represented
 - No confirmed dedicated crawler user-agent as of April 2026
 
-### Optimization Checklist
+### Optimisation Checklist
 
 1. **Technical Documentation Quality**: Ensure technical content is thorough, accurate, and well-structured. DeepSeek excels at technical reasoning and favors content that matches its strengths.
 2. **Code Examples and Snippets**: Include working code examples with proper syntax highlighting (use fenced code blocks). DeepSeek users frequently ask code-related questions.
@@ -307,14 +307,14 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 - Visual content (images, video, Reels) plays a larger role than on text-first platforms
 - Entity recognition draws from Facebook Pages, Instagram business profiles, and the broader web
 
-### Optimization Checklist
+### Optimisation Checklist
 
 1. **FacebookBot Crawler Access**: Verify FacebookBot is allowed in robots.txt. This is the gateway to Meta AI visibility. Block FacebookBot = invisible to Meta AI.
 2. **Facebook Business Page**: Complete all fields: about, services, hours, contact info, story, milestones. Meta AI pulls directly from Page data for entity queries.
 3. **Instagram Business/Creator Profile**: Active Instagram presence with business account. Bio link, highlights, regular content posting. Meta AI surfaces Instagram content for visual and lifestyle queries.
 4. **Open Graph Meta Tags**: Implement `og:title`, `og:description`, `og:image`, `og:type`, `og:url` on every page. Meta AI uses Open Graph for content understanding and rich previews.
 5. **Social Engagement Signals**: Content that generates shares, saves, and comments on Facebook and Instagram signals relevance. Community-validated content ranks higher.
-6. **Bing Index Optimization**: Since Meta AI uses Bing for web search, all Bing optimization applies: Bing Webmaster Tools, IndexNow, meta descriptions, exact-match keywords.
+6. **Bing Index Optimisation**: Since Meta AI uses Bing for web search, all Bing optimisation applies: Bing Webmaster Tools, IndexNow, meta descriptions, exact-match keywords.
 7. **Visual Content Strategy**: Meta's platforms are visual-first. Include high-quality images with descriptive alt text. Create Reels/short video content covering key topics.
 8. **WhatsApp Business Integration**: For businesses with WhatsApp presence, ensure WhatsApp Business profile is complete and linked to the website. Meta AI can reference WhatsApp catalog data.
 9. **Community and Group Presence**: Active participation in relevant Facebook Groups signals topical authority. Meta AI considers community engagement as a trust signal.
@@ -325,7 +325,7 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 | Criterion | Points | How to Score |
 |---|---|---|
 | FacebookBot allowed in robots.txt | 15 | 15 if allowed, 0 if blocked |
-| Facebook Business Page completeness | 15 | 15 if fully optimized, 10 if basic info, 5 if claimed, 0 if none |
+| Facebook Business Page completeness | 15 | 15 if fully optimised, 10 if basic info, 5 if claimed, 0 if none |
 | Instagram business/creator profile | 10 | 10 if active with regular posts, 5 if present but sparse, 0 if none |
 | Open Graph meta tags implemented | 10 | 10 if all key OG tags, 5 if partial, 0 if absent |
 | Social engagement on Meta platforms | 15 | 15 if high engagement, 10 if moderate, 5 if low, 0 if none |
@@ -348,7 +348,7 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 - Growing presence in **enterprise and professional use cases** in Europe
 - No confirmed dedicated crawler user-agent as of April 2026 — relies on partner search indexes
 
-### Optimization Checklist
+### Optimisation Checklist
 
 1. **Brave Search and Partner Index Presence**: Verify your site appears in Brave Search results (search.brave.com). Mistral's Le Chat uses Brave Search as a primary web search provider.
 2. **Multilingual Content (hreflang)**: If targeting European audiences, implement hreflang tags and provide content in multiple European languages. Mistral excels at multilingual queries.
@@ -358,7 +358,7 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 6. **Content Depth and Completeness**: Comprehensive treatment of topics with proper context. Mistral prefers complete answers from authoritative sources over aggregated snippets.
 7. **European Regulatory Compliance**: GDPR compliance, EU accessibility standards, and transparent data practices signal trustworthiness to European-focused AI platforms.
 8. **Academic and Professional Credentials**: Author pages with credentials, institutional affiliations, and professional backgrounds strengthen authority signals.
-9. **Clear Content Hierarchy**: Well-organized content with logical heading structure, table of contents for long pages, and clear section organization.
+9. **Clear Content Hierarchy**: Well-organised content with logical heading structure, table of contents for long pages, and clear section organisation.
 10. **Publication and Update Dates**: Visible publication dates and update timestamps. Content provenance is a trust signal for citation-focused models.
 
 ### Scoring Rubric (0-100)
@@ -372,7 +372,7 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 | Professional tone and presentation | 10 | 10 if polished professional, 5 if adequate, 0 if informal/low quality |
 | Content depth and comprehensiveness | 10 | 10 if thorough, 5 if adequate, 0 if thin |
 | Author credentials and expertise signals | 10 | 10 if full credentials, 5 if name only, 0 if anonymous |
-| Content hierarchy and organization | 5 | 5 if clean H1>H2>H3, 3 if some structure, 0 if flat |
+| Content hierarchy and organisation | 5 | 5 if clean H1>H2>H3, 3 if some structure, 0 if flat |
 | Publication/update dates visible | 5 | 5 if both dates, 3 if one, 0 if none |
 | European compliance signals (GDPR, etc.) | 5 | 5 if compliant, 3 if partial, 0 if no signals |
 
@@ -380,16 +380,16 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 
 ## Cross-Platform Summary
 
-### Universal Optimization Actions (help ALL platforms)
+### Universal Optimisation Actions (help ALL platforms)
 1. Wikipedia/Wikidata entity presence
 2. YouTube channel with relevant content
 3. Comprehensive, well-structured content with clear headings
-4. Schema.org structured data (especially Organization + sameAs)
+4. Schema.org structured data (especially Organisation + sameAs)
 5. Fast page load and clean HTML
 6. Author pages with credentials and sameAs links
 7. Regular content updates with visible dates
 8. Active social presence across X, Facebook, Instagram, LinkedIn
-9. Bing index optimization (powers ChatGPT, Copilot, and Meta AI)
+9. Bing index optimisation (powers ChatGPT, Copilot, and Meta AI)
 
 ### Platform-Specific Priorities
 | Priority | Google AIO | ChatGPT | Perplexity | Gemini | Copilot | Grok | DeepSeek | Meta AI | Mistral |
@@ -406,7 +406,7 @@ Only **11% of domains** are cited by BOTH ChatGPT and Google AI Overviews for th
 Generate **GEO-PLATFORM-OPTIMIZATION.md** with the following structure:
 
 ```markdown
-# GEO Platform Optimization Report — [Domain]
+# GEO Platform Optimisation Report — [Domain]
 Date: [Date]
 
 ## Overall Platform Readiness

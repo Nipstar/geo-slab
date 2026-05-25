@@ -4,7 +4,7 @@ PageSpeed Insights (PSI) client for GEO SLAB.
 
 Runs mobile + desktop Lighthouse audits via Google's PSI API, parses scores +
 Core Web Vitals (CrUX field data preferred, lab fallback), and extracts top
-optimization opportunities. Output feeds into geo-technical audit category 6
+optimisation opportunities. Output feeds into geo-technical audit category 6
 (Core Web Vitals) and category 8 (Page Speed).
 
 CLI:

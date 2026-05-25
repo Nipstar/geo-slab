@@ -18,7 +18,7 @@ Without it, falls back to generating search URLs for manual checking.
 
 When GOOGLE_PLACES_API_KEY is set, queries Google Places API for business
 profile data (rating, reviews, categories, photos). Critical for local
-business audits and Gemini optimization.
+business audits and Gemini optimisation.
 """
 
 import sys
@@ -406,7 +406,7 @@ def check_youtube_presence(brand_name: str) -> dict:
         "Create a YouTube channel if none exists",
         "Publish educational/tutorial content related to your niche",
         "Encourage customers to create review/demo videos",
-        "Optimize video titles and descriptions with brand name",
+        "Optimise video titles and descriptions with brand name",
         "Add timestamps and chapters to improve AI parseability",
         "Include transcripts (YouTube auto-generates, but review for accuracy)",
     ]
@@ -608,7 +608,7 @@ def check_linkedin_presence(brand_name: str) -> dict:
         ]
 
     result["recommendations"] = [
-        "Create/optimize LinkedIn company page",
+        "Create/optimise LinkedIn company page",
         "Post regular thought leadership content",
         "Encourage employees to share company content",
         "Publish long-form LinkedIn articles",

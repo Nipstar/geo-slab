@@ -1,6 +1,6 @@
 ---
 name: geo-schema
-description: Schema.org structured data audit and generation optimized for AI discoverability — detect, validate, and generate JSON-LD markup
+description: Schema.org structured data audit and generation optimised for AI discoverability — detect, validate, and generate JSON-LD markup
 version: 1.0.0
 author: antek-automation
 tags: [geo, schema, structured-data, json-ld, entity-recognition, ai-discoverability]
@@ -49,25 +49,25 @@ For each detected schema block, validate:
 4. **Recommended Properties**: Does the schema include recommended properties that increase AI discoverability?
 5. **sameAs Links**: Does the schema include `sameAs` properties linking to other platform presences?
 6. **URL Validity**: Do all URLs in the schema resolve (not 404)?
-7. **Nesting**: Is the schema properly nested (e.g., author inside Article, address inside Organization)?
+7. **Nesting**: Is the schema properly nested (e.g., author inside Article, address inside Organisation)?
 8. **Rendering Method**: Is the JSON-LD in the server-rendered HTML or injected via JavaScript? Per Google's December 2025 guidance, **JavaScript-injected structured data may face delayed processing**. Flag any schema that requires JS execution.
 
 ---
 
 ## Step 3: Schema Types for GEO
 
-### Organization (CRITICAL — every business site)
+### Organisation (CRITICAL — every business site)
 Essential for entity recognition across all AI platforms. This is how AI models identify WHAT the business is.
 
 **Required properties:**
-- `@type`: "Organization" (or subtype: Corporation, LocalBusiness, etc.)
+- `@type`: "Organisation" (or subtype: Corporation, LocalBusiness, etc.)
 - `name`: Official business name
 - `url`: Official website URL
 - `logo`: URL to logo image (ImageObject preferred)
 
 **Recommended properties for GEO:**
 - `sameAs`: Array of ALL platform URLs (see sameAs strategy below)
-- `description`: 1-2 sentence description of the organization
+- `description`: 1-2 sentence description of the organisation
 - `foundingDate`: ISO 8601 date
 - `founder`: Person schema
 - `address`: PostalAddress schema
@@ -76,10 +76,10 @@ Essential for entity recognition across all AI platforms. This is how AI models 
 - `numberOfEmployees`: QuantitativeValue
 - `industry`: Text or DefinedTerm
 - `award`: Array of awards received
-- `knowsAbout`: Array of topics the organization is expert in (strong GEO signal)
+- `knowsAbout`: Array of topics the organisation is expert in (strong GEO signal)
 
 ### LocalBusiness (for businesses with physical locations)
-Extends Organization. Critical for local AI search results and Google Gemini.
+Extends Organisation. Critical for local AI search results and Google Gemini.
 
 **Additional required properties:**
 - `address`: Full PostalAddress
@@ -101,8 +101,8 @@ The Author schema is one of the strongest E-E-A-T signals for AI platforms.
 - `headline`: Article title
 - `datePublished`: ISO 8601
 - `dateModified`: ISO 8601 (critical for freshness signals)
-- `author`: Person or Organization schema
-- `publisher`: Organization schema with logo
+- `author`: Person or Organisation schema
+- `publisher`: Organisation schema with logo
 - `image`: Representative image
 
 **Author (Person) required for GEO:**
@@ -110,7 +110,7 @@ The Author schema is one of the strongest E-E-A-T signals for AI platforms.
 - `url`: Author page URL on the site
 - `sameAs`: LinkedIn, Twitter, personal site, Google Scholar, ORCID
 - `jobTitle`: Professional title
-- `worksFor`: Organization schema
+- `worksFor`: Organisation schema
 - `knowsAbout`: Array of expertise areas
 - `alumniOf`: Educational institutions
 - `award`: Professional awards
@@ -217,7 +217,7 @@ The `sameAs` property is the single most important structured data property for 
 5. **Twitter/X** — profile URL
 6. **Facebook** — page URL
 7. **Crunchbase** — company profile (for startups/tech)
-8. **GitHub** — organization or personal profile (for tech)
+8. **GitHub** — organisation or personal profile (for tech)
 9. **Google Scholar** — author profile (for researchers/academics)
 10. **ORCID** — researcher identifier (for academics)
 11. **Instagram** — profile URL
@@ -228,7 +228,7 @@ The `sameAs` property is the single most important structured data property for 
 ### sameAs Audit Process
 1. Collect all known web presences for the entity
 2. Check that each URL resolves (not 404 or redirected)
-3. Verify the Organization/Person schema includes ALL of them
+3. Verify the Organisation/Person schema includes ALL of them
 4. Check that the information on each platform is consistent (name, description, founding date, etc.)
 5. Flag any platforms where the entity should have a presence but does not
 
@@ -238,7 +238,7 @@ The `sameAs` property is the single most important structured data property for 
 
 Based on the detected business type, generate ready-to-paste JSON-LD blocks. Always generate:
 
-1. **Organization or Person** (depending on entity type) — always
+1. **Organisation or Person** (depending on entity type) — always
 2. **WebSite with SearchAction** — always for the homepage
 3. **Business-type-specific** — Article for publishers, Product for e-commerce, LocalBusiness for local, SoftwareApplication for SaaS
 4. **BreadcrumbList** — for any page deeper than homepage
@@ -251,12 +251,12 @@ Based on the detected business type, generate ready-to-paste JSON-LD blocks. Alw
 - Include `speakable` on Article schemas with CSS selectors pointing to key content sections
 - Place JSON-LD in `<head>` section — NOT injected via JavaScript
 
-### Template: Organization with Full GEO Signals
+### Template: Organisation with Full GEO Signals
 ```json
 {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  "@id": "https://example.com/#organization",
+  "@type": "Organisation",
+  "@id": "https://example.com/#organisation",
   "name": "Company Name",
   "url": "https://example.com",
   "logo": {
@@ -293,7 +293,7 @@ Based on the detected business type, generate ready-to-paste JSON-LD blocks. Alw
     "https://www.youtube.com/@companyname",
     "https://twitter.com/companyname",
     "https://github.com/companyname",
-    "https://www.crunchbase.com/organization/company-name"
+    "https://www.crunchbase.com/organisation/company-name"
   ],
   "knowsAbout": [
     "Topic 1",
@@ -309,7 +309,7 @@ Based on the detected business type, generate ready-to-paste JSON-LD blocks. Alw
 
 | Criterion | Points | How to Score |
 |---|---|---|
-| Organization/Person schema present and complete | 15 | 15 if full, 10 if basic, 0 if none |
+| Organisation/Person schema present and complete | 15 | 15 if full, 10 if basic, 0 if none |
 | sameAs links (5+ platforms) | 15 | 3 per valid sameAs link, max 15 |
 | Article schema with author details | 10 | 10 if full author schema, 5 if name only, 0 if none |
 | Business-type-specific schema present | 10 | 10 if complete, 5 if partial, 0 if missing |
@@ -319,7 +319,7 @@ Based on the detected business type, generate ready-to-paste JSON-LD blocks. Alw
 | Server-rendered (not JS-injected) | 10 | 10 if in HTML source, 5 if JS but in head, 0 if dynamic JS |
 | speakable property on articles | 5 | 5 if present, 0 if not |
 | Valid JSON + valid Schema.org types | 10 | 10 if no errors, 5 if minor issues, 0 if major errors |
-| knowsAbout property on Organization/Person | 5 | 5 if present with 3+ topics, 0 if missing |
+| knowsAbout property on Organisation/Person | 5 | 5 if present with 3+ topics, 0 if missing |
 | No deprecated schemas present | 5 | 5 if clean, 0 if deprecated schemas found |
 
 ---
@@ -337,7 +337,7 @@ Date: [Date]
 ## Detected Schemas
 | Page | Schema Type | Format | Status | Issues |
 |---|---|---|---|---|
-| / | Organization | JSON-LD | Valid | Missing sameAs |
+| / | Organisation | JSON-LD | Valid | Missing sameAs |
 | /blog/post-1 | Article | JSON-LD | Valid | No author schema |
 
 ## Validation Results

@@ -12,6 +12,8 @@ allowed-tools: Read, Bash, WebFetch, Write, Glob, Grep
 
 # GEO Live AI Brand Visibility Agent
 
+> **MANDATORY two-layer output.** Read `/STYLE.md` and `scripts/style.py:AGENT_VOICE_RULES` before writing your final response. Every finding must appear in BOTH `technical_findings` (for the developer PDF) and `client_summary` (for the client PDF), paired by `slug`. `client_summary` is for a managing partner who does not know what `Share of Voice`, `Discovery Rate`, `mention rate`, `OpenRouter`, or the provider SDKs are. UK English throughout.
+
 You are a brand visibility analyst. Your job is to measure real-time brand visibility across AI search providers by running the `live_ai_query.py` script and interpreting the results.
 
 ## Prerequisites Check
@@ -43,7 +45,7 @@ print(f'Can run: {len(available) > 0}')
 
 From the parent audit or user input, collect:
 
-- **company_name** (required): The business name as it appears on the website. Check og:site_name, Organization schema, or the page title.
+- **company_name** (required): The business name as it appears on the website. Check og:site_name, Organisation schema, or the page title.
 - **url** (required): The target URL being audited.
 - **industry** (required): Detected or user-specified industry. E.g., "legal services", "SaaS", "industrial automation".
 - **location** (optional): If local business, the city/region. E.g., "Hampshire, UK".
@@ -118,6 +120,33 @@ Generate a markdown section following the output format below. Include:
 
 **Data file:** `reports/[DOMAIN]/live-visibility.json`
 ```
+
+### Part B — Two-layer findings JSON (feeds the two PDFs)
+
+```json
+{
+  "category_score": 0,
+  "technical_findings": [
+    {
+      "slug": "low_brand_mention_rate",
+      "severity": "HIGH",
+      "title": "Brand mention rate: 12% across 40 unbranded prompts (4 providers)",
+      "detail": "Discovery Rate 12%, Share of Voice 8%. Top competitors: Competitor A (28%), Competitor B (22%). Per-provider: ChatGPT 1/10, Claude 2/10, Gemini 0/10, Perplexity 2/10.",
+      "fix": "Address upstream Brand Authority + Schema gaps before re-running. Wikipedia/Wikidata entity work is highest ROI for lifting mention rate."
+    }
+  ],
+  "client_summary": [
+    {
+      "slug": "low_brand_mention_rate",
+      "severity": "HIGH",
+      "title": "AI engines rarely mention you on questions you should own",
+      "description": "We asked ChatGPT, Claude, Gemini, and Perplexity 40 unbranded questions a prospect might ask. Your firm came up in 12% of answers. Your two biggest competitors came up in 22-28%. AI is sending those prospects to them, not you."
+    }
+  ]
+}
+```
+
+Pair every technical entry with a client_summary entry by `slug`. UK English. No raw provider/SDK names in `client_summary` — say "AI engines" or name the consumer-facing brand (ChatGPT, Claude, Gemini, Perplexity).
 
 ## Important Notes
 

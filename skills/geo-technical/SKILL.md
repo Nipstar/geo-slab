@@ -207,7 +207,7 @@ Check HTTP response headers for:
 
 ---
 
-## Category 5: Mobile Optimization (10 points)
+## Category 5: Mobile Optimisation (10 points)
 
 ### Critical Context
 As of **July 2024**, Google crawls ALL sites exclusively with mobile Googlebot. There is no desktop crawling. If your site does not work on mobile, it does not work for Google. Period.
@@ -281,7 +281,7 @@ When real user data is unavailable, estimate from page characteristics:
 - **CLS**: Check for images without explicit width/height. Check for dynamically inserted content above the fold. Check for web fonts causing layout shift (FOUT/FOIT).
 
 ### Common LCP Fixes
-1. Optimize hero images: WebP/AVIF format, correct sizing, preload with `<link rel="preload">`
+1. Optimise hero images: WebP/AVIF format, correct sizing, preload with `<link rel="preload">`
 2. Reduce server response time (TTFB < 800ms)
 3. Eliminate render-blocking CSS/JS
 4. Preconnect to critical third-party origins
@@ -374,13 +374,13 @@ If PSI is unavailable, drop back to the 8.1–8.6 manual checks below.
 - Measure with curl: `curl -o /dev/null -s -w 'TTFB: %{time_starttransfer}s\n' [URL]`
 - If TTFB > 800ms: check server location, caching, database queries, CDN usage
 
-### 8.2 Resource Optimization
+### 8.2 Resource Optimisation
 - Total page weight target: **< 2MB** (critical pages < 1MB)
 - Check for uncompressed resources (gzip/brotli compression should be enabled)
 - Check for unminified CSS and JavaScript
 - Check for unused CSS/JS (can represent 50%+ of downloaded bytes on many sites)
 
-### 8.3 Image Optimization
+### 8.3 Image Optimisation
 - Check image formats: WebP or AVIF preferred over JPEG/PNG
 - Check for oversized images (images larger than display size)
 - Check for lazy loading: images below fold should have `loading="lazy"`
@@ -408,7 +408,7 @@ If PSI is unavailable, drop back to the 8.1–8.6 manual checks below.
 |---|---|
 | TTFB < 800ms | 3 |
 | Page weight < 2MB | 2 |
-| Images optimized (format, size, lazy) | 3 |
+| Images optimised (format, size, lazy) | 3 |
 | JS bundles reasonable (< 200KB compressed) | 2 |
 | Compression enabled (gzip/brotli) | 2 |
 | Cache headers on static resources | 2 |
@@ -439,7 +439,7 @@ ChatGPT uses Bing's index. Bing Copilot uses Bing's index. Faster Bing indexing 
 | Indexability | 12 | Core foundation |
 | Security | 10 | Trust signal |
 | URL Structure | 8 | Crawl efficiency |
-| Mobile Optimization | 10 | Google requirement |
+| Mobile Optimisation | 10 | Google requirement |
 | Core Web Vitals | 15 | Ranking signal |
 | Server-Side Rendering | 15 | GEO critical |
 | Page Speed & Server | 15 | Performance |
@@ -471,7 +471,7 @@ Date: [Date]
 | Indexability | XX/12 | Pass/Warn/Fail |
 | Security | XX/10 | Pass/Warn/Fail |
 | URL Structure | XX/8 | Pass/Warn/Fail |
-| Mobile Optimization | XX/10 | Pass/Warn/Fail |
+| Mobile Optimisation | XX/10 | Pass/Warn/Fail |
 | Core Web Vitals | XX/15 | Pass/Warn/Fail |
 | Server-Side Rendering | XX/15 | Pass/Warn/Fail |
 | Page Speed & Server | XX/15 | Pass/Warn/Fail |
@@ -491,7 +491,7 @@ Status: Pass = 80%+ of category points, Warn = 50-79%, Fail = <50%
 ## Warnings (fix this month)
 [List with details]
 
-## Recommendations (optimize this quarter)
+## Recommendations (optimise this quarter)
 [List with details]
 
 ## Detailed Findings

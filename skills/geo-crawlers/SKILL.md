@@ -49,7 +49,7 @@ These crawlers power the AI search products where users actively look for answer
 - **User-Agent:** `ChatGPT-User`
 - **Full User-Agent String:** `Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ChatGPT-User/1.0; +https://openai.com/bot)`
 - **Purpose:** Used when a ChatGPT user explicitly asks the model to visit a specific URL. Acts like a browser agent on behalf of the user.
-- **Impact of Blocking:** ChatGPT cannot visit your pages when users ask it to read or summarize them. This prevents direct user-initiated traffic.
+- **Impact of Blocking:** ChatGPT cannot visit your pages when users ask it to read or summarise them. This prevents direct user-initiated traffic.
 - **Recommendation:** **ALLOW** -- Blocking this bot prevents users who are actively trying to engage with your content from accessing it through ChatGPT.
 
 #### ClaudeBot
@@ -57,7 +57,7 @@ These crawlers power the AI search products where users actively look for answer
 - **User-Agent:** `ClaudeBot`
 - **Full User-Agent String:** `ClaudeBot/1.0; +https://www.anthropic.com/claude-bot`
 - **Purpose:** Fetches web content for Claude's features including web search, citations, and analysis tools.
-- **Impact of Blocking:** Content will not be accessible to Claude for web search or when users ask Claude to analyze specific URLs.
+- **Impact of Blocking:** Content will not be accessible to Claude for web search or when users ask Claude to analyse specific URLs.
 - **Recommendation:** **ALLOW** -- Claude is a major AI assistant with growing market share. Blocking ClaudeBot reduces your AI search footprint.
 
 #### PerplexityBot
@@ -101,7 +101,7 @@ These crawlers serve large AI platforms or search ecosystems. Allowing them incr
 - **Full User-Agent String:** `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/600.2.5 (KHTML, like Gecko) Version/8.0.2 Safari/600.2.5 (compatible; Amazonbot/0.1; +https://developer.amazon.com/support/amazonbot)`
 - **Purpose:** Indexes content for Alexa answers and Amazon's AI features.
 - **Impact of Blocking:** Content will not appear in Alexa voice responses or Amazon's AI-powered search features.
-- **Recommendation:** **ALLOW** -- Relevant for voice search optimization. Lower priority than Tier 1 crawlers but no downside to allowing.
+- **Recommendation:** **ALLOW** -- Relevant for voice search optimisation. Lower priority than Tier 1 crawlers but no downside to allowing.
 
 #### FacebookBot
 - **Operator:** Meta
@@ -151,9 +151,9 @@ These crawlers are primarily used for AI model training rather than live search 
 
 The following AI platforms use web search via partnerships or undisclosed crawling infrastructure. They do not have publicly documented crawler user-agents:
 
-- **Grok (xAI):** Uses X/Twitter data natively plus web search through partnerships. No confirmed dedicated crawler user-agent. Optimizing for Grok focuses on X/Twitter presence and general web visibility rather than crawler access.
-- **DeepSeek:** Chinese AI company using web search through partnerships. No confirmed dedicated crawler. NOT related to Bytespider (which is ByteDance/TikTok). Optimization focuses on technical content quality and general web index presence.
-- **Mistral (Le Chat):** French AI company using Brave Search and partner indexes. No confirmed dedicated crawler. Optimization focuses on Brave Search index presence, structured data, and multilingual content.
+- **Grok (xAI):** Uses X/Twitter data natively plus web search through partnerships. No confirmed dedicated crawler user-agent. Optimising for Grok focuses on X/Twitter presence and general web visibility rather than crawler access.
+- **DeepSeek:** Chinese AI company using web search through partnerships. No confirmed dedicated crawler. NOT related to Bytespider (which is ByteDance/TikTok). Optimisation focuses on technical content quality and general web index presence.
+- **Mistral (Le Chat):** French AI company using Brave Search and partner indexes. No confirmed dedicated crawler. Optimisation focuses on Brave Search index presence, structured data, and multilingual content.
 
 ---
 

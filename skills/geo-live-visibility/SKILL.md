@@ -52,7 +52,7 @@ If no API keys are configured, this skill will report which keys are missing and
 ### Step 1: Gather Context
 
 Before running the live query script, collect:
-1. **Company name** — from the page title, og:site_name, or Organization schema
+1. **Company name** — from the page title, og:site_name, or Organisation schema
 2. **URL** — the target URL
 3. **Industry** — from business type detection or user input
 4. **Location** — if local business, from address/schema or user input
@@ -150,9 +150,9 @@ When run as part of `/geo audit`, the live visibility section appears as a **sup
 
 1. It requires API keys that not all users will have
 2. AI model responses change frequently — the score would be non-reproducible
-3. It measures current model state, not optimization readiness
+3. It measures current model state, not optimisation readiness
 
-The GEO Score measures **how well-optimized** the site is. The Live Visibility Score measures **actual current visibility**. Both are valuable but serve different purposes.
+The GEO Score measures **how well-optimised** the site is. The Live Visibility Score measures **actual current visibility**. Both are valuable but serve different purposes.
 
 ## Important Notes
 

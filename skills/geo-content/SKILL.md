@@ -60,7 +60,7 @@ Demonstrated knowledge depth and professional competence in the subject matter.
 | Technical depth appropriate to topic | 5 | 5 if thorough technical treatment, 3 if adequate, 0 if superficial |
 | Methodology explanation (how conclusions were reached) | 4 | 4 if clear methodology, 2 if some explanation, 0 if none |
 | Data-backed claims (statistics, research citations) | 4 | 4 if well-sourced, 2 if some data, 0 if unsupported claims |
-| Industry-specific terminology used correctly | 3 | 3 if accurate specialized language, 1 if basic, 0 if errors |
+| Industry-specific terminology used correctly | 3 | 3 if accurate specialised language, 1 if basic, 0 if errors |
 | Author page with detailed professional background | 4 | 4 if dedicated author page, 2 if brief bio, 0 if none |
 
 **What to flag as weak Expertise:**
@@ -159,7 +159,7 @@ AI platforms extract content at the paragraph level. Each paragraph should be a 
 - **H2 for major sections** — should represent distinct subtopics
 - **H3 for subsections** — nested under relevant H2
 - **No skipped levels** — do not go from H1 to H3 without an H2
-- **Descriptive headings** — "How to Optimize for AI Search" not "Section 2"
+- **Descriptive headings** — "How to Optimise for AI Search" not "Section 2"
 - **Question-based headings** where appropriate — these map directly to AI queries
 
 ### Internal Linking
@@ -238,7 +238,7 @@ Topical authority measures whether a site comprehensively covers a topic rather 
 ### How to Assess
 1. **Content breadth**: Does the site have multiple pages covering different aspects of its core topic?
 2. **Content depth**: Do individual pages go deep into subtopics?
-3. **Topic clustering**: Are pages organized into logical groups with internal linking?
+3. **Topic clustering**: Are pages organised into logical groups with internal linking?
 4. **Content gaps**: Are there obvious subtopics that the site should cover but does not?
 5. **Competitor comparison**: Do competitors cover subtopics that this site misses?
 
@@ -295,7 +295,7 @@ Date: [Date]
 
 ## Topical Authority Modifier: [+10 to -5]
 
-## Pages Analyzed
+## Pages Analysed
 | Page | Word Count | Readability | Heading Structure | Citability Rating |
 |---|---|---|---|---|
 | [URL] | [Count] | [Score] | [Pass/Warn/Fail] | [High/Medium/Low] |

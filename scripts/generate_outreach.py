@@ -81,7 +81,7 @@ def _has_openrouter():
 
 
 def _build_user_prompt(row, vertical, target_region, my_name, my_company):
-    region_english = "UK English (e.g. optimise, organisation, behaviour)" if target_region == "uk" else "US English (e.g. optimize, organization, behavior)"
+    region_english = "UK English (e.g. optimise, organisation, behaviour)" if target_region == "uk" else "US English (e.g. optimise, organisation, behavior)"
     return f"""Prospect: {row.get('business_name') or row.get('domain')} ({row.get('website')})
 Vertical: {vertical}
 Target region: {target_region.upper()}
@@ -109,7 +109,7 @@ voice_opener: ~30 seconds of speech (about 70 to 90 words), readable as a cold-c
 def _system_prompt():
     return (
         "You write cold B2B outreach for a UK AI automation agency selling "
-        "Generative Engine Optimization (GEO) services to UK and US businesses. "
+        "Generative Engine Optimisation (GEO) services to UK and US businesses. "
         "You are direct, specific, and never use corporate filler. You never use "
         "exclamation marks. You always return strictly valid JSON when asked."
     )

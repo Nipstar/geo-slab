@@ -22,7 +22,7 @@ JSON schema:
         "Content E-E-A-T": 72,
         "Technical GEO": 44,
         "Schema & Structured Data": 4,
-        "Platform Optimization": 29
+        "Platform Optimisation": 29
     },
     "platforms": {
         "Google AI Overviews": 34,
@@ -67,7 +67,12 @@ from html import escape as he
 import sys as _sys
 from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).parent))
-from style import score_band as _score_band, score_label as _score_label  # noqa: E402
+from style import (  # noqa: E402
+    score_band as _score_band,
+    score_label as _score_label,
+    DISPLAY_LABELS,
+    SECTION_SUBTITLES,
+)
 
 
 def score_verdict(score: int) -> str:
@@ -96,14 +101,22 @@ def score_cell_class(score: int) -> str:
 
 
 def score_cells_html(scores: dict) -> str:
+    """Render the 6 category score cards. Plain-English labels + 1-line subtitle.
+
+    Labels and subtitles come from style.py — never hard-code here.
+    """
     cells = []
     for label, score in scores.items():
+        display = DISPLAY_LABELS.get(label, label.upper())
+        subtitle = SECTION_SUBTITLES.get(display, "")
         cls = score_cell_class(score)
+        sub_html = f'<div class="cell-sub">{he(subtitle)}</div>' if subtitle else ""
         cells.append(f'''
         <div class="score-cell{cls}">
-            <span class="cell-label">{he(label)}</span>
+            <span class="cell-label">{he(display)}</span>
             <div class="cell-number">{score}<span class="cell-denom">/100</span></div>
             <div class="cell-bar"><div class="cell-bar-fill" style="width:{score}%"></div></div>
+            {sub_html}
         </div>''')
     return "".join(cells)
 
@@ -122,6 +135,12 @@ def platform_cells_html(platforms: dict) -> str:
 
 
 def findings_html(findings: list) -> str:
+    """Render the client-facing problems list.
+
+    Each entry must already be in client-voice (translated via ISSUE_COPY).
+    The renderer doesn't translate — agents are responsible. If raw tech
+    terms slip in here, that's an upstream bug.
+    """
     items = []
     for i, f in enumerate(findings, 1):
         sev = f.get("severity", "MEDIUM").upper()
@@ -137,6 +156,18 @@ def findings_html(findings: list) -> str:
                     </div>
                 </div>''')
     return "".join(items)
+
+
+def select_client_findings(data: dict) -> list:
+    """Prefer client_summary (the plain-English layer). Fall back to findings.
+
+    Two-PDF split: this renderer only emits the client PDF. Developer-facing
+    technical_findings is consumed by render_dev_report.py.
+    """
+    cs = data.get("client_summary")
+    if cs:
+        return cs
+    return data.get("findings", [])
 
 
 def _action_item(num: int, item, alt: bool) -> str:
@@ -358,6 +389,16 @@ CSS = """
 
         .cell-bar { height: 3px; background: rgba(0,0,0,0.12); margin-top: 16px; position: relative; }
         .cell-bar-fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--charcoal); }
+
+        .cell-sub {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: var(--charcoal);
+            opacity: 0.7;
+            margin-top: 14px;
+        }
+        .score-cell.critical .cell-sub { color: var(--cream); opacity: 0.85; }
 
         /* ─── SECTION ─── */
         .section { border-bottom: 3px solid var(--black); padding: 72px 64px; }
@@ -596,7 +637,7 @@ def build_html(data: dict) -> str:
     scores = data.get("scores", {})
     platforms = data.get("platforms", {})
     platform_callout = data.get("platform_callout", "")
-    findings = data.get("findings", [])
+    findings = select_client_findings(data)
     quick_wins = data.get("quick_wins", [])
     medium_term = data.get("medium_term", [])
     strategic = data.get("strategic", [])
@@ -692,9 +733,9 @@ def build_html(data: dict) -> str:
 
         <!-- ─── PLATFORM SCORES ─── -->
         <section class="section" id="platforms">
-            <span class="label">Where each AI platform scores you</span>
-            <h2>platform by platform</h2>
-            <p class="section-intro">All nine platforms are looking for the same signals. Here is how you score on each.</p>
+            <span class="label">How visible you are across the nine AI engines</span>
+            <h2>visibility across AI engines</h2>
+            <p class="section-intro">All nine engines are looking for the same signals. Here is how you score on each.</p>
             <div class="platform-grid">
                 {platform_cells_html(platforms)}
             </div>

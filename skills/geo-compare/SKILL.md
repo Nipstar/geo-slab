@@ -19,11 +19,16 @@ allowed-tools:
 # GEO Monthly Delta Report Generator
 
 > **MANDATORY: Read `/STYLE.md` before generating any prose in this report.**
-> Every client-facing sentence — executive summary, score-delta narratives, what-improved / what-declined sections, action-completion notes, CTA — must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py`. Do NOT output raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper. The banned-words list in `style.py:BANNED_WORDS` is non-negotiable. UK English throughout.
+>
+> The compare report is client-facing — plain English only. Pull issue text from the audit's `client_summary` field, not `technical_findings`. Section labels use the client-facing names — `DOES AI TRUST YOU`, `EXPERTISE SIGNALS`, `AI CRAWLER ACCESS`, `HOW AI READS YOUR SITE`, `VISIBILITY ACROSS AI ENGINES`.
+>
+> Banned-in-body list: `llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `LCP`, `HSTS`, `sameAs`, `FAQPage`, `Yoast`, `WordPress`, `fetchpriority`, `Organisation schema`, `LocalBusiness`, `LegalService`, `Person schema`. Use plain-English wrappers from `scripts/style.py:ISSUE_COPY`.
+>
+> UK English. No exclamation marks. No words from `style.py:BANNED_WORDS`.
 
 ## Purpose
 
-Track GEO optimization progress over time by comparing two audit snapshots. This skill extracts scores from both audits, calculates deltas, identifies what improved and what declined, and generates a client-ready progress report.
+Track GEO optimisation progress over time by comparing two audit snapshots. This skill extracts scores from both audits, calculates deltas, identifies what improved and what declined, and generates a client-ready progress report.
 
 ## Command
 
@@ -61,7 +66,7 @@ Score markers to extract:
 - "Content.*E-E-A-T: XX/100" or "Content Quality: XX/100"
 - "Technical: XX/100" or "Technical Foundations: XX/100" or "Technical GEO: XX/100"
 - "Schema: XX/100" or "Schema & Structured Data: XX/100" or "Structured Data: XX/100"
-- "Platform: XX/100" or "Platform Optimization: XX/100"
+- "Platform: XX/100" or "Platform Optimisation: XX/100"
 ```
 
 Also extract:
@@ -94,11 +99,11 @@ Calculate overall trend:
 - **Mixed:** Some improved, some declined
 - **Stable:** All deltas within +/- 2 points
 
-### Step 4: Analyze Changes
+### Step 4: Analyse Changes
 
 **What Improved:**
 - List each category that improved with specific evidence from the current audit
-- Note specific actions that were taken (e.g., "Schema score rose from 4 to 52 — Organization and LocalBusiness schema were deployed")
+- Note specific actions that were taken (e.g., "Schema score rose from 4 to 52 — Organisation and LocalBusiness schema were deployed")
 - Highlight cross-category impacts (e.g., "Adding Wikipedia entry improved both Brand Authority (+15) and ChatGPT readiness (+12)")
 
 **What Declined:**
@@ -113,7 +118,7 @@ Calculate overall trend:
 ### Step 5: Generate Recommended Actions
 
 Based on the delta analysis:
-1. Prioritize actions that address declining categories first
+1. Prioritise actions that address declining categories first
 2. Then address unchanged critical issues
 3. Then suggest next-level improvements for categories already improving
 4. Include estimated score impact for each action
@@ -145,7 +150,7 @@ Generate the report file to `reports/<domain>/GEO-COMPARE-<domain>-<YYYY-MM>.md`
 | Content E-E-A-T | XX/100 | XX/100 | +X | ▲ |
 | Technical | XX/100 | XX/100 | +X | ▲ |
 | Schema | XX/100 | XX/100 | +X | ▲ |
-| Platform Optimization | XX/100 | XX/100 | +X | ▲ |
+| Platform Optimisation | XX/100 | XX/100 | +X | ▲ |
 
 ## Platform Readiness Changes
 

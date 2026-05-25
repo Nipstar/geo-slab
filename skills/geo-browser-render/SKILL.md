@@ -88,7 +88,7 @@ Requirements: `pip install playwright && python3 -m playwright install chromium`
         "server_html": {"word_count": 980, "status": 200, "error": null},
         "cookie_wall": {"present_initial": true, "dismissed": true, "button_matched": "text:Accept All", "present_after_attempt": false},
         "ssr_gap": {"server_words": 980, "hydrated_words": 1020, "delta": 40, "delta_pct": 4.1, "interpretation": "ssr_complete"},
-        "hydrated_schema": {"block_count": 2, "types": ["Organization","WebSite","WebPage","Article"], "added_by_js": ["Article"]},
+        "hydrated_schema": {"block_count": 2, "types": ["Organisation","WebSite","WebPage","Article"], "added_by_js": ["Article"]},
         "cwv": {"lcp_ms": 1850, "cls": 0.04, "ttfb_ms": 220, "dcl_ms": 1450, "load_ms": 2200},
         "console_errors": [],
         "console_error_count": 0,

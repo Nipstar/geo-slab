@@ -1,6 +1,6 @@
 ---
 name: geo-audit
-description: Full website GEO+SEO audit with parallel subagent delegation. Orchestrates a comprehensive Generative Engine Optimization audit across AI citability, platform analysis, technical infrastructure, content quality, and schema markup. Produces a composite GEO Score (0-100) with prioritized action plan.
+description: Full website GEO+SEO audit with parallel subagent delegation. Orchestrates a comprehensive Generative Engine Optimisation audit across AI citability, platform analysis, technical infrastructure, content quality, and schema markup. Produces a composite GEO Score (0-100) with prioritised action plan.
 allowed-tools:
   - Read
   - Grep
@@ -12,12 +12,21 @@ allowed-tools:
 
 # GEO Audit Orchestration Skill
 
-> **MANDATORY: Read `/STYLE.md` before writing any client-facing prose this audit will surface.**
-> Score-band copy, sub-score descriptions, issue cards, good-news items, the £-impact line and any synthesised summary must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py`. Do NOT emit raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper. The banned-words list in `style.py:BANNED_WORDS` is non-negotiable. UK English throughout.
+> **MANDATORY: Read `/STYLE.md` and `scripts/style.py:AGENT_VOICE_RULES` before delegating to any subagent.**
+>
+> Every `/geo audit` produces TWO separate PDFs:
+> - `reports/<domain>/GEO-REPORT-<domain>.pdf` — client-facing, plain English only (managing partner reads this)
+> - `reports/<domain>/GEO-DEV-REPORT-<domain>.pdf` — developer/agency hand-off, technical instructions
+>
+> Each analysis agent emits TWO parallel layers in its response:
+> - `technical_findings` — accurate spec language, feeds the developer PDF
+> - `client_summary` — translated per `/STYLE.md` + `ISSUE_COPY`, feeds the client PDF
+>
+> Paired by `slug`. The orchestrator passes `scripts/style.py:AGENT_VOICE_RULES` into every subagent prompt and reminds the agent before output. Never put raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `LCP`, `HSTS`, `sameAs`, `Yoast`, `fetchpriority`, etc.) in the client PDF. Run `scripts/voice_check.py` against the client PDF before delivery — any banned term fails the build. UK English throughout.
 
 ## Purpose
 
-This skill performs a comprehensive Generative Engine Optimization (GEO) audit of any website. GEO is the practice of optimizing web content so that AI systems (ChatGPT, Claude, Perplexity, Gemini, etc.) can discover, understand, cite, and recommend it. This audit measures how well a site performs across all GEO dimensions and produces an actionable improvement plan.
+This skill performs a comprehensive Generative Engine Optimisation (GEO) audit of any website. GEO is the practice of optimising web content so that AI systems (ChatGPT, Claude, Perplexity, Gemini, etc.) can discover, understand, cite, and recommend it. This audit measures how well a site performs across all GEO dimensions and produces an actionable improvement plan.
 
 ## Key Insight
 
@@ -36,7 +45,7 @@ Traditional SEO optimizes for search engine rankings. GEO optimizes for AI citat
    - Page title, meta description, H1 heading
    - Navigation menu items (reveals site structure)
    - Footer content (reveals business info, location, legal pages)
-   - Schema.org markup on homepage (Organization, LocalBusiness, etc.)
+   - Schema.org markup on homepage (Organisation, LocalBusiness, etc.)
    - Pricing page link (SaaS indicator)
    - Product listing patterns (E-commerce indicator)
    - Blog/resource section (Publisher indicator)
@@ -57,7 +66,7 @@ Traditional SEO optimizes for search engine rankings. GEO optimizes for AI citat
 **Step 2: Crawl Sitemap and Internal Links**
 
 1. Attempt to fetch `/sitemap.xml` and `/sitemap_index.xml`.
-2. If sitemap exists, extract up to 50 unique page URLs prioritized by:
+2. If sitemap exists, extract up to 50 unique page URLs prioritised by:
    - Homepage (always include)
    - Top-level navigation pages
    - High-value pages (pricing, about, contact, key service/product pages)
@@ -66,7 +75,7 @@ Traditional SEO optimizes for search engine rankings. GEO optimizes for AI citat
 3. If no sitemap exists, crawl internal links from the homepage:
    - Extract all `<a href>` links pointing to the same domain
    - Follow up to 2 levels deep
-   - Prioritize pages linked from main navigation
+   - Prioritise pages linked from main navigation
 4. Respect `robots.txt` directives -- do not fetch disallowed paths.
 5. Enforce a maximum of 50 pages and a 30-second timeout per fetch.
 
@@ -107,6 +116,74 @@ python3 ~/.claude/skills/geo/scripts/browser_render_audit.py \
 
 Pass the resulting `browser-render.json` to the `geo-technical` subagent in Phase 2 (it knows how to interpret cookie-wall, SSR-gap, CWV, cloaking, and JS-only schema signals).
 
+**Step 5.5: Harvest identity URLs — REQUIRED**
+
+Subagents have repeatedly failed by claiming "no X account" / "no LinkedIn page" / "no Google Business Profile" when those links were actually in the rendered HTML or in the Organization `sameAs` array. Always harvest first so the platform / brand / schema agents work from verified facts, not absence-inference.
+
+```bash
+python3 ~/.claude/skills/geo/scripts/social_harvest.py \
+  --browser-render reports/<domain>/browser-render.json \
+  --output reports/<domain>/identity-urls.json
+```
+
+The script grep-walks the server-rendered HTML across all 5 critical pages + every JSON-LD `sameAs` array on the site and returns a normalised list keyed by platform (`x`, `linkedin`, `facebook`, `youtube`, `instagram`, `crunchbase`, `wikipedia`, `wikidata`, `trustpilot`, `g2`, `capterra`, `clutch`, `gbp_short`, `gmaps`, `github`, `fsb`, `companieshouse`, etc.).
+
+Pass the resulting `identity-urls.json` into every Phase 2 subagent as `verified_identity_urls`. The agents MUST NOT flag absence of any platform whose URL appears in this list — they must instead either (a) score the presence positively or (b) flag a related but distinct gap (e.g. "X account exists but isn't linked from site footer" is OK; "no X account" when one is in the list is not).
+
+**Step 5.6: Look up Google Business Profile — REQUIRED when GOOGLE_PLACES_API_KEY is set**
+
+```bash
+python3 ~/.claude/skills/geo/scripts/gbp_lookup.py \
+  --name "<brand name from homepage>" \
+  --location "<city/postcode from llms.txt or footer>" \
+  --domain "<domain>" \
+  --output reports/<domain>/gbp.json
+```
+
+Returns: place_count, per-place rating + review count + photo count + opening hours + website match + completeness score (0-100) + issue list.
+
+Pass `gbp.json` into the platform + brand + content subagents as `gbp_data`. They MUST treat the GBP listing as confirmed-present if `found: true` and only flag specific gaps from the `issues` array. Never invent "no GBP" when the API returned a match.
+
+Skip silently when `GOOGLE_PLACES_API_KEY` is unset.
+
+**Step 5.7: Confirm Wikidata + Wikipedia entity — REQUIRED**
+
+The brand-mention subagent has historically asserted "no Wikipedia entity" without actually querying. The Wikidata API is open (no auth) — always check.
+
+```bash
+python3 ~/.claude/skills/geo/scripts/wikidata_lookup.py \
+  --name "<brand name from homepage>" \
+  --domain "<domain>" \
+  --output reports/<domain>/wikidata.json
+```
+
+Returns: Wikidata QID + label + description + external identifiers (Companies House, Crunchbase, LinkedIn org ID, X handle, Instagram handle, Facebook handle, YouTube channel) + Wikipedia sitelinks per language + domain-match confidence (does P856 official-website match the audited domain).
+
+Pass `wikidata.json` into the brand + platform + schema subagents as `wikidata_data`. Agents MUST treat `wikidata.found == true` as confirmed entity presence and use the QID, never invent absence. If `domain_match == false`, flag as a candidate but verify before scoring.
+
+**Step 5.8: SerpAPI brand-presence scan — REQUIRED when SERPAPI_API_KEY is set**
+
+```bash
+python3 ~/.claude/skills/geo/scripts/serpapi_scan.py \
+  --brand "<brand>" \
+  --domain "<domain>" \
+  --service "<optional primary service>" \
+  --location "<optional primary location>" \
+  --output reports/<domain>/serpapi.json
+```
+
+Runs 6-7 queries (brand SERP, `site:reddit.com`, `site:youtube.com`, `site:wikipedia.org`, `site:linkedin.com`, "<brand> reviews", optional local-pack "best <service> in <location>") and returns:
+
+- Knowledge Panel presence + kgmid + rating + social profiles
+- Brand site position in top 10 for brand-name search
+- Reddit / YouTube / LinkedIn footprint counts + 3 sample results each
+- Review-directory hits (Trustpilot / G2 / Capterra / Clutch / Yell / Yelp)
+- For local: brand-in-local-pack flag + competitor titles
+
+24h disk cache at `~/.geo-slab/cache/serpapi/`. Skip silently when `SERPAPI_API_KEY` is unset.
+
+Pass `serpapi.json` into the brand + platform + content subagents as `serpapi_data`. Agents MUST cite the SERP evidence by query name when scoring — e.g. "Reddit footprint: 10 hits including u/Antek_Auto bio (per serpapi_data.queries.reddit)". Never claim absence of any signal that appears in `summary` or `samples`.
+
 **Step 6: Run PageSpeed Insights (when PSI_API_KEY is set)**
 
 For the homepage + each critical page selected in Step 4, fetch real Lighthouse scores + CrUX field CWV. Mobile + desktop run in parallel per call. Skip silently when `PSI_API_KEY` is unset (no key → audit continues with HTML-static CWV fallback).
@@ -126,10 +203,17 @@ done
 
 ### Phase 2: Parallel Subagent Delegation
 
-Delegate analysis to 5 specialized subagents. Each subagent operates on the collected page data and produces a category score (0-100) plus findings.
+Delegate analysis to 5 specialised subagents. Each subagent operates on the collected page data and produces:
+
+1. A developer-facing markdown section (technical, raw spec language)
+2. A two-layer findings JSON block — `technical_findings` + `client_summary`, paired by `slug`
+
+The orchestrator must include the literal contents of `scripts/style.py:AGENT_VOICE_RULES` in every subagent prompt, AND restate: "Read /STYLE.md before writing client_summary. Plain-English only. No JSON-LD, FAQPage, LCP, HSTS, sameAs, OG, Yoast, fetchpriority, llms.txt, robots.txt, E-E-A-T or schema.org in client_summary."
+
+Each subagent operates on the collected page data and produces a category score (0-100) plus the two findings layers.
 
 **Subagent 1: AI Citability Analysis (geo-citability)**
-- Analyze content blocks for quotability by AI systems
+- Analyse content blocks for quotability by AI systems
 - Score passage self-containment, answer block quality, statistical density
 - Identify high-value pages that could be reformatted for better AI citation
 
@@ -139,7 +223,7 @@ Delegate analysis to 5 specialized subagents. Each subagent operates on the coll
 - Score brand authority signals that AI models use for entity recognition
 
 **Subagent 3: Technical GEO Infrastructure (geo-crawlers + geo-llmstxt)**
-- Analyze robots.txt for AI crawler access
+- Analyse robots.txt for AI crawler access
 - Check for llms.txt presence and quality
 - Verify meta tags, headers, and technical accessibility for AI systems
 - Check page speed and rendering (JS-heavy sites are harder for AI crawlers)
@@ -152,13 +236,47 @@ Delegate analysis to 5 specialized subagents. Each subagent operates on the coll
 
 **Subagent 5: Schema & Structured Data (geo-schema)**
 - Validate all schema.org markup
-- Check for GEO-critical schema types (FAQ, HowTo, Organization, Product, Article)
+- Check for GEO-critical schema types (FAQ, HowTo, Organisation, Product, Article)
 - Assess schema completeness and accuracy
 - Identify missing schema opportunities
 
 ---
 
 ### Phase 3: Score Aggregation and Report Generation
+
+After collecting all subagent responses, **merge** the per-category `technical_findings` arrays into one top-level `technical_findings`, and `client_summary` arrays into one top-level `client_summary`. Then assemble the unified data.json with this shape:
+
+```jsonc
+{
+  "url": "...", "brand_name": "...", "date": "...", "geo_score": 53,
+  "scores": { ... },
+  "platforms": { ... },
+  "verdict": "...", "summary": [...],
+  "client_summary": [ {slug, severity, title, description}, ... ],
+  "technical_findings": [ {slug, severity, title, detail, fix}, ... ],
+  "quick_wins": [...], "medium_term": [...], "strategic": [...]
+}
+```
+
+Render BOTH PDFs (client + developer) in the same step:
+
+```bash
+# Client PDF — plain English, pulls client_summary
+python3 ~/.claude/skills/geo/scripts/render_geo_report.py \
+  reports/<domain>/data.json reports/<domain>/GEO-REPORT-<domain>.html
+python3 ~/.claude/skills/geo/scripts/generate_pdf_report.py \
+  reports/<domain>/data.json reports/<domain>/GEO-REPORT-<domain>.pdf
+
+# Developer PDF — technical, pulls technical_findings
+python3 ~/.claude/skills/geo/scripts/render_dev_report.py \
+  reports/<domain>/data.json reports/<domain>/GEO-DEV-REPORT-<domain>.html
+python3 ~/.claude/skills/geo/scripts/generate_dev_pdf_report.py \
+  reports/<domain>/data.json reports/<domain>/GEO-DEV-REPORT-<domain>.pdf
+
+# Voice gate — fails the build if banned tech terms appear in the client PDF
+python3 ~/.claude/skills/geo/scripts/voice_check.py \
+  reports/<domain>/GEO-REPORT-<domain>.pdf
+```
 
 #### Composite GEO Score Calculation
 
@@ -171,7 +289,7 @@ The overall GEO Score (0-100) is a weighted average of six category scores:
 | **Content E-E-A-T** | 20% | Experience, Expertise, Authoritativeness, Trustworthiness |
 | **Technical GEO** | 15% | AI crawler access, llms.txt, rendering, speed |
 | **Schema & Structured Data** | 10% | Schema.org markup quality and completeness |
-| **Platform Optimization** | 10% | Presence on platforms AI models train on and cite |
+| **Platform Optimisation** | 10% | Presence on platforms AI models train on and cite |
 
 **Formula:**
 ```
@@ -182,11 +300,11 @@ GEO_Score = (Citability * 0.25) + (Brand * 0.20) + (EEAT * 0.20) + (Technical * 
 
 | Score Range | Rating | Interpretation |
 |---|---|---|
-| 90-100 | Excellent | Top-tier GEO optimization; site is highly likely to be cited by AI |
+| 90-100 | Excellent | Top-tier GEO optimisation; site is highly likely to be cited by AI |
 | 75-89 | Good | Strong GEO foundation with room for improvement |
-| 60-74 | Fair | Moderate GEO presence; significant optimization opportunities exist |
+| 60-74 | Fair | Moderate GEO presence; significant optimisation opportunities exist |
 | 40-59 | Poor | Weak GEO signals; AI systems may struggle to cite or recommend |
-| 0-39 | Critical | Minimal GEO optimization; site is largely invisible to AI systems |
+| 0-39 | Critical | Minimal GEO optimisation; site is largely invisible to AI systems |
 
 ---
 
@@ -206,7 +324,7 @@ Every issue found during the audit is classified by severity:
 - Key AI crawlers (GPTBot, ClaudeBot, PerplexityBot) blocked
 - No llms.txt file present
 - Zero question-answering content blocks on key pages
-- Missing Organization or LocalBusiness schema
+- Missing Organisation or LocalBusiness schema
 - No author attribution on content pages
 - All content behind login/paywall with no preview
 
@@ -218,7 +336,7 @@ Every issue found during the audit is classified by severity:
 - Thin author bios without credentials
 - No Wikipedia or Reddit brand presence
 
-### Low (Optimize When Possible)
+### Low (Optimise When Possible)
 - Minor schema validation errors
 - Some images missing alt text
 - Content freshness issues on non-critical pages
@@ -238,7 +356,7 @@ Generate a file called `GEO-AUDIT-REPORT.md` with the following structure:
 **Audit Date:** [Date]
 **URL:** [URL]
 **Business Type:** [Detected Type]
-**Pages Analyzed:** [Count]
+**Pages Analysed:** [Count]
 
 ---
 
@@ -257,7 +375,7 @@ Generate a file called `GEO-AUDIT-REPORT.md` with the following structure:
 | Content E-E-A-T | [X]/100 | 20% | [X] |
 | Technical GEO | [X]/100 | 15% | [X] |
 | Schema & Structured Data | [X]/100 | 10% | [X] |
-| Platform Optimization | [X]/100 | 10% | [X] |
+| Platform Optimisation | [X]/100 | 10% | [X] |
 | **Overall GEO Score** | | | **[X]/100** |
 
 ---
@@ -297,7 +415,7 @@ Generate a file called `GEO-AUDIT-REPORT.md` with the following structure:
 ### Schema & Structured Data ([X]/100)
 [Schema types found, validation results, missing opportunities]
 
-### Platform Optimization ([X]/100)
+### Platform Optimisation ([X]/100)
 [Presence on YouTube, Reddit, Wikipedia, etc.]
 
 ---
@@ -330,7 +448,7 @@ Generate a file called `GEO-AUDIT-REPORT.md` with the following structure:
 
 ---
 
-## Appendix: Pages Analyzed
+## Appendix: Pages Analysed
 
 | URL | Title | GEO Issues |
 |---|---|---|
@@ -341,12 +459,12 @@ Generate a file called `GEO-AUDIT-REPORT.md` with the following structure:
 
 ## Quality Gates
 
-- **Page Limit:** Never crawl more than 50 pages per audit. Prioritize high-value pages.
+- **Page Limit:** Never crawl more than 50 pages per audit. Prioritise high-value pages.
 - **Timeout:** 30-second maximum per page fetch. Skip pages that exceed this.
 - **Robots.txt:** Always check and respect robots.txt before crawling. Note any AI-specific directives.
 - **Rate Limiting:** Wait at least 1 second between page fetches to avoid overloading the server.
 - **Error Handling:** Log failed fetches but continue the audit. Report fetch failures in the appendix.
-- **Content Type:** Only analyze HTML pages. Skip PDFs, images, and other binary content.
+- **Content Type:** Only analyse HTML pages. Skip PDFs, images, and other binary content.
 - **Deduplication:** Canonicalize URLs before crawling. Skip duplicate content (e.g., HTTP vs HTTPS, www vs non-www, trailing slashes).
 
 ---
@@ -355,7 +473,7 @@ Generate a file called `GEO-AUDIT-REPORT.md` with the following structure:
 
 ### SaaS Sites
 - Extra weight on: Feature comparison tables (high citability), integration pages, documentation quality
-- Check for: API documentation structure, changelog pages, knowledge base organization
+- Check for: API documentation structure, changelog pages, knowledge base organisation
 - Key schema: SoftwareApplication, FAQPage, HowTo
 
 ### Local Businesses
@@ -376,4 +494,4 @@ Generate a file called `GEO-AUDIT-REPORT.md` with the following structure:
 ### Agency/Services
 - Extra weight on: Case studies (citability), expertise demonstration, thought leadership
 - Check for: Portfolio schema, team credentials, industry-specific expertise signals
-- Key schema: Organization, Service, Person (team), Review
+- Key schema: Organisation, Service, Person (team), Review

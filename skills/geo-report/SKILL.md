@@ -1,6 +1,6 @@
 ---
 name: geo-report
-description: Generate a professional, client-facing GEO report combining all audit results into a single deliverable with scores, findings, and prioritized actions
+description: Generate a professional, client-facing GEO report combining all audit results into a single deliverable with scores, findings, and prioritised actions
 version: 1.0.0
 author: antek-automation
 tags: [geo, report, client-deliverable, executive-summary, action-plan]
@@ -9,7 +9,14 @@ tags: [geo, report, client-deliverable, executive-summary, action-plan]
 # GEO Client Report Generator
 
 > **MANDATORY: Read `/STYLE.md` before generating any prose in this report.**
-> Every client-facing sentence — score bands, sub-score descriptions, issue cards, good-news items, the £-impact line, the CTA — must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py`. Do NOT output raw technical terms (`llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `GEO`) without the plain-English wrapper. The banned-words list in `style.py:BANNED_WORDS` is non-negotiable. UK English throughout.
+>
+> This produces the CLIENT-FACING markdown only. Every sentence — score bands, sub-score descriptions, issue cards, good-news items, the £-impact line, the CTA — must be translated through the mappings defined in `/STYLE.md` and `scripts/style.py:ISSUE_COPY`. Source the issue text from agents' `client_summary` arrays, not their `technical_findings`.
+>
+> Banned-in-client list (allowed in the developer markdown only): `llms.txt`, `JSON-LD`, `robots.txt`, `E-E-A-T`, `schema.org`, `LCP`, `INP`, `CLS`, `HSTS`, `CSP`, `sameAs`, `FAQPage`, `Yoast`, `WordPress`, `fetchpriority`, `Organisation schema`, `LocalBusiness`, `LegalService`, `Person schema`. Use the plain-English wrappers from `ISSUE_COPY`.
+>
+> Section labels: use the client-facing names — `DOES AI TRUST YOU`, `EXPERTISE SIGNALS`, `AI CRAWLER ACCESS`, `HOW AI READS YOUR SITE`, `VISIBILITY ACROSS AI ENGINES`. Don't say "E-E-A-T" or "Schema & Structured Data" in the body.
+>
+> UK English. No exclamation marks. No words from `style.py:BANNED_WORDS`.
 
 ## Purpose
 
@@ -55,8 +62,8 @@ Round to the nearest integer. Cap at 100.
 | Score Range | Label | Client-Facing Description |
 |---|---|---|
 | 85-100 | Excellent | Your site is well-positioned for AI search. Focus on maintaining and expanding your advantage. |
-| 70-84 | Good | Solid foundation with clear opportunities to improve AI visibility. Targeted optimizations will yield significant results. |
-| 55-69 | Moderate | Your site has gaps in AI readiness that competitors may be exploiting. A structured optimization plan will close these gaps. |
+| 70-84 | Good | Solid foundation with clear opportunities to improve AI visibility. Targeted optimisations will yield significant results. |
+| 55-69 | Moderate | Your site has gaps in AI readiness that competitors may be exploiting. A structured optimisation plan will close these gaps. |
 | 40-54 | Below Average | Significant barriers to AI search visibility exist. Without action, your brand risks being invisible in AI-generated answers. |
 | 0-39 | Needs Attention | Critical AI readiness issues require immediate action. Your competitors are likely capturing the AI search traffic your brand should own. |
 
@@ -71,7 +78,7 @@ The complete report follows this exact structure. Each section includes instruct
 ### Section 1: Executive Summary
 
 Write exactly ONE paragraph (4-6 sentences) covering:
-- What was analyzed (domain, number of pages, date of analysis)
+- What was analysed (domain, number of pages, date of analysis)
 - The overall GEO Readiness Score with context ("XX/100, which places [brand] in the [label] tier")
 - The single most impactful finding (positive or negative)
 - Top 3 priority recommendations in one sentence
@@ -186,7 +193,7 @@ Present the key technical findings in business-friendly language:
 |---|---|---|
 | Core Web Vitals | Good/Needs Work/Poor | [Impact on user experience and rankings] |
 | Server-Side Rendering | Yes/Partial/No | [Impact on AI crawler visibility] |
-| Mobile Optimization | Good/Needs Work/Poor | [Impact on Google's mobile-first indexing] |
+| Mobile Optimisation | Good/Needs Work/Poor | [Impact on Google's mobile-first indexing] |
 | Security (HTTPS + Headers) | Good/Needs Work/Poor | [Impact on trust signals] |
 | Page Speed | Fast/Average/Slow | [Impact on user experience and crawl budget] |
 | IndexNow Protocol | Implemented/Not | [Impact on Bing/ChatGPT indexing speed] |
@@ -202,7 +209,7 @@ Present the key technical findings in business-friendly language:
 ### Current Implementation
 | Schema Type | Present | Status | AI Impact |
 |---|---|---|---|
-| Organization | Yes/No | [Valid/Issues] | Critical — entity recognition |
+| Organisation | Yes/No | [Valid/Issues] | Critical — entity recognition |
 | Article + Author | Yes/No | [Valid/Issues] | High — E-E-A-T signal |
 | sameAs (entity links) | Yes/No | [Count] links | Critical — cross-platform entity graph |
 | [Business-specific] | Yes/No | [Valid/Issues] | [Impact] |
@@ -227,7 +234,7 @@ If schemas are missing, note: "Ready-to-use structured data code has been prepar
 
 ### Section 10: Prioritized Action Plan
 
-This is the most important section of the report. Organize actions by timeline and impact.
+This is the most important section of the report. Organise actions by timeline and impact.
 
 ```markdown
 ## Prioritized Action Plan
@@ -246,7 +253,7 @@ This is the most important section of the report. Organize actions by timeline a
 - Add publication dates to existing content
 - Add author bylines with credentials
 - Fix broken meta descriptions
-- Add sameAs properties to existing Organization schema
+- Add sameAs properties to existing Organisation schema
 - Create/claim llms.txt file
 
 ```markdown
@@ -262,7 +269,7 @@ This is the most important section of the report. Organize actions by timeline a
 - Restructure top 10 pages with question-based headings and direct answers
 - Implement comprehensive Schema.org markup
 - Create author pages with credentials and sameAs links
-- Optimize Core Web Vitals (image compression, code splitting)
+- Optimise Core Web Vitals (image compression, code splitting)
 - Register and configure Bing Webmaster Tools
 - Implement IndexNow protocol
 
@@ -298,7 +305,7 @@ Use conservative estimates. Base the dollar figure on:
 
 ### Section 11: Competitor Comparison (if competitor URLs provided)
 
-If competitor URLs were analyzed alongside the primary domain:
+If competitor URLs were analysed alongside the primary domain:
 
 ```markdown
 ## Competitor Comparison
@@ -328,7 +335,7 @@ If competitor URLs were analyzed alongside the primary domain:
 
 ### Methodology
 This GEO audit was conducted using the following methodology:
-- **Pages analyzed**: [List of specific URLs audited]
+- **Pages analysed**: [List of specific URLs audited]
 - **Platforms assessed**: Google AI Overviews, ChatGPT, Perplexity AI, Google Gemini, Bing Copilot
 - **Technical checks**: HTTP headers, robots.txt, HTML source analysis, structured data validation
 - **Content assessment**: E-E-A-T framework (Experience, Expertise, Authoritativeness, Trustworthiness) per Google's December 2025 Quality Rater Guidelines
@@ -346,7 +353,7 @@ This GEO audit was conducted using the following methodology:
 
 | Term | Definition |
 |---|---|
-| GEO | Generative Engine Optimization — optimizing content to be cited by AI search platforms |
+| GEO | Generative Engine Optimisation — optimising content to be cited by AI search platforms |
 | AIO | AI Overviews — Google's AI-generated answer boxes at the top of search results |
 | E-E-A-T | Experience, Expertise, Authoritativeness, Trustworthiness — Google's content quality framework |
 | SSR | Server-Side Rendering — generating HTML on the server so crawlers can read content without JavaScript |

@@ -1,6 +1,6 @@
 ---
 name: geo-citability
-description: AI citability scoring and optimization. Analyzes web page content to determine how likely AI systems (ChatGPT, Claude, Perplexity, Gemini) are to cite or quote passages from the page. Provides a citability score (0-100) with specific rewrite suggestions.
+description: AI citability scoring and optimisation. Analyzes web page content to determine how likely AI systems (ChatGPT, Claude, Perplexity, Gemini) are to cite or quote passages from the page. Provides a citability score (0-100) with specific rewrite suggestions.
 allowed-tools:
   - Read
   - Grep
@@ -14,7 +14,7 @@ allowed-tools:
 
 ## Core Insight
 
-AI language models cite passages that meet specific structural criteria. Research from Princeton, Georgia Tech, and IIT Delhi (2024) found that GEO-optimized content achieves 30-115% higher visibility in AI-generated responses. The key finding: AI systems preferentially extract and cite passages that are **134-167 words long**, **self-contained** (understandable without surrounding context), **fact-rich** (containing specific statistics, dates, or named entities), and **directly answer a question** in the first 1-2 sentences.
+AI language models cite passages that meet specific structural criteria. Research from Princeton, Georgia Tech, and IIT Delhi (2024) found that GEO-optimised content achieves 30-115% higher visibility in AI-generated responses. The key finding: AI systems preferentially extract and cite passages that are **134-167 words long**, **self-contained** (understandable without surrounding context), **fact-rich** (containing specific statistics, dates, or named entities), and **directly answer a question** in the first 1-2 sentences.
 
 This is fundamentally different from traditional SEO copywriting, which optimizes for keyword density and user engagement metrics. GEO citability optimizes for **extractability** -- the ease with which an AI system can pull a passage from your content and present it as a direct answer.
 
@@ -115,7 +115,7 @@ This measures the structural formatting that helps AI systems parse and segment 
 
 ### Category 4: Statistical Density (15% of total score)
 
-This measures the presence of specific, verifiable data points that AI systems prioritize when selecting citation sources.
+This measures the presence of specific, verifiable data points that AI systems prioritise when selecting citation sources.
 
 **Scoring Criteria:**
 
@@ -305,7 +305,7 @@ Generate a file called `GEO-CITABILITY-SCORE.md`:
 - **Definition patterns increase citation rate by:** 2.1x (Georgia Tech 2024)
 - **Adding statistics to passages increases citation by:** 40% (Princeton GEO study 2024)
 - **Adding quotations from authorities increases citation by:** 115% in certain categories (IIT Delhi 2024)
-- **Fluency optimization increases visibility by:** 30% on average across all query types
+- **Fluency optimisation increases visibility by:** 30% on average across all query types
 - **Content with source citations is cited:** 20-25% more often by Perplexity and ChatGPT search
 
 ### AI System Citation Preferences

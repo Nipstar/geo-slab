@@ -401,7 +401,7 @@ def derive_slug(url: str) -> str:
     return path or "home"
 
 
-def summarize(per_url: list[dict]) -> dict:
+def summarise(per_url: list[dict]) -> dict:
     summary = {
         "pages_audited": len(per_url),
         "cookie_walls_found": sum(1 for p in per_url if p["checks"].get("cookie_wall", {}).get("present_initial")),
@@ -465,7 +465,7 @@ def main() -> int:
 
     report = {
         "domain": args.domain,
-        "summary": summarize(per_url),
+        "summary": summarise(per_url),
         "pages": per_url,
     }
     out_path.write_text(json.dumps(report, indent=2))
