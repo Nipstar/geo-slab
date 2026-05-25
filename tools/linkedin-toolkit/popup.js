@@ -184,6 +184,74 @@ Mix people searches and post searches. Use UK English spellings where relevant. 
 }
 
 
+// Generic OpenRouter chat call returning raw text (no JSON parsing).
+async function callAIRaw(systemPrompt, userPrompt, maxTokens = 600) {
+  const apiKey = await getStore('openRouterKey', '');
+  const model = await getStore('aiModel', 'anthropic/claude-sonnet-4');
+  if (!apiKey) throw new Error('No API key. Set it in Settings.');
+
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': 'chrome-extension://antek-lead-scraper',
+      'X-Title': 'Antek Lead Scraper',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: maxTokens,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API error ${res.status}`);
+  }
+  const data = await res.json();
+  return (data.choices?.[0]?.message?.content || '').trim();
+}
+
+
+// Build a tailored LinkedIn connection-request DM (under 300 chars — LinkedIn cap)
+// for a given prospect using their full audit + outreach context.
+async function generateTailoredDM(p, mode = 'connect') {
+  const ctx = {
+    name: p.name,
+    title: p.title,
+    firm: p.company,
+    geo_score: p.geo_score,
+    best_position: p.best_position,
+    keywords: p.keywords,
+    top_gaps: [p.top_gap_1, p.top_gap_2, p.top_gap_3].filter(Boolean).join(' / '),
+    has_llmstxt: p.has_llmstxt,
+    has_schema: p.has_schema,
+    drafted_dm: p.linkedin_dm,
+  };
+
+  const charLimit = mode === 'connect' ? 290 : 700;
+  const system = `You are writing a LinkedIn message from Andy Norman (Antek Automation) to a UK decision-maker at a law firm. Antek Automation helps firms get visible in AI search engines (ChatGPT, Claude, Perplexity, Google AI Overviews).
+
+Rules:
+- Under ${charLimit} characters TOTAL. Count carefully.
+- No exclamation marks anywhere.
+- No emojis.
+- UK English spelling.
+- Address the person by first name only.
+- Reference ONE specific, factual signal from the prospect context — their ranking position, top gap, or named keyword — to prove this is researched, not blasted.
+- ${mode === 'connect' ? 'This is a LinkedIn CONNECTION REQUEST note. Cold. Open with a hook, not a pitch. End with a soft suggestion of reason to connect — do not ask for a call.' : 'This is a LinkedIn DIRECT MESSAGE (already connected). One-line context, one-line value, one-line CTA — light, conversational.'}
+- Do not start with "Hi" or "Hello" — start with the hook directly, then the name.
+- Output ONLY the message text. No preamble, no commentary, no quotation marks.`;
+
+  const user = `Prospect context:\n${JSON.stringify(ctx, null, 2)}\n\nWrite the message.`;
+  return await callAIRaw(system, user, 400);
+}
+
+
 // ——— HELPERS ———
 
 function toast(msg) {
@@ -716,6 +784,7 @@ Suggest 6-8 LinkedIn search terms. Mix "people" searches (for finding profiles) 
             <button class="pc-btn google-btn" data-id="${p.id}" title="Google site:linkedin.com/in search">G</button>
             ${hasDM ? `<button class="pc-btn dm-btn" data-id="${p.id}" title="Copy LinkedIn DM to clipboard">DM</button>` : ''}
             ${hasEmail ? `<button class="pc-btn email-btn" data-id="${p.id}" title="Copy email subject + body to clipboard">@</button>` : ''}
+            <button class="pc-btn ai-btn" data-id="${p.id}" title="Generate tailored LinkedIn DM via AI (uses scan context)">✨</button>
             <button class="pc-btn ${p.found ? 'done' : ''}" data-id="${p.id}" data-action="toggle" title="${p.found ? 'Mark not found' : 'Mark as found'}">${p.found ? '✓' : '○'}</button>
           </div>
         `;
@@ -762,6 +831,88 @@ Suggest 6-8 LinkedIn search terms. Mix "people" searches (for finding profiles) 
             } catch {
               toast('Copy failed');
             }
+          });
+        }
+
+        // AI-generate tailored LinkedIn DM using prospect's audit context
+        const aiBtn = card.querySelector('.ai-btn');
+        if (aiBtn) {
+          aiBtn.addEventListener('click', async () => {
+            // Prevent stacking — if an AI panel is already open on this card, toggle off.
+            const existing = card.querySelector('.pc-ai-panel');
+            if (existing) { existing.remove(); return; }
+
+            aiBtn.textContent = '…';
+            aiBtn.disabled = true;
+            let dm;
+            try {
+              dm = await generateTailoredDM(p, 'connect');
+            } catch (e) {
+              toast(`AI error: ${e.message}`);
+              aiBtn.textContent = '✨';
+              aiBtn.disabled = false;
+              return;
+            }
+            aiBtn.textContent = '✨';
+            aiBtn.disabled = false;
+
+            // Render inline editable panel under the card
+            const panel = document.createElement('div');
+            panel.className = 'pc-ai-panel';
+            panel.innerHTML = `
+              <textarea class="pc-ai-text" rows="4">${esc(dm)}</textarea>
+              <div class="pc-ai-meta"><span class="pc-ai-count">0</span> / 300</div>
+              <div class="pc-ai-btns">
+                <button class="pc-btn pc-ai-copy">Copy</button>
+                <button class="pc-btn pc-ai-regen">Regen</button>
+                <button class="pc-btn pc-ai-msg" title="DM mode (post-connection)">DM mode</button>
+                <button class="pc-btn pc-ai-close">×</button>
+              </div>
+            `;
+            card.appendChild(panel);
+
+            const ta = panel.querySelector('.pc-ai-text');
+            const cnt = panel.querySelector('.pc-ai-count');
+            const updateCount = () => {
+              cnt.textContent = ta.value.length;
+              cnt.classList.toggle('over', ta.value.length > 300);
+            };
+            updateCount();
+            ta.addEventListener('input', updateCount);
+
+            panel.querySelector('.pc-ai-copy').addEventListener('click', async () => {
+              try {
+                await navigator.clipboard.writeText(ta.value);
+                toast('Copied');
+              } catch { toast('Copy failed'); }
+            });
+            panel.querySelector('.pc-ai-regen').addEventListener('click', async () => {
+              const btn = panel.querySelector('.pc-ai-regen');
+              btn.textContent = '…';
+              btn.disabled = true;
+              try {
+                ta.value = await generateTailoredDM(p, 'connect');
+                updateCount();
+              } catch (e) {
+                toast(`AI error: ${e.message}`);
+              }
+              btn.textContent = 'Regen';
+              btn.disabled = false;
+            });
+            panel.querySelector('.pc-ai-msg').addEventListener('click', async () => {
+              const btn = panel.querySelector('.pc-ai-msg');
+              btn.textContent = '…';
+              btn.disabled = true;
+              try {
+                ta.value = await generateTailoredDM(p, 'message');
+                updateCount();
+              } catch (e) {
+                toast(`AI error: ${e.message}`);
+              }
+              btn.textContent = 'DM mode';
+              btn.disabled = false;
+            });
+            panel.querySelector('.pc-ai-close').addEventListener('click', () => panel.remove());
           });
         }
 

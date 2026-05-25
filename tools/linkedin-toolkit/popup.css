@@ -288,6 +288,7 @@ select.field option { background: var(--card); color: var(--txt); }
   display: flex; align-items: center; gap: 8px;
   padding: 7px 9px; background: var(--card); border: 1px solid var(--border);
   border-radius: var(--r); margin-bottom: 3px; transition: .15s;
+  flex-wrap: wrap;
 }
 .prospect-card:hover { border-color: var(--border2); }
 .prospect-card.found { border-left: 3px solid var(--green); }
@@ -301,6 +302,27 @@ select.field option { background: var(--card); color: var(--txt); }
 .pc-btn.dm-btn { background: var(--coral); color: var(--bg); border-color: var(--coral); }
 .pc-btn.email-btn { background: var(--char); }
 .pc-btn.dm-btn:hover, .pc-btn.email-btn:hover { background: var(--cream-d); color: var(--bg); }
+.pc-btn.ai-btn { background: var(--char); }
+.pc-btn.ai-btn:hover { background: var(--coral); color: var(--bg); border-color: var(--coral); }
+
+/* AI panel — full width row inside the card */
+.pc-ai-panel {
+  flex-basis: 100%;
+  display: flex; flex-direction: column; gap: 4px;
+  margin-top: 4px; padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+.pc-ai-text {
+  width: 100%; box-sizing: border-box;
+  font: 11px var(--m); color: var(--txt);
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 3px; padding: 5px; resize: vertical; min-height: 60px;
+}
+.pc-ai-meta { font: 9px var(--m); color: var(--dim); text-align: right; }
+.pc-ai-count.over { color: var(--coral); font-weight: 600; }
+.pc-ai-btns { display: flex; gap: 4px; }
+.pc-ai-btns .pc-btn { flex: 1; }
+.pc-ai-btns .pc-ai-close { flex: 0 0 24px; }
 .pc-score {
   font: 600 10px var(--m); padding: 2px 6px; border-radius: 3px;
   background: var(--char); color: var(--cream-d); white-space: nowrap;
