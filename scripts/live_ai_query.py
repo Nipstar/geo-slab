@@ -33,129 +33,25 @@ import concurrent.futures
 from typing import Optional
 from urllib.parse import urlparse
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
+# Shared provider-call + brand-detection logic lives in lib/ai_query_core so
+# this module and visibility_check.py cannot diverge (spec §7).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from lib.ai_query_core import (  # noqa: E402
+    load_env,
+    normalize_brand_name,
+    detect_brand_mention,
+    extract_competitors,
+    query_openrouter,
+    query_openrouter_chatgpt,
+    query_openrouter_gemini,
+    query_openrouter_claude,
+    query_openrouter_grok,
+    query_openrouter_deepseek,
+    query_openrouter_meta,
+    query_openrouter_mistral,
+)
 
-
-# ── Brand Detection ──────────────────────────────────────────────────────────
-
-def normalize_brand_name(name: str) -> str:
-    """Normalize a brand name for comparison."""
-    return re.sub(r'[^a-z0-9]', '', name.lower().strip())
-
-
-def detect_brand_mention(text: str, brand_name: str, url: str = "") -> dict:
-    """
-    Check if a brand is mentioned in text using regex.
-    Returns dict with 'mentioned' (bool), 'count' (int), 'positions' (list),
-    and 'sentiment' (str).
-    """
-    if not text or not brand_name:
-        return {"mentioned": False, "count": 0, "positions": [], "sentiment": "neutral"}
-
-    # Build patterns for the brand name
-    brand_lower = brand_name.lower()
-    brand_normalized = normalize_brand_name(brand_name)
-
-    # Also check for domain mention
-    domain = ""
-    if url:
-        parsed = urlparse(url)
-        domain = parsed.netloc.replace("www.", "")
-
-    patterns = [
-        re.compile(r'\b' + re.escape(brand_name) + r'\b', re.IGNORECASE),
-    ]
-
-    # Add domain pattern if available
-    if domain:
-        patterns.append(re.compile(re.escape(domain), re.IGNORECASE))
-
-    # Add normalized version if different
-    if len(brand_name.split()) > 1:
-        # Multi-word brand: also check without spaces
-        patterns.append(re.compile(r'\b' + re.escape(brand_normalized) + r'\b', re.IGNORECASE))
-
-    count = 0
-    positions = []
-    text_lower = text.lower()
-
-    for pattern in patterns:
-        for match in pattern.finditer(text):
-            count += 1
-            start = max(0, match.start() - 50)
-            end = min(len(text), match.end() + 50)
-            positions.append(text[start:end].strip())
-
-    # Simple sentiment analysis based on surrounding context
-    sentiment = "neutral"
-    if count > 0:
-        positive_words = ["recommend", "best", "great", "excellent", "top", "leading",
-                          "trusted", "reliable", "popular", "preferred", "outstanding"]
-        negative_words = ["avoid", "poor", "worst", "bad", "terrible", "unreliable",
-                          "scam", "complaint", "issue", "problem"]
-
-        pos_count = sum(1 for w in positive_words if w in text_lower)
-        neg_count = sum(1 for w in negative_words if w in text_lower)
-
-        if pos_count > neg_count:
-            sentiment = "positive"
-        elif neg_count > pos_count:
-            sentiment = "negative"
-
-    return {
-        "mentioned": count > 0,
-        "count": count,
-        "positions": positions[:5],  # Limit context snippets
-        "sentiment": sentiment,
-    }
-
-
-def extract_competitors(text: str, brand_name: str) -> list:
-    """
-    Extract potential competitor names from AI response text.
-    Looks for company-like patterns: capitalized multi-word names, names with
-    common suffixes (Inc, Ltd, LLC), and items in numbered/bulleted lists.
-    """
-    competitors = set()
-    brand_norm = normalize_brand_name(brand_name)
-
-    # Pattern 1: Numbered list items (common in AI responses)
-    # Matches "1. Company Name" or "- Company Name" patterns
-    list_pattern = re.compile(
-        r'(?:^|\n)\s*(?:\d+[\.\)]\s*\**|[-*]\s*\**)'
-        r'([A-Z][A-Za-z0-9\s&\'-]{2,40}?)(?:\**\s*[-–—:]|\**\s*\n|\**$)',
-        re.MULTILINE
-    )
-    for match in list_pattern.finditer(text):
-        name = match.group(1).strip().rstrip('*').strip()
-        if normalize_brand_name(name) != brand_norm and len(name) > 2:
-            competitors.add(name)
-
-    # Pattern 2: Bold names (common in AI formatting)
-    bold_pattern = re.compile(r'\*\*([A-Z][A-Za-z0-9\s&\'-]{2,40}?)\*\*')
-    for match in bold_pattern.finditer(text):
-        name = match.group(1).strip()
-        if normalize_brand_name(name) != brand_norm and len(name) > 2:
-            competitors.add(name)
-
-    # Filter out common non-company phrases
-    noise_words = {
-        "the best", "the top", "the most", "in conclusion", "for example",
-        "in summary", "key features", "main benefits", "important factors",
-        "here are", "some options", "final thoughts", "pros and cons",
-    }
-
-    filtered = []
-    for comp in competitors:
-        comp_lower = comp.lower().strip()
-        if comp_lower not in noise_words and len(comp_lower) > 3:
-            filtered.append(comp)
-
-    return sorted(filtered)
+load_env()
 
 
 # ── Provider Queries ─────────────────────────────────────────────────────────
@@ -263,68 +159,6 @@ def query_perplexity(prompt: str, api_key: str) -> Optional[str]:
     except Exception as e:
         print(f"[Perplexity] Error: {e}", file=sys.stderr)
         return None
-
-
-def query_openrouter(prompt: str, api_key: str, model: str = "openai/gpt-4o-mini") -> Optional[str]:
-    """Query any model via OpenRouter (OpenAI-compatible API)."""
-    try:
-        import requests
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": "https://antekautomation.com",
-                "X-Title": "GEO SLAB",
-            },
-            json={
-                "model": model,
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 1000,
-                "temperature": 0.7,
-            },
-            timeout=30,
-        )
-        response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
-    except Exception as e:
-        print(f"[OpenRouter/{model}] Error: {e}", file=sys.stderr)
-        return None
-
-
-def query_openrouter_chatgpt(prompt: str, api_key: str) -> Optional[str]:
-    """Query ChatGPT via OpenRouter."""
-    return query_openrouter(prompt, api_key, model="openai/gpt-4o-mini")
-
-
-def query_openrouter_gemini(prompt: str, api_key: str) -> Optional[str]:
-    """Query Gemini via OpenRouter."""
-    return query_openrouter(prompt, api_key, model="google/gemini-2.0-flash-001")
-
-
-def query_openrouter_grok(prompt: str, api_key: str) -> Optional[str]:
-    """Query Grok via OpenRouter."""
-    return query_openrouter(prompt, api_key, model="x-ai/grok-3-mini-beta")
-
-
-def query_openrouter_deepseek(prompt: str, api_key: str) -> Optional[str]:
-    """Query DeepSeek via OpenRouter."""
-    return query_openrouter(prompt, api_key, model="deepseek/deepseek-chat-v3-0324")
-
-
-def query_openrouter_meta(prompt: str, api_key: str) -> Optional[str]:
-    """Query Meta Llama via OpenRouter."""
-    return query_openrouter(prompt, api_key, model="meta-llama/llama-4-maverick")
-
-
-def query_openrouter_mistral(prompt: str, api_key: str) -> Optional[str]:
-    """Query Mistral via OpenRouter."""
-    return query_openrouter(prompt, api_key, model="mistralai/mistral-small-3.1-24b-instruct")
-
-
-def query_openrouter_claude(prompt: str, api_key: str) -> Optional[str]:
-    """Query Claude via OpenRouter."""
-    return query_openrouter(prompt, api_key, model="anthropic/claude-3.5-haiku")
 
 
 # ── Provider Resolution ──────────────────────────────────────────────────────

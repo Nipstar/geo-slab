@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import json
 import os
-import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -41,8 +41,11 @@ WEBAPP_DIR = Path(__file__).resolve().parent
 REPO_ROOT = WEBAPP_DIR.parent
 REPORTS_ROOT = REPO_ROOT / "reports"
 
-DATA_DIR = Path.home() / ".geo-slab"
-CRM_PATH = DATA_DIR / "prospects.json"
+# Persistence now lives in SQLite (scripts/db.py). See prospecting-engine spec §4.
+sys.path.insert(0, str(REPO_ROOT / "scripts"))
+import db  # noqa: E402
+
+db.init_db()
 
 
 # ── App init ───────────────────────────────────────────────────────────
@@ -64,6 +67,19 @@ def inject_globals():
 # ── Status meta ────────────────────────────────────────────────────────
 
 STATUS_META: dict[str, dict[str, str]] = {
+    # Prospecting-engine pipeline (spec §4) — mirrors the funnel stages.
+    "found":              {"icon": "○", "label": "Found",       "tier": "poor"},
+    "enriched":           {"icon": "◔", "label": "Enriched",    "tier": "poor"},
+    "checked":            {"icon": "◑", "label": "Checked",     "tier": "moderate"},
+    "contacted":          {"icon": "◕", "label": "Contacted",   "tier": "moderate"},
+    "replied":            {"icon": "◕", "label": "Replied",     "tier": "moderate"},
+    "walkthrough_booked": {"icon": "◕", "label": "Walkthrough",  "tier": "good"},
+    "quick_check":        {"icon": "●", "label": "Quick Check", "tier": "good"},
+    "full_audit":         {"icon": "●", "label": "Full Audit",  "tier": "good"},
+    "audit_fix":          {"icon": "●", "label": "Audit + Fix", "tier": "good"},
+    "retainer":           {"icon": "★", "label": "Retainer",    "tier": "good"},
+    "do_not_contact":     {"icon": "⊘", "label": "Do Not Contact", "tier": "critical"},
+    # Legacy dashboard statuses (pre-existing data).
     "lead":     {"icon": "○", "label": "Lead",     "tier": "moderate"},
     "audit":    {"icon": "◔", "label": "Audit",    "tier": "moderate"},
     "proposal": {"icon": "◑", "label": "Proposal", "tier": "good"},
@@ -75,42 +91,12 @@ STATUS_META: dict[str, dict[str, str]] = {
 
 # ── Helpers ────────────────────────────────────────────────────────────
 
-def ensure_data_dir() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-
-def load_prospects() -> list[dict]:
-    if not CRM_PATH.exists():
-        return []
-    with open(CRM_PATH) as f:
-        return json.load(f)
-
-
-def save_prospects(prospects: list[dict]) -> None:
-    ensure_data_dir()
-    with open(CRM_PATH, "w") as f:
-        json.dump(prospects, f, indent=2, ensure_ascii=False)
-
-
 def now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def today_iso() -> str:
     return datetime.now().strftime("%Y-%m-%d")
-
-
-def next_prospect_id(prospects: list[dict]) -> str:
-    nums: list[int] = []
-    for p in prospects:
-        m = re.match(r"PRO-(\d+)$", p.get("id", ""))
-        if m:
-            nums.append(int(m.group(1)))
-    return f"PRO-{(max(nums) + 1) if nums else 1:03d}"
-
-
-def find_prospect(prospects: list[dict], pid: str) -> Optional[dict]:
-    return next((p for p in prospects if p.get("id") == pid), None)
 
 
 def score_tier(score) -> str:
@@ -266,7 +252,7 @@ def _read_form(p: Optional[dict] = None) -> dict:
 
 @app.route("/")
 def dashboard():
-    prospects = load_prospects()
+    prospects = db.all_prospects()
     status_filter = request.args.get("status", "")
     sort = request.args.get("sort", "score")
 
@@ -295,24 +281,18 @@ def dashboard():
 @app.route("/prospect/new", methods=["GET", "POST"])
 def prospect_new():
     if request.method == "POST":
-        prospects = load_prospects()
         new = _read_form()
-        new["id"] = next_prospect_id(prospects)
-        new["created_at"] = now_iso()
-        new["updated_at"] = now_iso()
         if not new["company"] or not new["domain"]:
             flash("Company and domain are required.", "error")
             return render_template("prospect_form.html", p=new, statuses=list(STATUS_META.keys()), mode="new")
-        prospects.append(new)
-        save_prospects(prospects)
-        return redirect(url_for("prospect_detail", pid=new["id"]))
+        created = db.insert_prospect(new)
+        return redirect(url_for("prospect_detail", pid=created["id"]))
     return render_template("prospect_form.html", p={"status": "lead", "contract_months": 12}, statuses=list(STATUS_META.keys()), mode="new")
 
 
 @app.route("/prospect/<pid>")
 def prospect_detail(pid: str):
-    prospects = load_prospects()
-    p = find_prospect(prospects, pid)
+    p = db.get_prospect(pid)
     if not p:
         abort(404)
     artefacts = find_artefacts(p.get("domain", ""))
@@ -327,31 +307,22 @@ def prospect_detail(pid: str):
 
 @app.route("/prospect/<pid>/edit", methods=["GET", "POST"])
 def prospect_edit(pid: str):
-    prospects = load_prospects()
-    p = find_prospect(prospects, pid)
+    p = db.get_prospect(pid)
     if not p:
         abort(404)
     if request.method == "POST":
         updated = _read_form(p)
-        updated["id"] = p["id"]
-        updated["created_at"] = p.get("created_at") or now_iso()
         updated["notes"] = p.get("notes", [])
-        updated["updated_at"] = now_iso()
-        idx = prospects.index(p)
-        prospects[idx] = updated
-        save_prospects(prospects)
+        db.update_prospect(pid, updated)
         return redirect(url_for("prospect_detail", pid=pid))
     return render_template("prospect_form.html", p=p, statuses=list(STATUS_META.keys()), mode="edit")
 
 
 @app.route("/prospect/<pid>/delete", methods=["POST"])
 def prospect_delete(pid: str):
-    prospects = load_prospects()
-    p = find_prospect(prospects, pid)
-    if not p:
+    if not db.get_prospect(pid):
         abort(404)
-    prospects = [x for x in prospects if x.get("id") != pid]
-    save_prospects(prospects)
+    db.delete_prospect(pid)
     return redirect(url_for("dashboard"))
 
 
@@ -359,29 +330,23 @@ def prospect_delete(pid: str):
 
 @app.route("/prospect/<pid>/note", methods=["POST"])
 def add_note(pid: str):
-    prospects = load_prospects()
-    p = find_prospect(prospects, pid)
+    p = db.get_prospect(pid)
     if not p:
         abort(404)
     text = request.form.get("text", "").strip()
     if text:
-        p.setdefault("notes", []).append({"date": now_iso(), "text": text})
-        p["updated_at"] = now_iso()
-        save_prospects(prospects)
+        p = db.add_note(pid, text)
     return render_template("_notes.html", p=p)
 
 
 @app.route("/prospect/<pid>/status", methods=["POST"])
 def update_status(pid: str):
-    prospects = load_prospects()
-    p = find_prospect(prospects, pid)
+    p = db.get_prospect(pid)
     if not p:
         abort(404)
     new_status = request.form.get("status", "").strip()
     if new_status in STATUS_META:
-        p["status"] = new_status
-        p["updated_at"] = now_iso()
-        save_prospects(prospects)
+        p = db.update_prospect(pid, {"status": new_status})
     meta = STATUS_META.get(p["status"], {})
     return f'<span class="badge badge-status tier-{meta.get("tier","poor")}">{meta.get("icon","?")} {meta.get("label","")}</span>'
 
@@ -390,8 +355,7 @@ def update_status(pid: str):
 
 @app.route("/prospect/<pid>/audit")
 def view_audit(pid: str):
-    prospects = load_prospects()
-    p = find_prospect(prospects, pid)
+    p = db.get_prospect(pid)
     if not p:
         abort(404)
     artefacts = find_artefacts(p.get("domain", ""))
@@ -406,8 +370,7 @@ def view_audit(pid: str):
 
 @app.route("/prospect/<pid>/report")
 def view_report(pid: str):
-    prospects = load_prospects()
-    p = find_prospect(prospects, pid)
+    p = db.get_prospect(pid)
     if not p:
         abort(404)
     artefacts = find_artefacts(p.get("domain", ""))
@@ -420,8 +383,7 @@ def view_report(pid: str):
 
 @app.route("/prospect/<pid>/pdf")
 def download_pdf(pid: str):
-    prospects = load_prospects()
-    p = find_prospect(prospects, pid)
+    p = db.get_prospect(pid)
     if not p:
         abort(404)
     artefacts = find_artefacts(p.get("domain", ""))
@@ -433,8 +395,7 @@ def download_pdf(pid: str):
 
 @app.route("/prospect/<pid>/proposal")
 def view_proposal(pid: str):
-    prospects = load_prospects()
-    p = find_prospect(prospects, pid)
+    p = db.get_prospect(pid)
     if not p:
         abort(404)
     artefacts = find_artefacts(p.get("domain", ""))
