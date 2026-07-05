@@ -17,7 +17,7 @@ technical, schema, priorities stay in the PAID Quick Check (£247) / Full Audit
 | 3 | `companies_house.py`, fuzzy match, `/geo enrich`, review queue | ✅ Done |
 | 4 | `lib/ai_query_core.py`, `visibility_check.py`, `render_check_report.py`, `/geo check` | ✅ Done |
 | 5 | `outreach_generator.py`, `mail_batch.py` (Stannp-file path), suppression enforcement, `/geo outreach`, `/geo mail` | ✅ Done (Stannp *API* deferred — outputs files) |
-| 6 | `server/check_api.py`, Coolify deploy, n8n workflow, Brevo sequences | ⏳ Pending |
+| 6 | `server/check_api.py` + `brevo.py`, Dockerfile, n8n workflow, deploy docs | ✅ Done (code+config; needs `CHECK_API_TOKEN` + deploy) |
 | 7 | Landing page + schema, Meta/Google ads, funnel reporting | ⏳ Pending |
 | 8 | `apify_linkedin.py`, LinkedIn enrichment layer | ✅ Done |
 
@@ -83,6 +83,8 @@ Missing / deferred: `STANNP_API_KEY`, `STANNP_TEMPLATE_ID` (postal — deferred)
 - **P5 Stannp API** — `mail_batch.py` currently outputs files (PDFs + CSV) for
   manual Stannp import. When `STANNP_API_KEY` lands, add a `--send` path that
   POSTs each letter. Address parse is heuristic — verify the CSV before sending.
-- **P6 inbound** — `server/check_api.py` (thin Flask, token-auth) wrapping
-  `visibility_check.run_check`, then n8n + Brevo sequences. Brevo key ready.
+- **P6 deploy** — code + Dockerfile + n8n workflow done and self-checked.
+  Remaining is ops: generate `CHECK_API_TOKEN`, deploy the container on Coolify
+  with a persistent volume for `GEO_SLAB_DB`, set `BREVO_CHECK_LIST_ID`, import
+  `n8n-workflow.json`, wire the landing form. See `server/README.md`.
 - **P7** — dedicated landing page + ads.

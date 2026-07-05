@@ -1,0 +1,57 @@
+{
+  "name": "GEO SLAB — Inbound Free Check",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "geo-free-check",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook",
+      "name": "Landing form submit",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CHECK_API_URL }}/check",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.CHECK_API_TOKEN }}" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"company\": \"{{ $json.body.company }}\",\n  \"domain\": \"{{ $json.body.domain }}\",\n  \"industry\": \"{{ $json.body.industry }}\",\n  \"town\": \"{{ $json.body.town }}\",\n  \"county\": \"{{ $json.body.county }}\",\n  \"email\": \"{{ $json.body.email }}\",\n  \"name\": \"{{ $json.body.name }}\",\n  \"campaign\": \"landing-page\"\n}",
+        "options": { "timeout": 120000 }
+      },
+      "id": "callapi",
+      "name": "Run free check (API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return score to form",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [800, 300]
+    }
+  ],
+  "connections": {
+    "Landing form submit": { "main": [[{ "node": "Run free check (API)", "type": "main", "index": 0 }]] },
+    "Run free check (API)": { "main": [[{ "node": "Return score to form", "type": "main", "index": 0 }]] }
+  },
+  "settings": {},
+  "_note": "Brevo enrolment happens INSIDE the API (server/brevo.py) so the lead + score attributes land even on a direct POST. Add a Brevo node here only if you want a separate marketing action. Set CHECK_API_URL + CHECK_API_TOKEN as n8n environment variables."
+}

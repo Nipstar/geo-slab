@@ -1,0 +1,6 @@
+# Inbound free-check API only — deliberately light (no playwright: PDF render
+# is deferred to the sales-side /geo check). See server/check_api.py.
+flask>=3.0
+gunicorn>=21.2
+requests>=2.31
+python-dotenv>=1.0
