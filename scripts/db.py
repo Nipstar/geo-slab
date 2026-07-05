@@ -323,7 +323,69 @@ def insert_check(data: dict, conn: Optional[sqlite3.Connection] = None) -> int:
             conn.close()
 
 
-# ── Suppression check (used by every outreach path, §8/§12) ───────────────
+# ── Outreach (email / linkedin / letter drafts + sends, §5) ───────────────
+
+_OUTREACH_COLS = [
+    "prospect_id", "channel", "subject", "body", "status", "stannp_id",
+    "sent_at", "created_at",
+]
+
+
+def insert_outreach(data: dict, conn: Optional[sqlite3.Connection] = None) -> int:
+    """Insert an outreach row (one per channel per prospect). Returns new id."""
+    close = conn is None
+    conn = conn or connect()
+    try:
+        row = {k: v for k, v in data.items() if k in _OUTREACH_COLS}
+        row.setdefault("created_at", now_iso())
+        row.setdefault("status", "drafted")
+        cols = list(row.keys())
+        placeholders = ", ".join("?" for _ in cols)
+        cur = conn.execute(
+            f"INSERT INTO outreach ({', '.join(cols)}) VALUES ({placeholders})",
+            [row[c] for c in cols],
+        )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        if close:
+            conn.close()
+
+
+def latest_check(prospect_pk: int, conn: Optional[sqlite3.Connection] = None) -> Optional[dict]:
+    """Most-recent checks row for a prospect (integer PK), as a dict, or None."""
+    close = conn is None
+    conn = conn or connect()
+    try:
+        row = conn.execute(
+            "SELECT * FROM checks WHERE prospect_id = ? ORDER BY run_at DESC, id DESC LIMIT 1",
+            (prospect_pk,),
+        ).fetchone()
+        return dict(row) if row else None
+    finally:
+        if close:
+            conn.close()
+
+
+# ── Suppression (used by every outreach path, §8/§12) ─────────────────────
+
+def add_suppression(domain: str = "", email: str = "", company: str = "",
+                    reason: str = "manual",
+                    conn: Optional[sqlite3.Connection] = None) -> int:
+    close = conn is None
+    conn = conn or connect()
+    try:
+        cur = conn.execute(
+            "INSERT INTO suppressions (domain, email, company, reason, added_at) "
+            "VALUES (?,?,?,?,?)",
+            (domain or None, email or None, company or None, reason, now_iso()),
+        )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        if close:
+            conn.close()
+
 
 def is_suppressed(domain: str = "", email: str = "", company: str = "",
                   conn: Optional[sqlite3.Connection] = None) -> bool:
@@ -392,6 +454,15 @@ def _demo() -> None:
         cid = insert_check({"prospect_id": p1["pk"], "visibility_score": 0,
                             "platforms_tested": 4, "mentioned_count": 0, "cost_usd": 0.012})
         assert isinstance(cid, int) and cid >= 1
+        assert latest_check(p1["pk"])["visibility_score"] == 0
+        assert latest_check(9999) is None
+
+        # outreach + programmatic suppression
+        oid = insert_outreach({"prospect_id": p1["pk"], "channel": "email",
+                               "subject": "s", "body": "b"})
+        assert isinstance(oid, int) and oid >= 1
+        add_suppression(company="Blocked Co", reason="opted_out")
+        assert is_suppressed(company="Blocked Co")
 
     print("db.py self-check passed")
 

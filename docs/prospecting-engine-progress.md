@@ -16,7 +16,7 @@ technical, schema, priorities stay in the PAID Quick Check (£247) / Full Audit
 | 2 | `places_prospector.py`, `/geo find`, campaign tagging | ✅ Done |
 | 3 | `companies_house.py`, fuzzy match, `/geo enrich`, review queue | ✅ Done |
 | 4 | `lib/ai_query_core.py`, `visibility_check.py`, `render_check_report.py`, `/geo check` | ✅ Done |
-| 5 | `outreach_generator.py`, `stannp_mail.py`, suppression enforcement, `/geo outreach`, `/geo mail` | ⏳ Pending |
+| 5 | `outreach_generator.py`, `mail_batch.py` (Stannp-file path), suppression enforcement, `/geo outreach`, `/geo mail` | ✅ Done (Stannp *API* deferred — outputs files) |
 | 6 | `server/check_api.py`, Coolify deploy, n8n workflow, Brevo sequences | ⏳ Pending |
 | 7 | Landing page + schema, Meta/Google ads, funnel reporting | ⏳ Pending |
 | 8 | `apify_linkedin.py`, LinkedIn enrichment layer | ✅ Done |
@@ -28,6 +28,8 @@ technical, schema, priorities stay in the PAID Quick Check (£247) / Full Audit
 /geo enrich --batch found               # Companies House → director + channel (→enriched)
 /geo check PRO-001 --location Basingstoke  # 4 AI engines → 1-page report (→checked)
 /geo linkedin PRO-003                   # Apify LinkedIn (shortlist only, gated)
+/geo outreach --batch checked --out prospects/outreach/   # email + LinkedIn copy (deterministic)
+/geo mail --batch enriched --out prospects/mail/          # A4 letter PDFs + Stannp import CSV
 ```
 
 Storage: `~/.geo-slab/geo-slab.db` (SQLite, outside repo). Dashboard reads it
@@ -45,6 +47,8 @@ at `http://localhost:5050` (`/geo dashboard`).
 | `scripts/visibility_check.py` | Free check — 5 prompts × 4 engines via OpenRouter. Pure/headless (P6 check_api will import `run_check`). Blunt 0–100 score. |
 | `scripts/render_check_report.py` | 1-page neo brutalist HTML+PDF (`reports/<domain>/AI-CHECK-<domain>.{html,pdf}`). |
 | `scripts/apify_linkedin.py` | LinkedIn enrichment via Apify harvestapi actors. Name-match + verified-company gates. |
+| `scripts/outreach_generator.py` | Cold email + LinkedIn-connect copy. Deterministic Antek-voice templates (no LLM), personalised from latest check. Suppression-enforced. Writes `outreach` rows + optional `.md` drafts. |
+| `scripts/mail_batch.py` | Stannp-ready postal batch: A4 letter PDF per prospect (reuses `render_prospect_mailer`, driven by free-check findings) + `stannp_recipients.csv`. Channel + suppression aware. Stannp *API* deferred — this is the file handoff. |
 
 Modified: `webapp/app.py` (JSON store → SQLite), `scripts/live_ai_query.py`
 (refactored onto `ai_query_core`), `geo/SKILL.md` (new command rows).
@@ -76,9 +80,9 @@ Missing / deferred: `STANNP_API_KEY`, `STANNP_TEMPLATE_ID` (postal — deferred)
 
 ## Next up
 
-- **P5 outreach** — `outreach_generator.py` (email + LinkedIn-connect copy in
-  Antek voice, deterministic templates), `suppressions` enforcement on every
-  send path. Stannp letter path deferred until keys land.
+- **P5 Stannp API** — `mail_batch.py` currently outputs files (PDFs + CSV) for
+  manual Stannp import. When `STANNP_API_KEY` lands, add a `--send` path that
+  POSTs each letter. Address parse is heuristic — verify the CSV before sending.
 - **P6 inbound** — `server/check_api.py` (thin Flask, token-auth) wrapping
   `visibility_check.run_check`, then n8n + Brevo sequences. Brevo key ready.
 - **P7** — dedicated landing page + ads.
