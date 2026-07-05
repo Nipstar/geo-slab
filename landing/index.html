@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free AI Visibility Check — is your business invisible to ChatGPT? | Antek Automation</title>
+<meta name="description" content="See in 60 seconds whether ChatGPT, Gemini, Perplexity and Google's AI recommend your business — or send the enquiry to a competitor. Free, no card, no call required.">
+<meta property="og:title" content="Is your business invisible to AI search?">
+<meta property="og:description" content="Free 60-second check across the four AI engines your customers now ask for recommendations.">
+<meta property="og:type" content="website">
+
+<!--
+  CONFIG — set this to your n8n webhook (which holds CHECK_API_TOKEN server-side
+  and calls the /check API). Never put the API token in this page. See
+  server/n8n-workflow.json.
+-->
+<script>window.CHECK_WEBHOOK = "https://n8n.example.com/webhook/geo-free-check";</script>
+
+<!-- Schema: Organization + the free-check Service/Offer + FAQ (GEO signals) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://antekautomation.com/#org",
+      "name": "Antek Automation",
+      "url": "https://antekautomation.com",
+      "telephone": "+44 333 038 9960",
+      "description": "Generative Engine Optimisation (GEO) — making local businesses visible when customers ask AI for recommendations.",
+      "areaServed": "GB"
+    },
+    {
+      "@type": "Service",
+      "name": "Free AI Visibility Check",
+      "provider": { "@id": "https://antekautomation.com/#org" },
+      "serviceType": "AI search visibility assessment",
+      "areaServed": "GB",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is an AI visibility check?",
+          "acceptedAnswer": { "@type": "Answer", "text": "We ask ChatGPT, Gemini, Perplexity and Google's AI to recommend a business like yours, and report whether you come up, how you're described, and which competitors appear instead." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it really free?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The check and a plain-English summary are free. The detailed technical report and the fixes themselves are paid services." }
+        },
+        {
+          "@type": "Question",
+          "name": "How long does it take?",
+          "acceptedAnswer": { "@type": "Answer", "text": "About a minute. You get a score and a short report on screen, and we email you a copy." }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<style>
+  :root{
+    --coral:#CD5C3C; --cream:#E8DCC8; --sage:#C8D8D0; --ink:#2C2C2C; --paper:#F4EEE2;
+    --bd:3px solid var(--ink); --shadow:8px 8px 0 var(--ink);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Outfit','DM Sans',-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--ink);background:var(--paper);line-height:1.5}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+  header{border-bottom:var(--bd);padding:18px 0}
+  header .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  .brand{font-weight:800;font-size:18px;letter-spacing:.5px;text-transform:uppercase}
+  .brand span{color:var(--coral)}
+  .hero{padding:56px 0 40px}
+  .eyebrow{display:inline-block;background:var(--coral);color:#fff;font-weight:800;
+    text-transform:uppercase;letter-spacing:1.5px;font-size:12px;padding:6px 12px;border:var(--bd);margin-bottom:20px}
+  h1{font-size:clamp(30px,5vw,52px);line-height:1.05;font-weight:800;max-width:15ch;margin-bottom:18px}
+  h1 em{font-style:normal;background:var(--sage);padding:0 6px;box-decoration-break:clone}
+  .sub{font-size:clamp(16px,2.2vw,20px);max-width:52ch;margin-bottom:12px}
+  .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:start}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:var(--bd);box-shadow:var(--shadow);padding:26px}
+  .card h2{font-size:22px;font-weight:800;margin-bottom:6px}
+  .card p.lead{font-size:14px;color:#444;margin-bottom:18px}
+  label{display:block;font-weight:700;font-size:13px;margin:12px 0 5px;text-transform:uppercase;letter-spacing:.5px}
+  input,select{width:100%;padding:12px 14px;border:var(--bd);background:var(--cream);
+    font-size:15px;font-family:inherit;color:var(--ink)}
+  input:focus,select:focus{outline:none;background:#fff;box-shadow:4px 4px 0 var(--coral)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:480px){.row{grid-template-columns:1fr}}
+  button{margin-top:22px;width:100%;padding:16px;border:var(--bd);background:var(--coral);
+    color:#fff;font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:1px;
+    cursor:pointer;box-shadow:var(--shadow);transition:transform .05s}
+  button:active{transform:translate(4px,4px);box-shadow:4px 4px 0 var(--ink)}
+  button:disabled{opacity:.6;cursor:not-allowed}
+  .tiny{font-size:12px;color:#555;margin-top:12px;text-align:center}
+  ul.pts{list-style:none;margin:22px 0}
+  ul.pts li{padding-left:30px;position:relative;margin-bottom:14px;font-size:16px}
+  ul.pts li::before{content:"→";position:absolute;left:0;color:var(--coral);font-weight:800;font-size:18px}
+  .result{display:none;border:var(--bd);box-shadow:var(--shadow);background:#fff;padding:26px;margin-top:24px}
+  .score{font-size:64px;font-weight:800;color:var(--coral);line-height:.9}
+  .score small{font-size:22px;color:var(--ink)}
+  .verdict{font-weight:800;font-size:18px;margin:8px 0 4px}
+  .muted{color:#555;font-size:14px}
+  a.btn{display:inline-block;margin-top:16px;padding:12px 18px;border:var(--bd);background:var(--sage);
+    color:var(--ink);font-weight:800;text-decoration:none;box-shadow:5px 5px 0 var(--ink)}
+  .err{color:#b3261e;font-weight:700;margin-top:12px;display:none}
+  footer{border-top:var(--bd);margin-top:56px;padding:24px 0;font-size:13px;color:#555}
+  .spin{display:inline-block;width:14px;height:14px;border:3px solid #fff;border-top-color:transparent;
+    border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px;margin-right:8px}
+  @keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="brand">GEO <span>SLAB</span> · Antek Automation</div>
+  <div class="muted">0333 038 9960</div>
+</div></header>
+
+<main class="wrap hero">
+  <span class="eyebrow">Free · 60 seconds · no card</span>
+  <div class="grid">
+    <div>
+      <h1>Is your business <em>invisible</em> to AI search?</h1>
+      <p class="sub">When someone asks ChatGPT, Gemini, Perplexity or Google's AI to recommend a business like yours, do you come up — or does the enquiry go to a competitor?</p>
+      <ul class="pts">
+        <li>We ask the four AI engines the questions your customers ask</li>
+        <li>You see who they recommend — and whether that's you</li>
+        <li>Plain-English summary, emailed to you, in about a minute</li>
+      </ul>
+      <p class="muted">The check and summary are free. The technical report and the fixes are paid — no pressure, no call required to get your result.</p>
+    </div>
+
+    <div>
+      <form class="card" id="checkForm">
+        <h2>Run my free check</h2>
+        <p class="lead">Four engines, five real questions, one honest score.</p>
+        <div class="row">
+          <div><label for="name">Your name</label><input id="name" name="name" autocomplete="name"></div>
+          <div><label for="email">Email</label><input id="email" name="email" type="email" required autocomplete="email"></div>
+        </div>
+        <label for="company">Business name</label>
+        <input id="company" name="company" required>
+        <div class="row">
+          <div><label for="domain">Website</label><input id="domain" name="domain" placeholder="yourbusiness.co.uk" required></div>
+          <div><label for="town">Town / city</label><input id="town" name="town" required></div>
+        </div>
+        <label for="industry">What do you do?</label>
+        <input id="industry" name="industry" placeholder="e.g. plumber, solicitor, accountant" required>
+        <input type="hidden" name="county" id="county">
+        <input type="hidden" name="utm_source" id="utm_source">
+        <input type="hidden" name="utm_medium" id="utm_medium">
+        <input type="hidden" name="utm_campaign" id="utm_campaign">
+        <button type="submit" id="submitBtn">See my results</button>
+        <p class="err" id="err"></p>
+        <p class="tiny">By submitting you agree to be emailed your result. Unsubscribe any time.</p>
+      </form>
+
+      <div class="result" id="result">
+        <div class="score" id="scoreNum">0<small>/100</small></div>
+        <div class="verdict" id="verdict"></div>
+        <div class="muted" id="detail"></div>
+        <a class="btn" id="ctaBtn" href="https://antekautomation.com/contact">Book my free 15-minute walkthrough</a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer><div class="wrap">GEO SLAB by Antek Automation · antekautomation.com · Making local businesses visible to AI search.</div></footer>
+
+<script>
+  // Capture UTM params so the funnel report can attribute the lead
+  (function(){
+    var q = new URLSearchParams(location.search);
+    ["utm_source","utm_medium","utm_campaign"].forEach(function(k){
+      var el = document.getElementById(k); if(el) el.value = q.get(k) || "";
+    });
+  })();
+
+  function fireConversion(score){
+    // Guarded — only fires if the ad pixels are present on the deployed page
+    try{ if(window.gtag) gtag('event','generate_lead',{value:score}); }catch(e){}
+    try{ if(window.fbq) fbq('track','Lead'); }catch(e){}
+  }
+
+  document.getElementById("checkForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    var btn = document.getElementById("submitBtn"), err = document.getElementById("err");
+    err.style.display = "none";
+    var data = Object.fromEntries(new FormData(e.target).entries());
+    btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Checking all four engines…';
+    try{
+      var res = await fetch(window.CHECK_WEBHOOK, {
+        method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(data)
+      });
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      var out = await res.json();
+      var score = out.score != null ? out.score : 0;
+      var tested = out.platforms_tested || 4, mentioned = out.platforms_mentioned || 0;
+      document.getElementById("scoreNum").innerHTML = score + "<small>/100</small>";
+      document.getElementById("verdict").textContent =
+        mentioned === 0 ? "None of the four AI engines recommend you yet."
+        : mentioned + " of " + tested + " engines mention you — the rest don't.";
+      var comp = (out.competitors||[]).slice(0,3);
+      document.getElementById("detail").textContent =
+        comp.length ? "Recommended instead: " + comp.join(", ") + "." : "";
+      document.getElementById("result").style.display = "block";
+      e.target.style.display = "none";
+      fireConversion(score);
+      document.getElementById("result").scrollIntoView({behavior:"smooth"});
+    }catch(ex){
+      err.textContent = "Something went wrong running your check. Please try again, or call 0333 038 9960.";
+      err.style.display = "block";
+      btn.disabled = false; btn.textContent = "See my results";
+    }
+  });
+</script>
+</body>
+</html>
