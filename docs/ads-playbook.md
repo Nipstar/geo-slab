@@ -1,12 +1,13 @@
 # GEO SLAB — Ads Playbook (spec §7)
 
-Paid traffic → `landing/index.html` → free check → Brevo sequence → walkthrough.
-This is copy + config, not code. UTMs here match the hidden fields the landing
-page captures and `funnel_report.py --campaign` filters on.
+Paid traffic → **antekautomation.com/services/geo-audit** → free check → Brevo
+sequence → walkthrough. This is copy + config, not code. UTMs here match what the
+`landing/geo-audit-embed.html` snippet captures and `funnel_report.py --campaign`
+filters on.
 
 ## UTM taxonomy
 
-Every ad URL: `https://check.antekautomation.com/?utm_source=…&utm_medium=…&utm_campaign=…`
+Every ad URL: `https://antekautomation.com/services/geo-audit?utm_source=…&utm_medium=…&utm_campaign=…`
 
 | Param | Values |
 |-------|--------|

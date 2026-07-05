@@ -51,7 +51,7 @@ at `http://localhost:5050` (`/geo dashboard`).
 | `scripts/mail_batch.py` | Stannp-ready postal batch: A4 letter PDF per prospect (reuses `render_prospect_mailer`, driven by free-check findings) + `stannp_recipients.csv`. Channel + suppression aware. Stannp *API* deferred — this is the file handoff. |
 | `server/check_api.py` + `brevo.py` | Inbound free-check API (Flask, Bearer-auth, fails closed) + Brevo enrolment. Dockerfile, n8n workflow, README alongside. |
 | `scripts/funnel_report.py` | Funnel report from SQLite — stage conversion, check spend/score/mention rate, outreach + source split. `/geo funnel`, `--campaign`, `--json`. |
-| `landing/index.html` | Self-contained landing page: hero + check form (posts to n8n webhook), embedded JSON-LD (Organization/Service/FAQ), UTM capture, on-page result panel, guarded gtag/fbq conversion. |
+| `landing/geo-audit-embed.html` | Drop-in snippet for the EXISTING page antekautomation.com/services/geo-audit — JSON-LD (Organization/Service/FAQ) for `<head>` + a script that wires the on-page form to the n8n webhook and renders the score inline (UTM capture, guarded gtag/fbq). No page rebuild. |
 | `docs/ads-playbook.md` | Google + Meta ad copy, UTM taxonomy (ties to DB `campaign`), budgets, weekly review via `funnel_report`. |
 
 Modified: `webapp/app.py` (JSON store → SQLite), `scripts/live_ai_query.py`
@@ -91,9 +91,11 @@ Missing / deferred: `STANNP_API_KEY`, `STANNP_TEMPLATE_ID` (postal — deferred)
   Remaining is ops: generate `CHECK_API_TOKEN`, deploy the container on Coolify
   with a persistent volume for `GEO_SLAB_DB`, set `BREVO_CHECK_LIST_ID`, import
   `n8n-workflow.json`, wire the landing form. See `server/README.md`.
-- **P7 launch** — page + schema + funnel report done. Remaining is ops: host
-  `landing/` (set `window.CHECK_WEBHOOK` to the n8n URL), paste gtag/fbq pixels
-  into the deployed `<head>`, launch the campaigns in `docs/ads-playbook.md`.
+- **P7 launch** — funnel report done; landing page already exists at
+  antekautomation.com/services/geo-audit. Remaining is ops: paste
+  `landing/geo-audit-embed.html` block A (schema) + block B (form wiring) into
+  that page — set `CHECK_WEBHOOK`, `FORM_SELECTOR`, `FIELD_MAP` to the real form;
+  paste gtag/fbq pixels; launch the campaigns in `docs/ads-playbook.md`.
 
 **All 8 phases built.** What's left across P5–P7 is external ops, not code:
 Stannp key + `--send`, deploy the API container (Coolify) + n8n wiring, host the

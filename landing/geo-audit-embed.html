@@ -1,0 +1,120 @@
+<!--
+  GEO SLAB — drop-in snippet for the EXISTING page:
+  https://antekautomation.com/services/geo-audit
+
+  You already have the page + the "Free AI Visibility Check" form. This just:
+    1. adds the schema AI engines read (paste block A into the page <head>)
+    2. wires that form to the free-check webhook and shows the score inline
+       (paste block B just before </body>)
+
+  No page rebuild. If you'd rather I restyle a standalone page to match, say so.
+
+  ── CONFIG (block B) ──────────────────────────────────────────────────────
+  CHECK_WEBHOOK : your n8n webhook URL (holds CHECK_API_TOKEN server-side —
+                  never put the token in the page). See server/n8n-workflow.json.
+  FORM_SELECTOR : CSS selector for the check <form> already on the page.
+  FIELD_MAP     : maps the API's field names -> your form input name/id. Edit the
+                  right-hand values to match your actual inputs.
+  ───────────────────────────────────────────────────────────────────────────
+-->
+
+<!-- ========================= BLOCK A — <head> ========================= -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://antekautomation.com/#org",
+      "name": "Antek Automation",
+      "url": "https://antekautomation.com",
+      "telephone": "+44 333 038 9960",
+      "description": "Generative Engine Optimisation (GEO) — making local businesses visible when customers ask AI for recommendations.",
+      "areaServed": "GB"
+    },
+    {
+      "@type": "Service",
+      "name": "Free AI Visibility Check",
+      "provider": { "@id": "https://antekautomation.com/#org" },
+      "serviceType": "AI search visibility assessment",
+      "areaServed": "GB",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "GBP" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is an AI visibility check?",
+          "acceptedAnswer": { "@type": "Answer", "text": "We ask ChatGPT, Gemini, Perplexity and Google's AI to recommend a business like yours, and report whether you come up, how you're described, and which competitors appear instead." } },
+        { "@type": "Question", "name": "Is it really free?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The check and a plain-English summary are free. The detailed technical report and the fixes themselves are paid services." } },
+        { "@type": "Question", "name": "How long does it take?",
+          "acceptedAnswer": { "@type": "Answer", "text": "About a minute. You get a score and a short report on screen, and we email you a copy." } }
+      ]
+    }
+  ]
+}
+</script>
+
+<!-- ================= BLOCK B — before </body> ================= -->
+<script>
+(function () {
+  var CHECK_WEBHOOK = "https://n8n.example.com/webhook/geo-free-check";
+  var FORM_SELECTOR = "#geo-check-form";              // <-- your form's selector
+  var FIELD_MAP = {                                   // api field : your input name/id
+    name: "name", email: "email", company: "company",
+    domain: "website", town: "town", industry: "industry", county: "county"
+  };
+
+  var form = document.querySelector(FORM_SELECTOR);
+  if (!form) { console.warn("[geo] form not found:", FORM_SELECTOR); return; }
+
+  // pull UTM params so the funnel report can attribute the lead
+  var utm = {}, q = new URLSearchParams(location.search);
+  ["utm_source", "utm_medium", "utm_campaign"].forEach(function (k) { utm[k] = q.get(k) || ""; });
+
+  function val(name) {
+    var el = form.querySelector('[name="' + name + '"]') || document.getElementById(name);
+    return el ? el.value.trim() : "";
+  }
+
+  function showResult(out) {
+    var score = out.score != null ? out.score : 0;
+    var tested = out.platforms_tested || 4, mentioned = out.platforms_mentioned || 0;
+    var comp = (out.competitors || []).slice(0, 3);
+    var verdict = mentioned === 0
+      ? "None of the four AI engines recommend you yet."
+      : mentioned + " of " + tested + " engines mention you — the rest don't.";
+    var box = document.getElementById("geo-result");
+    if (!box) { box = document.createElement("div"); box.id = "geo-result"; form.parentNode.insertBefore(box, form.nextSibling); }
+    box.style.cssText = "border:3px solid #2C2C2C;box-shadow:8px 8px 0 #2C2C2C;background:#fff;color:#2C2C2C;padding:26px;margin-top:24px";
+    box.innerHTML =
+      '<div style="font-size:64px;font-weight:800;color:#CD5C3C;line-height:.9">' + score + '<span style="font-size:22px;color:#2C2C2C">/100</span></div>' +
+      '<div style="font-weight:800;font-size:18px;margin:8px 0 4px">' + verdict + '</div>' +
+      (comp.length ? '<div style="color:#555;font-size:14px">Recommended instead: ' + comp.join(", ") + '.</div>' : '') +
+      '<a href="https://antekautomation.com/contact" style="display:inline-block;margin-top:16px;padding:12px 18px;border:3px solid #2C2C2C;background:#C8D8D0;color:#2C2C2C;font-weight:800;text-decoration:none;box-shadow:5px 5px 0 #2C2C2C">Book my free 15-minute walkthrough</a>';
+    form.style.display = "none";
+    box.scrollIntoView({ behavior: "smooth" });
+    try { if (window.gtag) gtag('event', 'generate_lead', { value: score }); } catch (e) {}
+    try { if (window.fbq) fbq('track', 'Lead'); } catch (e) {}
+  }
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var payload = { campaign: utm.utm_campaign || "landing-page" };
+    Object.keys(FIELD_MAP).forEach(function (api) { payload[api] = val(FIELD_MAP[api]); });
+    Object.assign(payload, utm);
+    var btn = form.querySelector('[type="submit"]'), label = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = "Checking all four engines…"; }
+    try {
+      var res = await fetch(CHECK_WEBHOOK, {
+        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      showResult(await res.json());
+    } catch (ex) {
+      if (btn) { btn.disabled = false; btn.textContent = label; }
+      alert("Something went wrong running your check. Please try again, or call 0333 038 9960.");
+    }
+  });
+})();
+</script>
