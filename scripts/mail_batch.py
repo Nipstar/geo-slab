@@ -46,24 +46,32 @@ STANNP_COLS = ["firstname", "lastname", "company", "address1", "address2",
 
 
 def reformat_director(director: str) -> str:
-    """CH 'SURNAME, Forename' -> 'Forename Surname' for a natural salutation."""
+    """CH 'SURNAME, Forename Middle' -> 'Forename Surname' for a salutation.
+
+    Title-cases (CH stores surnames upper-case) and drops middle names so the
+    letter reads 'Dear Jonathan Brothers', not 'Dear Jonathan Peter BROTHERS'.
+    ponytail: .title() mangles Mc/Mac/O' (McDonald->Mcdonald) — rare, fix with a
+    name-casing lib only if it becomes a real complaint.
+    """
     if not director:
         return ""
     if "," in director:
         surname, first = [x.strip() for x in director.split(",", 1)]
-        return f"{first} {surname}".strip()
-    return director.strip()
+        first = first.split()[0] if first.split() else ""  # drop middle names
+        return f"{first} {surname}".strip().title()
+    return director.strip().title()
 
 
 def split_name(director: str) -> tuple[str, str]:
-    """Return (firstname, lastname) for the CSV."""
+    """Return (firstname, lastname) for the CSV — first forename only, title-cased."""
     if not director:
         return "", ""
     if "," in director:
         surname, first = [x.strip() for x in director.split(",", 1)]
-        return first, surname
+        first = first.split()[0] if first.split() else ""  # drop middle names
+        return first.title(), surname.title()
     parts = director.split()
-    return (parts[0], " ".join(parts[1:])) if len(parts) > 1 else (director, "")
+    return (parts[0].title(), " ".join(parts[1:]).title()) if len(parts) > 1 else (director.title(), "")
 
 
 def parse_address(address: str, postcode: str) -> dict:
@@ -226,6 +234,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Build a Stannp-ready postal letter batch")
     ap.add_argument("--prospect", nargs="+", help="One or more refs (PRO-001 ...)")
     ap.add_argument("--batch", help="Status to mail (e.g. enriched, checked)")
+    ap.add_argument("--campaign", help="Restrict --batch to this campaign tag")
     ap.add_argument("--out", default="prospects/mail", help="Output folder")
     ap.add_argument("--force", action="store_true",
                     help="Mail regardless of outreach_channel")
@@ -241,7 +250,9 @@ def main() -> None:
     if args.prospect:
         refs = args.prospect
     elif args.batch:
-        refs = [p["id"] for p in db.all_prospects() if p.get("status") == args.batch]
+        refs = [p["id"] for p in db.all_prospects()
+                if p.get("status") == args.batch
+                and (not args.campaign or p.get("campaign") == args.campaign)]
     else:
         ap.error("pass --prospect PRO-001 ... or --batch <status>")
     if not refs:
@@ -253,8 +264,10 @@ def main() -> None:
 def _demo() -> None:
     import tempfile, json
     # name splitting / salutation
-    assert reformat_director("BARCOCK, Kevin") == "Kevin BARCOCK"
-    assert split_name("BARCOCK, Kevin") == ("Kevin", "BARCOCK")
+    assert reformat_director("BARCOCK, Kevin") == "Kevin Barcock"
+    assert reformat_director("MACRAE, Gladys Pek Yue") == "Gladys Macrae"  # drops middle names
+    assert split_name("BARCOCK, Kevin") == ("Kevin", "Barcock")
+    assert split_name("MACRAE, Gladys Pek Yue") == ("Gladys", "Macrae")
     assert split_name("Bob Jones") == ("Bob", "Jones")
     assert split_name("") == ("", "")
 

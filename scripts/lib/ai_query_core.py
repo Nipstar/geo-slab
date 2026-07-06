@@ -136,8 +136,66 @@ def extract_competitors(text: str, brand_name: str) -> list:
         "social media", "personal recommendations", "recommendations",
         "check reviews", "ask friends", "search online", "review sites",
         "review platforms", "local search", "trade associations", "gas safe register",
+        # Selection-CRITERIA the AI lists when it can't name a real firm — these
+        # are how-to-choose advice, not rival businesses. Without these the
+        # "a competitor was recommended instead" hook fires on junk like
+        # "Location" / "Fees" / "Professional Associations".
+        "location", "fees", "pricing", "cost", "costs", "experience",
+        "qualifications", "professional qualifications", "credentials",
+        "accreditation", "accreditations", "services offered", "services",
+        "professional associations", "professional bodies", "professional body",
+        "value for money", "specialization", "specialisation", "reputation",
+        "availability", "communication", "references", "reviews and ratings",
+        "local business directories", "local recommendations", "recommendations",
+        "ask for recommendations", "range of services", "client reviews",
+        "industry experience", "areas of expertise", "expertise", "self",
     }
-    return sorted(c for c in competitors if c.lower().strip() not in noise and len(c) > 3)
+    # Directories / review sites / the AI engines themselves are NOT competitor
+    # firms — an AI listing "Trustpilot" as where to look is not a rival business.
+    directories = {
+        "trustpilot", "yell", "yelp", "checkatrade", "bark", "bark.com",
+        "google", "google business", "google my business", "bing", "facebook",
+        "linkedin", "thomson local", "yellow pages", "yellowpages", "192.com",
+        "freeindex", "cylex", "scoot", "houzz", "which", "which?", "tripadvisor",
+        "chatgpt", "openai", "perplexity", "gemini", "claude", "reddit", "quora",
+    }
+    # Bare postcode / outcode fragments ("SO16", "RG21 7QW") aren't firms.
+    postcode_frag = re.compile(r"^[A-Z]{1,2}\d[A-Z\d]?(\s*\d[A-Z]{2})?$", re.I)
+    # Company signals — if present, it's a firm regardless of shape.
+    signals = ("ltd", "llp", "& co", "accountant", "accountancy", "associates",
+               "partners", "group", "chartered", "bookkeep", "advisor", "advisory",
+               "solutions", "consultancy", "consulting", "financial", "plc", "limited")
+    # Generic advice/criteria words. An LLM listing how to CHOOSE an accountant
+    # emits Title-Case headings ("Online Directories", "Initial Consultation")
+    # that pass a naive multi-word test — any of these words = not a firm.
+    generic = {
+        "experience", "qualifications", "qualification", "directories", "directory",
+        "consultation", "consultations", "referrals", "referral", "reviews", "review",
+        "testimonials", "testimonial", "fees", "fee", "pricing", "price", "cost", "costs",
+        "networks", "network", "communication", "style", "expertise", "specialisation",
+        "specialization", "availability", "reputation", "consideration", "considerations",
+        "formation", "services", "service", "contact", "details", "recommendations",
+        "recommendation", "referral", "friends", "family", "structure", "initial",
+        "online", "local", "other", "businesses", "business", "clear", "consider",
+        "what", "ask", "and", "for", "with", "your", "type", "value", "money",
+    }
+
+    def is_firm(name: str) -> bool:
+        s = name.strip()
+        low = s.lower()
+        if low in noise or low in directories or len(s) <= 3 or postcode_frag.match(s):
+            return False
+        if any(sig in low for sig in signals):
+            return True
+        toks = [t for t in s.split() if t != "&"]
+        if len(toks) < 2 or len(toks) > 4:
+            return False  # firm names here are 2-4 proper-noun tokens
+        # every token Title-Case AND none is a generic advice word → proper noun
+        if any(t.lower() in generic for t in toks):
+            return False
+        return all(t[:1].isupper() for t in toks)
+
+    return sorted(c for c in competitors if is_firm(c))
 
 
 # ── OpenRouter ─────────────────────────────────────────────────────────────

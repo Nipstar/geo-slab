@@ -212,6 +212,18 @@ The report is positioned as a **free lead-magnet teaser**. The CTA always invite
 
 ---
 
+## Free vs Paid — what the walkthrough gives away
+
+The **only** free thing is the 15-minute walkthrough: a call where Andy shows the findings and the top two or three priorities in plain English. That is the whole free tier.
+
+**Paid, never promised in a free teaser/CTA:**
+- The detailed **technical / dev report** (`GEO-DEV-REPORT`) — the fix instructions for the client's web team.
+- Implementation / doing the fixes.
+
+Rule: the prospect report and any postal mailer tease the *findings*, not the deliverable. Do NOT list "a technical version for your web team" or "a prioritised fix plan you keep" as part of the free offer. Frame the technical fix report as the paid next step. The 2-page postal variant (`render_prospect_mailer.py`) follows the same rule.
+
+---
+
 ## Quality Checks Before Sending
 
 - [ ] Score matches the audit data exactly

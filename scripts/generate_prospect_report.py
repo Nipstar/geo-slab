@@ -671,7 +671,7 @@ def build_score_cells(scores: dict) -> str:
     cells_config = [
         ("ai_citability",        "AI Citability"),
         ("brand_authority",      "Brand Authority"),
-        ("content_eeat",         "Content E-E-A-T"),
+        ("content_eeat",         "Expertise Signals"),
         ("technical",            "Technical GEO"),
         ("schema",               "Schema"),
         ("platform_optimization","Platforms"),
@@ -720,15 +720,15 @@ def build_working_items(working: list) -> str:
 
 
 FULL_AUDIT_COVERS = [
-    "All pages — full sitemap crawl (up to 50 pages)",
-    "6 audit categories with weighted composite scoring",
+    "Every page on your site, not just the homepage (up to 50)",
+    "All six visibility categories, scored and weighted",
     "Platform scores: ChatGPT, Perplexity, Gemini, Bing Copilot, Google AI Overviews",
-    "NAP consistency check across GBP, schema, and directories",
-    "Schema markup audit — every structured data type, property by property",
-    "AI crawler access — robots.txt, meta tags, HTTP headers",
-    "Brand authority scan — Wikipedia, Wikidata, Clutch, Reddit, press",
-    "llms.txt assessment and generation recommendations",
-    "Content E-E-A-T scoring across Experience, Expertise, Authoritativeness, Trust",
+    "Your name, address and phone checked for consistency across Google and directories",
+    "How AI reads your site — every machine-readable tag checked, one by one",
+    "Whether AI engines can reach and read every page",
+    "Whether AI trusts you — Wikipedia, reference sources, reviews, and press",
+    "Your AI guidance file — checked, and written for you",
+    "Expertise signals — whether your content proves real experience and trust",
     "Prioritised fix plan: this week / this month / this quarter",
 ]
 
@@ -911,8 +911,8 @@ def render(data: dict) -> str:
     <section class="cta-section">
         <div class="cta-left">
             <span class="cta-eyebrow">Want the full picture?</span>
-            <div class="cta-heading">Walk me through my full report.</div>
-            <p class="cta-body">Your full GEO audit covers all 50 pages, six categories, and a prioritised fix plan. The call is me walking you through it, plus the live AI queries above. 15 minutes. No slides.</p>
+            <div class="cta-heading">Book your free walkthrough.</div>
+            <p class="cta-body">The free 15-minute walkthrough is me showing you these results and the two or three fixes that matter most. No slides. The detailed technical report your web team needs to make the fixes is a paid follow-on.</p>
         </div>
         <div class="cta-right">
             {('<span class="cta-price">' + cta_price + '</span>') if cta_price else ''}

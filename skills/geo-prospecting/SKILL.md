@@ -1,13 +1,15 @@
 ---
 name: geo-prospecting
-description: SERP-driven prospecting. Find businesses ranking in positions 9–13 for target keywords in the UK or US, run lite GEO audits in parallel, score by pitchability, draft outreach copy (email + LinkedIn + voice). Trigger when the operator wants to BUILD an outbound list rather than audit a known URL. Phrases like "find me prospects", "prospect for X in Y", "/geo prospecting".
+description: SERP-driven list builder (the keyword-file path). Finds businesses ranking in positions 9–13 for target keywords (UK or US) from a keyword file, runs lite GEO audits in parallel, scores by pitchability, and drafts outreach copy — output is CSVs under prospects/<run>/. EXPERIMENTAL / needs manual cleanup. For UK local prospecting with Companies House director enrichment, a free AI-visibility check, and Stannp postal letters, prefer the DB-backed engine commands in geo/SKILL.md instead: /geo find → enrich → check → outreach → mail → funnel. Trigger this skill when the operator wants the SERP keyword-file list builder — "find me prospects", "prospect for X in Y", "/geo prospecting".
 allowed-tools: Bash, Read, Write
 ---
 
 # geo-prospecting
 
-> **⚠️ EXPERIMENTAL — not fully working yet.**
-> Discovery + lite audit + scoring are stable. Outreach copy generation is workable but unrefined. Decision-maker scraping (`find_decision_makers.py`) works for standard team-page layouts but yields zero results on JS-only or non-standard structures (e.g. Duncan Lewis category cards, Walker Family Law spans without card classes). Email pattern detection rarely finds a published email to seed from, so most contact rows have a Google-search fallback for LinkedIn and no email. Treat this pipeline as a first-pass list builder that still needs manual cleanup.
+> **⚠️ EXPERIMENTAL — SERP keyword-file list builder. Not the main engine.**
+> This is the CSV-output SERP path (`discover_prospects.py` → `batch_audit.py` → `score_prospects.py` → `generate_outreach.py` + `find_decision_makers.py`). Discovery + lite audit + scoring are stable. Outreach copy is workable but unrefined. Decision-maker scraping yields zero results on JS-only or non-standard team pages (e.g. Duncan Lewis category cards, span-only layouts). Email detection rarely finds a seed address, so most rows carry a Google-search LinkedIn fallback and no email. First-pass list builder, expect manual cleanup.
+>
+> **For UK local prospecting, prefer the DB-backed engine** (documented in `geo/SKILL.md`'s command table, persists to `~/.geo-slab/geo-slab.db`): `/geo find <trade> <location>` (Google Places) → `/geo enrich` (Companies House director + PECR channel) → `/geo check` (free AI-visibility lead magnet) → `/geo outreach` / `/geo mail` (Stannp-ready postal batch) → `/geo funnel`. That path is the one under active use; this SERP skill is retained for the keyword-file/US workflow.
 
 End-to-end prospecting pipeline. Distinct from the existing `geo-prospect` skill (which renders a lite report from an already-run audit). This skill **discovers** prospects from SERPs, audits them, scores them, and drafts outreach copy.
 

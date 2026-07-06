@@ -165,8 +165,12 @@ def to_prospect(place: dict, industry: str, campaign: str) -> dict | None:
     if not domain:
         return None  # no website = nothing to check
     loc = place.get("location") or {}
+    # Google display names sometimes carry emoji/badges (e.g. "⭐Chartered…") —
+    # strip non-ASCII so a mail-merge salutation/letterhead stays clean.
+    raw_name = (place.get("displayName") or {}).get("text") or ""
+    company = re.sub(r"[^\x00-\x7f]", "", raw_name).strip(" \t-•*·")
     return {
-        "company": (place.get("displayName") or {}).get("text") or "",
+        "company": company,
         "domain": domain,
         "website": website,
         "place_id": place.get("id"),

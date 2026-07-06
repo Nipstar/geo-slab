@@ -52,6 +52,7 @@ def build_html(d: dict, director: str, recipient: list[str], qr_uri: str, qr_url
     brand = escape(d.get("brand_name", "your firm"))
     _ind = (d.get("industry") or "").strip()
     trade = escape(_ind.rstrip("s") if _ind else "business like yours")
+    art = "an" if trade[:1].lower() in "aeiou" else "a"  # a/an by leading vowel
     score = int(d.get("geo_score", 0))
     band = score_band(score)
     problems = d.get("top_problems", [])[:3]
@@ -123,7 +124,7 @@ ul.covers li::before {{ content:"\\2192"; position:absolute; left:0; color:var(-
   </div>
   <div class="date">{date}</div>
   <div class="salute">Dear {salute},</div>
-  <div class="lead">We ran {brand} through the same checks the AI search engines now use when someone asks them to recommend a {trade}. The result is below. It is not good news, but every gap is fixable, and most of the value is in a handful of quick changes.</div>
+  <div class="lead">We ran {brand} through the same checks the AI search engines now use when someone asks them to recommend {art} {trade}. The result is below. It is not good news, but every gap is fixable, and most of the value is in a handful of quick changes.</div>
   <div class="scorebar">
     <div class="score-num">{score}<small>/100</small></div>
     <div><div class="score-verdict">{escape(band['verdict'])}</div>

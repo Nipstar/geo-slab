@@ -42,13 +42,19 @@ from lib.ai_query_core import (  # noqa: E402
 PLATFORMS = list(CHECK_MODELS.keys())  # ChatGPT, Claude, Gemini, Perplexity
 
 
+def _art(word: str) -> str:
+    """a / an by leading vowel. ponytail: vowel heuristic — 'hour'/'MOT' edge
+    cases rare for trade nouns; fix with a word list only if one bites."""
+    return "an" if word[:1].lower() in "aeiou" else "a"
+
+
 def build_prompts(industry: str, town: str, county: str = "") -> list[str]:
     """The 5 frozen discovery prompts (spec §7)."""
     county = county or town
     return [
         f"Who is the best {industry} in {town}?",
-        f"Recommend a {industry} near {town}",
-        f"I need a {industry} in {county}, who should I call?",
+        f"Recommend {_art(industry)} {industry} near {town}",
+        f"I need {_art(industry)} {industry} in {county}, who should I call?",
         f"{industry} {town} reviews — who do you recommend?",
         f"Compare {industry}s in {town}",
     ]
