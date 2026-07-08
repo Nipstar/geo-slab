@@ -194,7 +194,7 @@ def render_html(result: dict) -> str:
     <a href="{CONTACT_URL}">{CONTACT_URL}</a> &nbsp; · &nbsp; <a href="tel:03330389960">{PHONE}</a>
   </section>
 
-  <footer>GEO SLAB by Antek Automation · Generated {date} · antekautomation.com</footer>
+  <footer>Based on {result['prompts_total']} genuine live AI responses captured {date} via ChatGPT, Claude, Gemini and Perplexity. No results are estimated or fabricated.<br>GEO SLAB by Antek Automation · antekautomation.com</footer>
 </div></body></html>"""
 
 

@@ -213,6 +213,16 @@ def main() -> None:
     print(f"[check] {company} ({domain}) — {industry} in {town} ...", file=sys.stderr)
     result = run_check(company, domain, industry, town, args.county)
 
+    # Never ship a report built on nothing. If every engine errored (bad key,
+    # no credits, network) platforms_tested is 0 — that is an API failure, NOT a
+    # genuine "invisible" result, and a rendered 0/100 report would be a lie.
+    # Abort loudly so no fabricated-looking deliverable is produced.
+    if result["platforms_tested"] == 0:
+        raise SystemExit(
+            "ERROR: no live AI responses captured (every engine errored — check "
+            "OPENROUTER_API_KEY / credits / network). No report generated. The "
+            "check reports only genuine AI answers; it does not fabricate a result.")
+
     if args.output_json:
         Path(args.output_json).parent.mkdir(parents=True, exist_ok=True)
         Path(args.output_json).write_text(json.dumps(result, indent=2), encoding="utf-8")
