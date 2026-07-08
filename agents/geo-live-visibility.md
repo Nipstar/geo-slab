@@ -118,6 +118,12 @@ Generate a markdown section following the output format below. Include:
 ### Interpretation
 [2-3 sentences: what this means, which competitors dominate, what to do about it]
 
+### What The AI Actually Said (call-ready)
+Verbatim quotes from the `response` field of `live-visibility.json` — the section read aloud on a follow-up / presentation call. Pick the highest-impact moments, not every prompt:
+1. **Missed discovery:** each unbranded prompt where `brand_mentioned` is false AND `competitors_found` is non-empty — quote the answer, highlighting the competitors it recommends instead.
+2. **Branded perception:** what the AI says about the client (or "I don't have information on [company]" — a strong gap to show).
+3. Trim each quote to the passage naming competitors (~first 400 chars). Attribute to provider + prompt. **Copy exactly from the JSON — never paraphrase or invent.** If `response` is absent (older JSON), re-run before presenting.
+
 **Data file:** `reports/[DOMAIN]/live-visibility.json`
 ```
 

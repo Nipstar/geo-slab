@@ -141,6 +141,24 @@ The Live Visibility Score (0-100) is calculated as:
 
 [2-3 sentences interpreting the results. E.g., "Your brand appears in X% of unbranded AI queries, indicating [strong/moderate/weak] organic discovery. The primary competitors appearing instead are [names]. To improve visibility, focus on [specific actions]."]
 
+### What The AI Actually Said (call-ready)
+
+Verbatim AI answers pulled from the `response` field of each entry in `live-visibility.json`. This is the section you read aloud on a follow-up / presentation call — the client hears the exact words a customer would see. Select the highest-impact moments, don't dump all prompts:
+
+1. **Missed discovery (strongest hook):** for each unbranded prompt where `brand_mentioned` is false AND `competitors_found` is non-empty — "When someone asks [provider] '[prompt]', here's the answer they get:" then quote the response, highlighting the competitor names it recommends instead.
+2. **Branded perception:** for branded prompts, quote what the AI says about the client so they hear their own current AI reputation (or "I don't have information on [company]" when the brand is unknown — a powerful gap to show).
+3. Trim each quote to the relevant passage (first ~400 chars or the sentence naming competitors). Attribute every quote to its provider and prompt.
+
+```markdown
+> **ChatGPT — asked:** "What are the best [industry] companies in [location]?"
+> "[verbatim answer quoting the competitors it recommends instead…]"
+>
+> **Perplexity — asked:** "What do people say about [company]?"
+> "[verbatim answer, or 'I don't have specific information on [company]'…]"
+```
+
+**Never paraphrase or invent these quotes** — they must be copied exactly from the JSON `response` field. If `response` is absent (older audit JSON), re-run the live query before presenting.
+
 **Data file:** `reports/<domain>/live-visibility.json`
 ```
 

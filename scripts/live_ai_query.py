@@ -331,6 +331,7 @@ def run_brand_visibility_audit(
                     entry = {
                         "provider": provider_name,
                         "prompt": prompt,
+                        "response": response,
                         "response_length": len(response),
                         "brand_mentioned": detection["mentioned"],
                         "mention_count": detection["count"],
