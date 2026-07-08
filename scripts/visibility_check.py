@@ -95,7 +95,8 @@ def run_check(company: str, domain: str, industry: str, town: str,
         answered = 0
         for prompt, res in entries:
             if not res:
-                responses.append({"prompt": prompt, "answered": False, "mentioned": False, "snippet": ""})
+                responses.append({"prompt": prompt, "answered": False, "mentioned": False,
+                                  "snippet": "", "response": ""})
                 continue
             answered += 1
             total_cost += res.get("cost_usd", 0.0)
@@ -109,8 +110,11 @@ def run_check(company: str, domain: str, industry: str, town: str,
                 if not best_snippet:
                     best_snippet = snippet
                     sentiment = det["sentiment"]
+            # Store the verbatim answer — this is the proof shown in the report
+            # ("we asked X, here is exactly what ChatGPT replied").
             responses.append({"prompt": prompt, "answered": True,
-                              "mentioned": det["mentioned"], "snippet": snippet})
+                              "mentioned": det["mentioned"], "snippet": snippet,
+                              "response": res["text"]})
         prompts_total += answered
         prompts_mentioned += mentioned_here
         platforms_out.append({

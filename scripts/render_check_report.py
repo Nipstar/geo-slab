@@ -82,6 +82,39 @@ def render_html(result: dict) -> str:
     else:
         competitors_block = ""
 
+    # Proof transcript — the verbatim questions and AI answers. This is what
+    # makes the report usable in a meeting: receipts, not just a score.
+    proof_plats = []
+    brand_lower = result["company"].lower()
+    for p in result["platforms"]:
+        if not p.get("tested"):
+            continue
+        qa = []
+        for r in p.get("responses", []):
+            ans = (r.get("response") or "").strip()
+            if not ans:
+                ans, tone, tag = "No answer returned.", "#999", "no answer"
+            elif r.get("mentioned"):
+                tone, tag = SAGE, "named you"
+            else:
+                tone, tag = CORAL, "did not name you"
+            if len(ans) > 900:
+                ans = ans[:900].rsplit(" ", 1)[0] + " …"
+            qa.append(
+                f'<div class="qa">'
+                f'<div class="q">{e(r["prompt"])}</div>'
+                f'<div class="qtag" style="color:{tone}">{tag}</div>'
+                f'<div class="a">{e(ans)}</div></div>')
+        proof_plats.append(
+            f'<div class="proof-plat"><h3>{e(p["platform"])} '
+            f'<span class="model">{e(p.get("model",""))}</span></h3>{"".join(qa)}</div>')
+    proof_block = f"""
+        <section class="block proof">
+          <h2>What we asked, and what the AI said</h2>
+          <p class="proof-intro">The exact questions put to each engine on {date}, and their answers word for word. This is what a prospective client sees when they ask AI to recommend {industry} in {town}.</p>
+          {"".join(proof_plats)}
+        </section>""" if proof_plats else ""
+
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -115,6 +148,17 @@ def render_html(result: dict) -> str:
                    border:2px solid {CHARCOAL}; margin-bottom:6px; }}
   .comp-name {{ font-family:'Outfit',sans-serif; font-weight:600; font-size:14px; }}
   .comp-count {{ font-family:'JetBrains Mono',monospace; font-size:11px; color:{CORAL}; }}
+  .proof {{ page-break-before:always; }}
+  .proof-intro {{ font-size:12px; color:#555; margin-bottom:14px; }}
+  .proof-plat {{ margin-bottom:16px; }}
+  .proof-plat h3 {{ font-family:'Outfit',sans-serif; font-weight:800; font-size:14px; text-transform:uppercase;
+                    letter-spacing:0.3px; border-bottom:2px solid {CHARCOAL}; padding-bottom:5px; margin-bottom:10px; }}
+  .proof-plat h3 .model {{ font-family:'JetBrains Mono',monospace; font-weight:400; font-size:9px; color:#888; text-transform:none; letter-spacing:0; }}
+  .qa {{ background:#fff; border:2px solid {CHARCOAL}; padding:10px 12px; margin-bottom:9px; box-shadow:3px 3px 0 {CHARCOAL}; page-break-inside:avoid; }}
+  .qa .q {{ font-family:'Outfit',sans-serif; font-weight:600; font-size:12.5px; margin-bottom:3px; }}
+  .qa .q::before {{ content:"Q  "; font-family:'JetBrains Mono',monospace; color:{CORAL}; font-weight:600; }}
+  .qa .qtag {{ font-family:'JetBrains Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }}
+  .qa .a {{ font-size:11.5px; color:#333; white-space:pre-wrap; }}
   .cta {{ background:{CHARCOAL}; color:{CREAM}; padding:20px; box-shadow:7px 7px 0 {CORAL}; }}
   .cta h2 {{ color:{CREAM}; }}
   .cta p {{ font-size:13px; margin-bottom:12px; }}
@@ -141,6 +185,8 @@ def render_html(result: dict) -> str:
   </section>
 
   {competitors_block}
+
+  {proof_block}
 
   <section class="cta">
     <h2>See it live</h2>
