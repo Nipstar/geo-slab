@@ -51,9 +51,13 @@ def load_env() -> None:
 
 # Model IDs verified live against GET /api/v1/models (2026-07-03). OpenRouter
 # slugs drift — re-check here if a platform starts returning 404.
+# Consumer-facing flagships — what a real person actually gets on chatgpt.com /
+# claude.ai, so the check reflects the answers a prospect's customers see (not a
+# cheaper mini/haiku tier). Verify slugs against the OpenRouter models list
+# before changing.
 CHECK_MODELS = {
-    "ChatGPT":    "openai/gpt-4o-mini",
-    "Claude":     "anthropic/claude-haiku-4.5",
+    "ChatGPT":    "openai/gpt-5.2-chat",
+    "Claude":     "anthropic/claude-sonnet-5",
     "Gemini":     "google/gemini-2.5-flash",
     "Perplexity": "perplexity/sonar",
 }
