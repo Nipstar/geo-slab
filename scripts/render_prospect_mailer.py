@@ -26,12 +26,78 @@ sys.path.insert(0, str(Path(__file__).parent))
 from style import score_band  # noqa: E402
 import prospect_config  # noqa: E402
 
-COVERS = [
-    "Where you're losing AI-driven enquiries, in plain English",
-    "Your score across all six visibility areas",
-    "Which of the nine AI engines you're missing from",
-    "The three fixes worth doing first",
-]
+_ASSETS = Path(__file__).parent / "assets"
+
+
+def _asset(name: str) -> str:
+    """Read a base64/CSS asset; return '' if missing so the letter still renders
+    (system-font fallback / no logo) without the brand assets present."""
+    p = _ASSETS / name
+    return p.read_text(encoding="utf-8") if p.exists() else ""
+
+
+# Ported from the standalone neo-brutalist letter design. Kept as a plain string
+# (not an f-string) so the CSS braces need no escaping.
+_LETTER_CSS = """
+:root{
+  --terracotta:#D97757; --terracotta-dark:#B85B3E; --cream-light:#FAF8F5;
+  --cream-mid:#E8DFD0; --peach:#F5E6D3; --sage:#C5D8CC; --charcoal:#1A1A1A;
+  --charcoal-soft:#4A4A4A; --white:#FFFFFF;
+  --font-display:'Outfit','Arial Black',system-ui,sans-serif;
+  --font-body:'DM Sans','Helvetica Neue',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SF Mono',monospace;
+  --bd:2.5px solid var(--charcoal); --shadow:5px 5px 0 0 var(--charcoal);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+@page{ size:A4; margin:0; }
+html,body{ background:#d9d4cc; font-family:var(--font-body); color:var(--charcoal);
+  -webkit-font-smoothing:antialiased; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.page{ width:210mm; height:297mm; margin:0 auto; padding:14mm 15mm 12mm;
+  background:var(--cream-light); position:relative; display:flex; flex-direction:column; overflow:hidden; }
+@media screen{ body{ padding:24px 0; } .page{ box-shadow:0 8px 40px rgba(0,0,0,.28); } }
+.head{ display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:4mm; border-bottom:var(--bd); }
+.brand{ display:flex; align-items:center; gap:3.5mm; }
+.brand img{ width:13mm; height:13mm; display:block; }
+.brand .wm{ font-family:var(--font-display); font-weight:800; font-size:15pt; letter-spacing:-0.01em; text-transform:uppercase; line-height:1; }
+.brand .tag{ font-family:var(--font-mono); font-weight:500; font-size:6.5pt; letter-spacing:1.5px; text-transform:uppercase; color:var(--terracotta); margin-top:1.5mm; }
+.sender{ text-align:right; font-size:8pt; line-height:1.45; color:var(--charcoal-soft); }
+.sender strong{ color:var(--charcoal); font-size:8.5pt; }
+.meta{ display:flex; justify-content:space-between; align-items:flex-start; margin-top:7mm; }
+.recipient{ font-size:10.5pt; line-height:1.5; }
+.recipient .name{ font-weight:700; }
+.date{ font-family:var(--font-mono); font-size:8.5pt; letter-spacing:0.5px; color:var(--charcoal-soft); white-space:nowrap; padding-top:1mm; }
+.salute{ font-size:11pt; font-weight:500; margin-top:6mm; }
+.lead{ font-size:10.5pt; line-height:1.5; margin-top:3mm; max-width:150mm; }
+.hero{ display:flex; align-items:stretch; margin-top:6mm; border:var(--bd); box-shadow:var(--shadow); }
+.hero-score{ flex:0 0 46mm; background:var(--charcoal); color:var(--cream-light); padding:6mm 5mm;
+  display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; border-right:var(--bd); }
+.hero-score .k{ font-family:var(--font-mono); font-size:6.5pt; letter-spacing:2px; text-transform:uppercase; color:var(--terracotta); margin-bottom:2mm; }
+.hero-score .num{ font-family:var(--font-display); font-weight:800; font-size:54pt; line-height:0.85; color:var(--terracotta); }
+.hero-score .num small{ font-size:16pt; color:var(--cream-light); font-weight:700; }
+.hero-body{ flex:1; background:var(--cream-mid); padding:6mm 6mm; display:flex; flex-direction:column; justify-content:center; }
+.hero-body .headline{ font-family:var(--font-display); font-weight:700; font-size:13pt; line-height:1.22; text-transform:uppercase; letter-spacing:-0.01em; }
+.hero-body .headline b{ color:var(--terracotta); }
+.hero-body .verdict{ font-size:9.5pt; line-height:1.4; margin-top:3mm; color:var(--charcoal-soft); }
+.sec-label{ font-family:var(--font-mono); font-weight:700; font-size:7.5pt; letter-spacing:2px; text-transform:uppercase; color:var(--terracotta); margin:7mm 0 3.5mm; display:flex; align-items:center; gap:3mm; }
+.sec-label::after{ content:""; flex:1; height:2px; background:var(--charcoal); }
+.checks{ display:flex; gap:4mm; }
+.check{ flex:1; border:var(--bd); background:var(--white); padding:4mm 4mm 4.5mm; }
+.check .n{ font-family:var(--font-display); font-weight:800; font-size:11pt; width:7mm; height:7mm; background:var(--terracotta); color:var(--white); border:2px solid var(--charcoal); display:flex; align-items:center; justify-content:center; margin-bottom:3mm; }
+.check .t{ font-size:9.5pt; font-weight:700; line-height:1.2; margin-bottom:2mm; }
+.check .d{ font-size:8.5pt; line-height:1.4; color:var(--charcoal-soft); }
+.check .d b{ color:var(--charcoal); font-weight:700; }
+.cta{ display:flex; align-items:center; gap:6mm; margin-top:7mm; border:var(--bd); box-shadow:var(--shadow); background:var(--peach); padding:5mm 6mm; }
+.cta .qr{ width:28mm; height:28mm; flex:0 0 28mm; border:2px solid var(--charcoal); background:var(--white); display:block; }
+.cta .qr-fallback{ width:28mm; flex:0 0 28mm; font-family:var(--font-mono); font-size:7pt; word-break:break-all; }
+.cta-t{ font-family:var(--font-display); font-weight:800; font-size:12.5pt; text-transform:uppercase; line-height:1.1; letter-spacing:-0.01em; }
+.cta-d{ font-size:9pt; line-height:1.45; margin-top:2.5mm; max-width:105mm; }
+.signoff{ font-size:10pt; line-height:1.5; margin-top:auto; padding-top:6mm; }
+.signoff .rk{ color:var(--charcoal-soft); }
+.signoff .nm{ font-family:var(--font-display); font-weight:800; font-size:12pt; text-transform:uppercase; letter-spacing:-0.01em; margin-top:1mm; }
+.signoff .rl{ font-size:8.5pt; color:var(--charcoal-soft); }
+.foot{ display:flex; justify-content:space-between; align-items:center; margin-top:5mm; padding-top:2.5mm; border-top:var(--bd); font-family:var(--font-mono); font-size:7pt; letter-spacing:0.5px; text-transform:uppercase; color:var(--charcoal-soft); }
+.foot .r{ color:var(--terracotta); font-weight:700; }
+"""
 
 
 def qr_data_uri(url: str) -> str:
@@ -54,108 +120,67 @@ def build_html(d: dict, salute_name: str, recipient: list[str], qr_uri: str, qr_
     noun = escape(prospect_config.noun_phrase(d.get("industry") or ""))
     score = int(d.get("geo_score", 0))
     band = score_band(score)
-    score_label = escape(d.get("score_label", "AI visibility score"))
     headline = escape(d.get("headline", ""))
     problems = d.get("top_problems", [])[:3]
-    working = d.get("working", [])[:3]
     date = datetime.now().strftime("%-d %B %Y")
     dom = domain_of(d.get("url", ""))
+    web = escape(sender.get("web", "antekautomation.com"))
 
-    prob_html = "".join(
-        f'<div class="prob"><div class="prob-n">{i}</div><div class="prob-b">'
-        f'<div class="prob-t">{escape(p.get("title",""))}</div>'
-        f'<div class="prob-d">{escape(p.get("body",""))}</div></div></div>'
+    # Data-driven checks: the prospect's real findings, not the template's fixed
+    # ChatGPT/Claude/rival wording. Numbered 1..3.
+    checks_html = "".join(
+        f'<div class="check"><div class="n">{i}</div>'
+        f'<div class="t">{escape(p.get("title",""))}</div>'
+        f'<div class="d">{escape(p.get("body",""))}</div></div>'
         for i, p in enumerate(problems, 1))
-    work_html = "".join(f'<li>{escape(w)}</li>' for w in working)
-    covers_html = "".join(f'<li>{escape(c)}</li>' for c in COVERS)
-    recip_html = "<br>".join(escape(x) for x in recipient if x)
-    sender_details = "<br>".join(escape(x) for x in sender.get("details", "").split("\n") if x)
-    salute = escape(salute_name) if salute_name else "the partners"
-    qr_block = (f'<img class="qr" src="{qr_uri}" alt="QR code">' if qr_uri
+
+    lines = [escape(x) for x in recipient if x]
+    name = lines[0] if lines else "the partners"
+    rest = "".join(f"<br>{x}" for x in lines[1:])
+    fonts = _asset("letter_fonts.css")
+    logo = _asset("antek_logo.b64").strip()
+    logo_img = f'<img src="{logo}" alt="Antek Automation">' if logo else ""
+    qr_block = (f'<img class="qr" src="{qr_uri}" alt="Booking QR code">' if qr_uri
                 else f'<div class="qr-fallback">{escape(qr_url)}</div>')
-    phone = sender.get("phone", "").strip()
-    call_line = f" Or call {escape(phone)}." if phone else ""
-    sign_contact = " &nbsp;&middot;&nbsp; ".join(
-        x for x in [escape(phone) if phone else "", escape(sender['web'])] if x)
 
     return f"""<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8">
-<style>
-@page {{ size: A4; margin: 0; }}
-* {{ margin:0; padding:0; box-sizing:border-box; }}
-:root {{ --coral:#D97757; --cream:#E8DFD0; --ink:#1A1A1A; --off:#FAF8F5; --bd:2.5px solid #000; }}
-html,body {{ font-family:'Helvetica Neue',Arial,sans-serif; color:var(--ink); background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact; }}
-.page {{ width:210mm; height:297mm; padding:15mm 16mm; position:relative; page-break-after:always; overflow:hidden; }}
-.page:last-child {{ page-break-after:auto; }}
-.top {{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12mm; }}
-.recipient {{ font-size:11pt; line-height:1.45; }}
-.sender {{ text-align:right; font-size:8.5pt; line-height:1.4; color:#444; max-width:62mm; }}
-.sender strong {{ color:var(--ink); font-size:9.5pt; }}
-.date {{ font-size:9.5pt; color:#444; margin-bottom:6mm; }}
-.salute {{ font-size:12pt; margin-bottom:4mm; }}
-.lead {{ font-size:11pt; line-height:1.5; margin-bottom:6mm; }}
-.headline {{ font-size:13.5pt; font-weight:800; line-height:1.4; margin-bottom:6mm; }}
-.score-label {{ font-size:8pt; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:#555; margin-bottom:2mm; }}
-.scorebar {{ display:flex; align-items:center; gap:6mm; border:var(--bd); box-shadow:5px 5px 0 #000; padding:6mm 7mm; margin-bottom:6mm; background:var(--cream); }}
-.score-num {{ font-size:46pt; font-weight:800; color:var(--coral); line-height:0.9; }}
-.score-num small {{ font-size:15pt; color:var(--ink); font-weight:700; }}
-.score-verdict {{ font-size:11pt; font-weight:700; line-height:1.35; }}
-.score-sub {{ font-size:9.5pt; color:#333; margin-top:2mm; line-height:1.35; }}
-.h {{ font-size:13pt; font-weight:800; text-transform:uppercase; letter-spacing:0.3px; margin:0 0 4mm; padding-bottom:2mm; border-bottom:var(--bd); }}
-.prob {{ display:flex; gap:5mm; margin-bottom:4.5mm; }}
-.prob-n {{ flex:0 0 9mm; height:9mm; background:var(--coral); color:#fff; font-weight:800; font-size:13pt; display:flex; align-items:center; justify-content:center; border:2px solid #000; }}
-.prob-t {{ font-size:11pt; font-weight:800; margin-bottom:1mm; }}
-.prob-d {{ font-size:10pt; line-height:1.4; color:#222; }}
-ul.tick {{ list-style:none; }}
-ul.tick li {{ font-size:10.5pt; line-height:1.4; padding-left:7mm; position:relative; margin-bottom:3mm; }}
-ul.tick li::before {{ content:"\\2713"; position:absolute; left:0; color:var(--coral); font-weight:800; }}
-ul.covers {{ list-style:none; }}
-ul.covers li {{ font-size:10.5pt; line-height:1.4; padding-left:6mm; position:relative; margin-bottom:2.5mm; }}
-ul.covers li::before {{ content:"\\2192"; position:absolute; left:0; color:var(--coral); font-weight:800; }}
-.cta {{ display:flex; gap:7mm; align-items:center; border:var(--bd); box-shadow:5px 5px 0 #000; padding:7mm; background:var(--off); margin-top:6mm; }}
-.qr {{ width:34mm; height:34mm; flex:0 0 34mm; }}
-.qr-fallback {{ font-size:9pt; word-break:break-all; }}
-.cta-t {{ font-size:14pt; font-weight:800; margin-bottom:2mm; }}
-.cta-d {{ font-size:10pt; line-height:1.45; }}
-.signoff {{ margin-top:8mm; font-size:10.5pt; line-height:1.5; }}
-.foot {{ position:absolute; bottom:9mm; left:16mm; right:16mm; border-top:var(--bd); padding-top:2.5mm; font-size:8pt; color:#555; display:flex; justify-content:space-between; }}
-.eyebrow {{ font-size:8.5pt; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:var(--coral); margin-bottom:3mm; }}
-</style></head><body>
-
+<style>{fonts}</style>
+<style>{_LETTER_CSS}</style></head><body>
 <section class="page">
-  <div class="top">
-    <div class="recipient">{recip_html}</div>
-    <div class="sender"><strong>{escape(sender['name'])}</strong><br>{sender_details}</div>
+  <header class="head">
+    <div class="brand">{logo_img}
+      <div><div class="wm">Antek Automation</div>
+      <div class="tag">AI Automation Agency &middot; UK</div></div>
+    </div>
+    <div class="sender"><strong>Antek Automation</strong><br>
+      Chantry House, 38 Chantry Way<br>Andover SP10 1LZ<br>{web}</div>
+  </header>
+  <div class="meta">
+    <div class="recipient"><span class="name">{name}</span>{rest}</div>
+    <div class="date">{date}</div>
   </div>
-  <div class="date">{date}</div>
-  <div class="salute">Dear {salute},</div>
-  <div class="lead">We ran {brand} through the same checks the AI search engines now use when someone asks them to recommend {noun}. Here is what they found.</div>
-  <div class="headline">{headline}</div>
-  <div class="score-label">{score_label}</div>
-  <div class="scorebar">
-    <div class="score-num">{score}<small>/100</small></div>
-    <div><div class="score-verdict">{escape(band['verdict'])}</div>
-    <div class="score-sub">{escape(band['summary'])}</div></div>
+  <div class="salute">Dear {escape(salute_name) if salute_name else "the partners"},</div>
+  <p class="lead">We ran {brand} through the same checks the AI search engines now use when someone asks them to recommend {noun}. Here is what they found.</p>
+  <div class="hero">
+    <div class="hero-score"><div class="k">AI Visibility</div>
+      <div class="num">{score}<small>/100</small></div></div>
+    <div class="hero-body">
+      <div class="headline">{headline}</div>
+      <div class="verdict">{escape(band['verdict'])}</div>
+    </div>
   </div>
-  <div class="eyebrow">What the checks found</div>
-  {prob_html}
-  <div class="foot"><span>AI search visibility report: {brand}</span><span>GEO SLAB by Antek Automation</span></div>
-</section>
-
-<section class="page">
-  <div class="eyebrow">First, the good news</div>
-  <div class="h">What you are already doing right</div>
-  <ul class="tick">{work_html}</ul>
-  <div class="h" style="margin-top:9mm;">What the free walkthrough covers</div>
-  <p style="font-size:10.5pt; line-height:1.45; margin-bottom:4mm;">This letter is a short summary. Book a free 15-minute walkthrough and I will show you:</p>
-  <ul class="covers">{covers_html}</ul>
-  <p style="font-size:9.5pt; line-height:1.4; color:#555; margin-top:4mm;">The detailed technical report your web team needs to make the fixes is a paid follow-on. We can talk about that on the call if it is useful.</p>
+  <div class="sec-label">What the checks found</div>
+  <div class="checks">{checks_html}</div>
   <div class="cta">
     {qr_block}
-    <div><div class="cta-t">Scan to book your free 15-minute walkthrough</div>
-    <div class="cta-d">No slides, no pitch. I walk you through your results and the two or three fixes that would make the biggest difference.{call_line}</div></div>
+    <div><div class="cta-t">Scan to book a free 15-minute walkthrough</div>
+    <div class="cta-d">No slides, no pitch. I show you your score across all six visibility areas, which of the nine AI engines you are missing from, and the three fixes worth doing first.</div></div>
   </div>
-  <div class="signoff">Kind regards,<br><br><strong>{escape(sign_name)}</strong><br>{escape(sender['name'])}<br>{sign_contact}</div>
-  <div class="foot"><span>{escape(dom)}</span><span>GEO SLAB by Antek Automation</span></div>
+  <div class="signoff"><div class="rk">Kind regards,</div>
+    <div class="nm">{escape(sign_name)}</div>
+    <div class="rl">Antek Automation</div></div>
+  <div class="foot"><span>AI search visibility report &middot; {escape(dom)}</span>
+    <span class="r">GEO SLAB by Antek Automation</span></div>
 </section>
 </body></html>"""
 

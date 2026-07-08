@@ -114,15 +114,12 @@ def _review_flag(p: dict, msg: str) -> None:
 
 
 def _headline(noun: str, top: str | None, missing: list, present: list) -> str:
-    """The outcome-led opening finding: where the enquiry goes, not a metric."""
+    """The outcome-led opening finding: where the enquiry goes, not a metric.
+    Kept short to sit in the hero headline box."""
     if top:
-        return (f"Ask the AI engines to recommend {noun} and they put {top} "
-                "in front of the enquiry, not you.")
+        return f"Ask AI to recommend {noun} and it names {top}, not you."
     if missing:
-        n = len(missing)
-        engines = "engine" if n == 1 else "engines"
-        return (f"Ask the AI engines to recommend {noun} and you are not the "
-                f"answer on {n} of the {engines} we checked.")
+        return f"Ask AI to recommend {noun} and you are not the answer it gives."
     return f"When people ask AI to recommend {noun}, you are hard to find."
 
 
