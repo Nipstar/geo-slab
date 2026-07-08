@@ -67,12 +67,17 @@ def render_html(result: dict) -> str:
         </div>""")
     grid = "\n".join(cards)
 
-    # Competitors
-    if result["competitors"]:
+    # Competitors — gate to genuine rival firms only: no directories, no page
+    # labels, and never the prospect's own name variant (self-mention).
+    import prospect_config
+    valid_names = set(prospect_config.valid_competitors(
+        [c["name"] for c in result["competitors"]], brand=result["company"]))
+    comps = [c for c in result["competitors"] if c["name"] in valid_names]
+    if comps:
         rows = "\n".join(
             f'<li><span class="comp-name">{e(c["name"])}</span>'
             f'<span class="comp-count">named {c["mentions"]}×</span></li>'
-            for c in result["competitors"]
+            for c in comps
         )
         competitors_block = f"""
         <section class="block">

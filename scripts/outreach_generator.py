@@ -75,8 +75,9 @@ def result_sentence(check: dict | None) -> str:
             f"{tested - mentioned} didn't mention you at all.")
 
 
-def competitor_sentence(check: dict | None) -> str:
-    """Only name a validated real firm, never a directory or page heading."""
+def competitor_sentence(check: dict | None, brand: str = "") -> str:
+    """Only name a validated real firm, never a directory, page heading, or the
+    prospect's own name variant."""
     if not check:
         return ""
     try:
@@ -84,7 +85,7 @@ def competitor_sentence(check: dict | None) -> str:
     except (ValueError, TypeError):
         comps = []
     names = [c.get("name") for c in comps if c.get("name")]
-    top = prospect_config.first_valid_competitor(names)
+    top = prospect_config.first_valid_competitor(names, brand=brand)
     if not top:
         return ""
     return f" When you were not recommended, {top} came up instead."
@@ -113,7 +114,7 @@ def build_email(p: dict, check: dict | None) -> tuple[str, str]:
 
 I run Antek Automation. I checked how {company} shows up when someone asks ChatGPT, Gemini or Perplexity to recommend {noun}{where}, the searches that increasingly happen instead of a Google search.
 
-{result_sentence(check)}{competitor_sentence(check)}{score_line(check)}
+{result_sentence(check)}{competitor_sentence(check, brand=p.get("company", ""))}{score_line(check)}
 
 Worth a free 15-minute walkthrough? I will show you what each engine actually says about you and the two or three changes that would help most. No slides, no pitch.
 

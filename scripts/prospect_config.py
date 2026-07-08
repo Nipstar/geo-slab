@@ -152,12 +152,40 @@ def is_valid_competitor(name: str) -> bool:
     return all(t[:1].isupper() for t in toks)
 
 
-def first_valid_competitor(names: list[str]) -> str | None:
-    """First name in priority order that passes the gate, else None."""
+def _core_tokens(name: str) -> set:
+    """Distinctive tokens of a firm name: drop category words, legal suffixes,
+    and filler so 'Lawrence Young Accountants' -> {lawrence, young}."""
+    toks = [t for t in re.split(r"[^a-z0-9]+", (name or "").lower()) if t]
+    drop = CATEGORY_WORDS | {"ltd", "limited", "llp", "plc", "co", "the", "and",
+                             "group", "associates", "partners"}
+    return {t for t in toks if t not in drop and len(t) > 1}
+
+
+def is_self_mention(competitor: str, brand: str) -> bool:
+    """True when 'competitor' is really the prospect's own name (a GBP/listing
+    variant): distinctive tokens of one are a subset of the other. Stops a firm
+    being listed as its own rival ('Lawrence Young Ltd' for Lawrence Young
+    Accountants, 'TaxAssist Accountants Basingstoke' for TaxAssist)."""
+    cc, bc = _core_tokens(competitor), _core_tokens(brand)
+    if not cc or not bc:
+        return False
+    shared = cc & bc
+    return bool(shared) and (shared == cc or shared == bc)
+
+
+def first_valid_competitor(names: list[str], brand: str = "") -> str | None:
+    """First name in priority order that passes the gate and is not the
+    prospect's own name variant, else None."""
     for n in names:
-        if is_valid_competitor(n):
+        if is_valid_competitor(n) and not (brand and is_self_mention(n, brand)):
             return n.strip().rstrip(".").strip()
     return None
+
+
+def valid_competitors(names: list[str], brand: str = "") -> list[str]:
+    """All names passing the gate, self-mentions of `brand` removed, order kept."""
+    return [n.strip().rstrip(".").strip() for n in names
+            if is_valid_competitor(n) and not (brand and is_self_mention(n, brand))]
 
 
 # ── Company-name cleaning ───────────────────────────────────────────────────
@@ -282,6 +310,15 @@ def _demo() -> None:
 
     assert is_in_universe("HWB Accountants", ["HWB Accountants Ltd", "Troy"])
     assert not is_in_universe("BDO LLP", ["Troy", "Switch"])
+
+    # brand-aware: a firm's own name variant is not a rival
+    assert is_self_mention("Lawrence Young Ltd", "Lawrence Young Accountants")
+    assert is_self_mention("TaxAssist Accountants Basingstoke", "TaxAssist Accountants")
+    assert not is_self_mention("HWB Accountants", "Lawrence Young Accountants")
+    assert first_valid_competitor(["Lawrence Young Ltd", "HWB Accountants"],
+                                  brand="Lawrence Young Accountants") == "HWB Accountants"
+    assert valid_competitors(["TaxAssist Accountants Basingstoke", "Bishop Fleming"],
+                             brand="TaxAssist Accountants") == ["Bishop Fleming"]
 
     # company-name cleaning: strip GBP cruft, keep real names untouched
     assert clean_company_name("The Accounting Studio - Accountant Southampton",

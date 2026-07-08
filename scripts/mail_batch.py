@@ -155,7 +155,7 @@ def synth_data(p: dict, check: dict | None) -> dict:
     # candidates existed but none survive, say what actually happened instead of
     # fabricating a rival (spec fix 1).
     raw_comps = [c.get("name", "") for c in competitors if c.get("name")]
-    top = prospect_config.first_valid_competitor(raw_comps)
+    top = prospect_config.first_valid_competitor(raw_comps, brand=p.get("company", ""))
     if top:
         problems.append({
             "title": "Competitors are being recommended in your place",
