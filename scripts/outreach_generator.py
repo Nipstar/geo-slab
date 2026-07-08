@@ -32,6 +32,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import db  # noqa: E402
+import prospect_config  # noqa: E402
 
 SENDER_NAME = os.environ.get("OUTREACH_SENDER", "Andrew Norman")
 SENDER_WEB = os.environ.get("OUTREACH_WEB", "antekautomation.com")
@@ -59,22 +60,23 @@ def trade_word(industry: str) -> str:
 def result_sentence(check: dict | None) -> str:
     """One plain sentence describing the free-check outcome."""
     if not check:
-        return ("I haven't run your check yet — it takes about a minute and "
+        return ("I haven't run your check yet. It takes about a minute and "
                 "shows exactly what each engine says when someone asks for a recommendation.")
     tested = check.get("platforms_tested") or 0
     mentioned = check.get("mentioned_count") or 0
     if tested == 0:
         return "The engines didn't return a clean result, which is itself worth a look."
     if mentioned == 0:
-        return f"None of the four recommended you — you didn't come up at all."
+        return "None of the four recommended you. You did not come up at all."
     if mentioned == tested:
-        return (f"You came up on all {tested}, which is rare — the gap is in "
+        return (f"You came up on all {tested}, which is rare. The gap is in "
                 "how clearly they can describe what you do.")
     return (f"{mentioned} of the {tested} recommended you; the other "
             f"{tested - mentioned} didn't mention you at all.")
 
 
 def competitor_sentence(check: dict | None) -> str:
+    """Only name a validated real firm, never a directory or page heading."""
     if not check:
         return ""
     try:
@@ -82,30 +84,38 @@ def competitor_sentence(check: dict | None) -> str:
     except (ValueError, TypeError):
         comps = []
     names = [c.get("name") for c in comps if c.get("name")]
-    if not names:
+    top = prospect_config.first_valid_competitor(names)
+    if not top:
         return ""
-    top = names[0]
-    return f" When you weren't recommended, {top} came up instead."
+    return f" When you were not recommended, {top} came up instead."
+
+
+def score_line(check: dict | None) -> str:
+    """One short figure with its honest label (AI visibility, not overall)."""
+    if not check:
+        return ""
+    s = check.get("visibility_score")
+    if s is None:
+        return ""
+    return f" Your AI visibility score came out at {int(s)} out of 100."
 
 
 def build_email(p: dict, check: dict | None) -> tuple[str, str]:
     company = p.get("company") or "your firm"
     town = p.get("postcode_town") or p.get("address_town") or _town(p)
-    trade = trade_word(p.get("industry", ""))
+    noun = prospect_config.noun_phrase(p.get("industry", ""))
     fname = first_name(p.get("director_name", ""))
     greeting = f"Hi {fname}," if fname else "Hello,"
     where = f" in {town}" if town else ""
 
-    subject = f"Is {company} showing up when people ask AI for a {trade}{where}?"
+    subject = f"{company} isn't coming up when AI recommends {noun}"
     body = f"""{greeting}
 
-I run Antek Automation. We look at how local firms show up when someone asks ChatGPT, Gemini, Perplexity or Google's AI to recommend a {trade}{where} — the searches that increasingly happen instead of a Google search.
+I run Antek Automation. I checked how {company} shows up when someone asks ChatGPT, Gemini or Perplexity to recommend {noun}{where}, the searches that increasingly happen instead of a Google search.
 
-I ran {company} through those four engines. {result_sentence(check)}{competitor_sentence(check)}
+{result_sentence(check)}{competitor_sentence(check)}{score_line(check)}
 
-None of this is a hard fix, and most of the value sits in a couple of changes.
-
-Worth a free 15-minute walkthrough? I'll show you what each engine actually says about you and the two or three things that would help most. No slides, no pitch.
+Worth a free 15-minute walkthrough? I will show you what each engine actually says about you and the two or three changes that would help most. No slides, no pitch.
 
 {CTA_URL}
 
@@ -118,16 +128,16 @@ Antek Automation
 
 def build_linkedin(p: dict, check: dict | None) -> str:
     company = p.get("company") or "your firm"
-    trade = trade_word(p.get("industry", ""))
+    noun = prospect_config.noun_phrase(p.get("industry", ""))
     fname = first_name(p.get("director_name", ""))
-    hi = f"Hi {fname} — " if fname else "Hi — "
+    hi = f"Hi {fname}, " if fname else "Hi, "
     note = (f"{hi}I checked how {company} shows up when people ask AI (ChatGPT, "
-            f"Gemini, Perplexity) to recommend a {trade}. Happy to share the "
-            f"2-minute summary if it's useful.")
+            f"Gemini, Perplexity) to recommend {noun}. Happy to share the "
+            f"short summary if it is useful.")
     if len(note) > LINKEDIN_LIMIT:
         # ponytail: drop the company clause first — it's the longest optional bit
         note = (f"{hi}I checked how you show up when people ask AI to recommend "
-                f"a {trade}. Happy to share the 2-minute summary if useful.")
+                f"{noun}. Happy to share the short summary if useful.")
     return note[:LINKEDIN_LIMIT]
 
 
@@ -158,24 +168,32 @@ def generate_for(ref: str, out_dir: Path | None, dry_run: bool = False) -> dict 
         return None
 
     check = db.latest_check(p["pk"])
+    # PECR routing: email only fires for the email-eligible segment (corporate,
+    # channel set to 'email' by companies_house.channel_for). Sole traders /
+    # letter-routed prospects get LinkedIn only, never a cold email.
+    email_eligible = (p.get("outreach_channel") or "letter") == "email"
     subject, email_body = build_email(p, check)
     li_note = build_linkedin(p, check)
 
     if not dry_run:
-        db.insert_outreach({"prospect_id": p["pk"], "channel": "email",
-                            "subject": subject, "body": email_body})
+        if email_eligible:
+            db.insert_outreach({"prospect_id": p["pk"], "channel": "email",
+                                "subject": subject, "body": email_body})
         db.insert_outreach({"prospect_id": p["pk"], "channel": "linkedin",
                             "subject": "", "body": li_note})
 
     if out_dir:
         out_dir.mkdir(parents=True, exist_ok=True)
+        email_md = (f"## Email\n\n**Subject:** {subject}\n\n{email_body}\n\n"
+                    if email_eligible
+                    else "## Email\n\n_Skipped: prospect is letter-routed (PECR), not email-eligible._\n\n")
         md = (f"# Outreach — {p.get('company')} ({ref})\n\n"
-              f"## Email\n\n**Subject:** {subject}\n\n{email_body}\n\n"
+              f"{email_md}"
               f"## LinkedIn connect note ({len(li_note)}/{LINKEDIN_LIMIT})\n\n{li_note}\n")
         (out_dir / f"OUTREACH-{ref}.md").write_text(md, encoding="utf-8")
 
     return {"ref": ref, "company": p.get("company"), "subject": subject,
-            "linkedin_len": len(li_note)}
+            "email_eligible": email_eligible, "linkedin_len": len(li_note)}
 
 
 def run(refs: list[str], out_dir: Path | None, dry_run: bool) -> list[dict]:
@@ -235,19 +253,30 @@ def _demo() -> None:
         p = db.insert_prospect({"company": "Acme Plumbing Ltd", "domain": "acme.co.uk",
                                 "industry": "plumbers", "director_name": "BARCOCK, Kevin",
                                 "address": "5 High St, Basingstoke RG21 7QW, UK",
-                                "status": "checked"})
+                                "outreach_channel": "email", "status": "checked"})
         db.insert_check({"prospect_id": p["pk"], "platforms_tested": 4,
                          "mentioned_count": 1, "visibility_score": 25,
-                         "competitors_json": json.dumps([{"name": "PlumbCo", "mentions": 3}])})
+                         "competitors_json": json.dumps([{"name": "Google Maps Search"},
+                                                         {"name": "Rival Plumbing Ltd"}])})
 
         subj, body = build_email(db.get_prospect(p["id"]), db.latest_check(p["pk"]))
-        assert "Kevin" in body and "Basingstoke" in subj and "plumber" in subj
-        assert "PlumbCo came up instead" in body
-        assert "3 of the 4 recommended you" not in body  # 1 mentioned -> other 3
+        assert "Kevin" in body and "Acme Plumbing Ltd" in subj
+        assert "a firm like yours" in subj  # plumbers noun phrase, not "a plumber"
+        assert "Basingstoke" in body
+        # competitor gate: skips the directory, names the real firm
+        assert "Rival Plumbing Ltd came up instead" in body
+        assert "Google Maps Search" not in body
+        assert "25 out of 100" in body  # honest AI-visibility label
         assert "the other 3 didn't mention you" in body
 
         li = build_linkedin(db.get_prospect(p["id"]), db.latest_check(p["pk"]))
         assert len(li) <= LINKEDIN_LIMIT and "Kevin" in li
+
+        # letter-routed prospect -> no email row, LinkedIn only (PECR)
+        pl = db.insert_prospect({"company": "Sole Trader Plumbing", "industry": "plumbers",
+                                 "outreach_channel": "letter", "status": "checked"})
+        r = generate_for(pl["id"], None)
+        assert r and r["email_eligible"] is False
 
         # no-check prospect -> soft copy, no fabricated result
         p2 = db.insert_prospect({"company": "Beta Ltd", "industry": "electricians"})

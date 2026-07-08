@@ -38,6 +38,11 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import db  # noqa: E402
 import render_prospect_mailer as mailer  # noqa: E402
+import prospect_config  # noqa: E402
+
+# Score-0-with-positive-signals flags collected during a run, written to
+# REVIEW.md so a probable scorer artefact never ships silently (spec fix 4).
+REVIEW_FLAGS: list[str] = []
 
 UK_POSTCODE = re.compile(r"([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})", re.I)
 
@@ -102,6 +107,25 @@ def parse_address(address: str, postcode: str) -> dict:
             "postcode": pc.upper(), "country": "United Kingdom"}
 
 
+def _review_flag(p: dict, msg: str) -> None:
+    line = f"{p.get('id') or p.get('ref') or '?'} {p.get('company', '?')}: {msg}"
+    REVIEW_FLAGS.append(line)
+    print(f"  REVIEW: {line}", file=sys.stderr)
+
+
+def _headline(noun: str, top: str | None, missing: list, present: list) -> str:
+    """The outcome-led opening finding: where the enquiry goes, not a metric."""
+    if top:
+        return (f"Ask the AI engines to recommend {noun} and they put {top} "
+                "in front of the enquiry, not you.")
+    if missing:
+        n = len(missing)
+        engines = "engine" if n == 1 else "engines"
+        return (f"Ask the AI engines to recommend {noun} and you are not the "
+                f"answer on {n} of the {engines} we checked.")
+    return f"When people ask AI to recommend {noun}, you are hard to find."
+
+
 def synth_data(p: dict, check: dict | None) -> dict:
     """Build the mailer's prospect-data.json from the free-check result."""
     import json
@@ -119,51 +143,81 @@ def synth_data(p: dict, check: dict | None) -> dict:
 
     missing = [pl["platform"] for pl in platforms if pl.get("tested") and not pl.get("mentioned")]
     present = [pl["platform"] for pl in platforms if pl.get("mentioned")]
+    noun = prospect_config.noun_phrase(p.get("industry", ""))
 
     problems = []
     for plat in missing[:2]:
         problems.append({
             "title": f"Invisible on {plat}",
-            "body": f"Ask {plat} to recommend a firm like yours and you don't come up. "
+            "body": f"Ask {plat} to recommend {noun} and you do not come up. "
                     "The enquiry goes to whoever it names instead.",
         })
-    if competitors:
-        top = competitors[0].get("name", "a competitor")
+
+    # Competitor gate: only a validated real firm reaches the letter. Junk the
+    # extractor sometimes stores (directories, page headings) is suppressed. If
+    # candidates existed but none survive, say what actually happened instead of
+    # fabricating a rival (spec fix 1).
+    raw_comps = [c.get("name", "") for c in competitors if c.get("name")]
+    top = prospect_config.first_valid_competitor(raw_comps)
+    if top:
         problems.append({
             "title": "Competitors are being recommended in your place",
-            "body": f"When the engines answered, {top} came up instead of you — "
-                    "repeatedly, across different questions.",
+            "body": f"When the engines answered, {top} came up instead of you, "
+                    "across several different questions.",
         })
+    elif raw_comps:
+        problems.append({
+            "title": "The engines point to directories, not firms",
+            "body": f"Asked to recommend {noun}, the engines returned review sites "
+                    "and general advice rather than a named firm like yours.",
+        })
+
     if not problems:
         problems.append({
-            "title": "How you're described is thin",
-            "body": "The engines can find you but can't confidently say what you do "
+            "title": "How you are described is thin",
+            "body": "The engines can find you but cannot confidently say what you do "
                     "or who you serve, so they hedge or skip you.",
         })
 
+    # Positives derived from real signals, so they can never invert against the
+    # score (spec fix 4): only claim a live site if we hold a URL, only claim
+    # consistent details if we hold address/postcode or a phone.
     working = [f"{plat} does mention you by name" for plat in present[:3]]
     if not working:
-        working = ["You have a live website the engines can reach",
-                   "Your business details are consistent enough to match"]
+        working = []
+        if p.get("website"):
+            working.append("You have a live website the engines can reach")
+        if (p.get("address") and p.get("postcode")) or p.get("phone"):
+            working.append("Your business details are consistent enough for the engines to match")
+        if not working:
+            working.append("Your listing is active and can be built on")
+
+    score = int(check.get("visibility_score", 0)) if check else 0
+    if score == 0 and (p.get("website") or present):
+        _review_flag(p, "score is 0 but positive signals exist (live site / platform "
+                        "mention) — verify the scorer or relabel before sending")
 
     return {
         "brand_name": p.get("company", "your firm"),
         "url": p.get("website") or p.get("domain") or "",
         "industry": p.get("industry", ""),
-        "geo_score": int(check.get("visibility_score", 0)) if check else 0,
+        "geo_score": score,
+        "score_label": "AI visibility score",
+        "headline": _headline(noun, top, missing, present),
         "top_problems": problems,
         "working": working,
         "cta_url": os.environ.get("OUTREACH_CTA", "https://antekautomation.com/contact"),
     }
 
 
-def render_letter(data: dict, director: str, recipient: list[str], out_dir: Path,
+def render_letter(data: dict, salute: str, recipient: list[str], out_dir: Path,
                   qr_url: str) -> Path:
-    sender = {"name": "Antek Automation", "details": "Antek Automation, Hampshire, UK",
+    sender = {"name": "Antek Automation",
+              "details": "Chantry House, 38 Chantry Way\nAndover SP10 1LZ",
               "phone": os.environ.get("OUTREACH_PHONE", "0333 038 9960"),
               "web": os.environ.get("OUTREACH_WEB", "antekautomation.com")}
     qr_uri = mailer.qr_data_uri(qr_url)
-    html = mailer.build_html(data, director, recipient, qr_uri, qr_url, sender, "Andrew Norman")
+    html = mailer.build_html(data, salute, recipient, qr_uri, qr_url, sender, "Andrew Norman")
     dom = mailer.domain_of(data.get("url", "letter")) or "letter"
     html_path = out_dir / f"LETTER-{dom}.html"
     html_path.write_text(html, encoding="utf-8")
@@ -187,6 +241,7 @@ def build_row(p: dict, pdf_file: str) -> dict:
 
 def run(refs: list[str], out_dir: Path, force_channel: bool, no_pdf: bool) -> list[dict]:
     out_dir.mkdir(parents=True, exist_ok=True)
+    REVIEW_FLAGS.clear()
     qr_url = os.environ.get("OUTREACH_CTA", "https://antekautomation.com/contact")
     rows = []
     for ref in refs:
@@ -203,13 +258,16 @@ def run(refs: list[str], out_dir: Path, force_channel: bool, no_pdf: bool) -> li
 
         check = db.latest_check(p["pk"])
         data = synth_data(p, check)
-        director = reformat_director(p.get("director_name", ""))
+        # Envelope shows the proper full name ("Craig Fisher"); the salutation
+        # uses the first name only ("Dear Craig,") — spec fix 3.
+        full_name = reformat_director(p.get("director_name", ""))
+        salute = split_name(p.get("director_name", ""))[0]
         addr = parse_address(p.get("address", ""), p.get("postcode", ""))
-        recipient = [x for x in [p.get("company", ""), addr["address1"], addr["address2"],
+        recipient = [x for x in [full_name, p.get("company", ""), addr["address1"], addr["address2"],
                                  f"{addr['city']} {addr['postcode']}".strip()] if x]
         pdf_file = f"LETTER-{mailer.domain_of(data.get('url','letter')) or ref}.pdf"
         if not no_pdf:
-            pdf_path = render_letter(data, director, recipient, out_dir, qr_url)
+            pdf_path = render_letter(data, salute, recipient, out_dir, qr_url)
             pdf_file = pdf_path.name
 
         db.insert_outreach({"prospect_id": p["pk"], "channel": "letter",
@@ -227,6 +285,16 @@ def run(refs: list[str], out_dir: Path, force_channel: bool, no_pdf: bool) -> li
         print(f"\n{len(rows)} letter(s) + {csv_path}")
     else:
         print("\nNo letters produced.")
+
+    if REVIEW_FLAGS:
+        review_path = out_dir / "REVIEW.md"
+        review_path.write_text(
+            "# Review before sending\n\n"
+            "These prospects scored 0 but show positive signals, which usually "
+            "means the score is mislabelled or the scorer undercounted. Check each "
+            "before a paid send.\n\n"
+            + "".join(f"- {f}\n" for f in REVIEW_FLAGS), encoding="utf-8")
+        print(f"{len(REVIEW_FLAGS)} prospect(s) flagged for review → {review_path}")
     return rows
 
 
@@ -289,17 +357,33 @@ def _demo() -> None:
                  {"platform": "Gemini", "tested": True, "mentioned": False},
                  {"platform": "Perplexity", "tested": True, "mentioned": True},
              ]),
-             "competitors_json": json.dumps([{"name": "PlumbCo", "mentions": 3}])}
+             "competitors_json": json.dumps([{"name": "Rival Plumbing Ltd", "mentions": 3}])}
     data = synth_data(p, check)
     assert data["geo_score"] == 25
+    assert data["score_label"] == "AI visibility score"
+    assert "a firm like yours" in data["headline"], data["headline"]  # plumbers noun phrase
     titles = [x["title"] for x in data["top_problems"]]
     assert any("Invisible on ChatGPT" in t for t in titles), titles
     assert any("Competitors" in t for t in titles), titles
     assert any("Perplexity" in w for w in data["working"]), data["working"]
 
+    # competitor gate: junk-only competitor list -> truthful line, never a fake firm
+    junk = dict(check, competitors_json=json.dumps([{"name": "Hourly Rates"},
+                                                    {"name": "Google Maps Search"}]))
+    jtitles = [x["title"] for x in synth_data(p, junk)["top_problems"]]
+    assert any("directories" in t for t in jtitles), jtitles
+    assert not any("Competitors are being recommended" in t for t in jtitles), jtitles
+
     # no check -> still safe defaults, score 0
     d0 = synth_data(p, None)
     assert d0["geo_score"] == 0 and d0["top_problems"] and d0["working"]
+
+    # positives never invert against a 0 score: a live-site signal is required
+    # to claim a live site, not hardcoded.
+    d_site = synth_data({"company": "X Ltd", "website": "https://x.co.uk", "industry": "plumbers"}, None)
+    assert any("live website" in w for w in d_site["working"]), d_site["working"]
+    d_bare = synth_data({"company": "Y Ltd", "industry": "plumbers"}, None)
+    assert not any("live website" in w for w in d_bare["working"]), d_bare["working"]
 
     # end-to-end CSV row build + suppression skip (no PDF render)
     with tempfile.TemporaryDirectory() as tmp:

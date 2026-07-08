@@ -17,28 +17,29 @@ from __future__ import annotations
 # ── Score band copy ─────────────────────────────────────────────────────────
 # Verdict = the headline that sits next to the big score.
 # Summary = the supporting paragraph immediately below.
-# Bands match: 80+, 60-79, 40-59, 0-39.
+# Bands match: 75+, 50-74, 25-49, 0-24. Factual, no pressure language, no em
+# dashes, "enquiries" not "instructions" (spec fixes 5 + 7).
 
 SCORE_BANDS = [
     {
-        "min": 80,
-        "verdict": "Top 20% on the basics. The next move is worth real money.",
-        "summary": "You've done the technical groundwork most haven't. What's missing is the authority signals that turn 'found' into 'cited'.",
+        "min": 75,
+        "verdict": "Strong, with a small number of fixes left.",
+        "summary": "AI engines can find, understand and cite you across most of the checks. The gaps that remain are few and specific.",
     },
     {
-        "min": 60,
-        "verdict": "You're showing up sometimes. Your competitors are showing up more often.",
-        "summary": "Your foundations are functional but AI engines can't confirm who you are. Brand signals and citable content are the missing pieces.",
+        "min": 50,
+        "verdict": "Reasonable footing, with specific gaps costing citations.",
+        "summary": "AI engines can place you, but a handful of gaps are handing citations to firms that have closed them.",
     },
     {
-        "min": 40,
-        "verdict": "AI engines see your site but skip past it. The fixes are specific.",
-        "summary": "Multiple gaps. Competitors with better GEO are taking the AI-driven enquiries that should be yours.",
+        "min": 25,
+        "verdict": "Partial visibility. Present on some engines, missing from others.",
+        "summary": "AI engines find you in places, but cannot yet confirm who you are consistently enough to recommend you every time.",
     },
     {
         "min": 0,
-        "verdict": "AI search is happening without you. Every week this continues, instructions go elsewhere.",
-        "summary": "Critical gaps across the basics. AI engines can't reliably find, understand, or cite your firm.",
+        "verdict": "The AI engines cannot reliably find, understand or cite you yet.",
+        "summary": "Significant gaps across the basics. When people ask AI to recommend a firm, the enquiries are going elsewhere.",
     },
 ]
 
@@ -55,9 +56,9 @@ def score_band(score: int) -> dict:
 # Bands match SCORE_BANDS. Used for "62/100 — Fair" style call-outs.
 
 SCORE_LABELS = [
-    (80, "Good"),
-    (60, "Fair"),
-    (40, "Poor"),
+    (75, "Good"),
+    (50, "Fair"),
+    (25, "Poor"),
     (0,  "Critical"),
 ]
 

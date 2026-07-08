@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from style import score_band  # noqa: E402
+import prospect_config  # noqa: E402
 
 COVERS = [
     "Where you're losing AI-driven enquiries, in plain English",
@@ -47,14 +48,14 @@ def domain_of(url: str) -> str:
     return url.replace("https://", "").replace("http://", "").replace("www.", "").rstrip("/").split("/")[0]
 
 
-def build_html(d: dict, director: str, recipient: list[str], qr_uri: str, qr_url: str,
+def build_html(d: dict, salute_name: str, recipient: list[str], qr_uri: str, qr_url: str,
                sender: dict, sign_name: str) -> str:
     brand = escape(d.get("brand_name", "your firm"))
-    _ind = (d.get("industry") or "").strip()
-    trade = escape(_ind.rstrip("s") if _ind else "business like yours")
-    art = "an" if trade[:1].lower() in "aeiou" else "a"  # a/an by leading vowel
+    noun = escape(prospect_config.noun_phrase(d.get("industry") or ""))
     score = int(d.get("geo_score", 0))
     band = score_band(score)
+    score_label = escape(d.get("score_label", "AI visibility score"))
+    headline = escape(d.get("headline", ""))
     problems = d.get("top_problems", [])[:3]
     working = d.get("working", [])[:3]
     date = datetime.now().strftime("%-d %B %Y")
@@ -68,11 +69,12 @@ def build_html(d: dict, director: str, recipient: list[str], qr_uri: str, qr_url
     work_html = "".join(f'<li>{escape(w)}</li>' for w in working)
     covers_html = "".join(f'<li>{escape(c)}</li>' for c in COVERS)
     recip_html = "<br>".join(escape(x) for x in recipient if x)
-    salute = escape(director) if director else "the partners"
+    sender_details = "<br>".join(escape(x) for x in sender.get("details", "").split("\n") if x)
+    salute = escape(salute_name) if salute_name else "the partners"
     qr_block = (f'<img class="qr" src="{qr_uri}" alt="QR code">' if qr_uri
                 else f'<div class="qr-fallback">{escape(qr_url)}</div>')
     phone = sender.get("phone", "").strip()
-    call_line = f" Or call us on {escape(phone)}." if phone else ""
+    call_line = f" Or call {escape(phone)}." if phone else ""
     sign_contact = " &nbsp;&middot;&nbsp; ".join(
         x for x in [escape(phone) if phone else "", escape(sender['web'])] if x)
 
@@ -90,7 +92,9 @@ html,body {{ font-family:'Helvetica Neue',Arial,sans-serif; color:var(--ink); ba
 .sender strong {{ color:var(--ink); font-size:9.5pt; }}
 .date {{ font-size:9.5pt; color:#444; margin-bottom:6mm; }}
 .salute {{ font-size:12pt; margin-bottom:4mm; }}
-.lead {{ font-size:11pt; line-height:1.5; margin-bottom:7mm; }}
+.lead {{ font-size:11pt; line-height:1.5; margin-bottom:6mm; }}
+.headline {{ font-size:13.5pt; font-weight:800; line-height:1.4; margin-bottom:6mm; }}
+.score-label {{ font-size:8pt; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:#555; margin-bottom:2mm; }}
 .scorebar {{ display:flex; align-items:center; gap:6mm; border:var(--bd); box-shadow:5px 5px 0 #000; padding:6mm 7mm; margin-bottom:6mm; background:var(--cream); }}
 .score-num {{ font-size:46pt; font-weight:800; color:var(--coral); line-height:0.9; }}
 .score-num small {{ font-size:15pt; color:var(--ink); font-weight:700; }}
@@ -120,33 +124,35 @@ ul.covers li::before {{ content:"\\2192"; position:absolute; left:0; color:var(-
 <section class="page">
   <div class="top">
     <div class="recipient">{recip_html}</div>
-    <div class="sender"><strong>{escape(sender['name'])}</strong><br>{escape(sender['details'])}</div>
+    <div class="sender"><strong>{escape(sender['name'])}</strong><br>{sender_details}</div>
   </div>
   <div class="date">{date}</div>
   <div class="salute">Dear {salute},</div>
-  <div class="lead">We ran {brand} through the same checks the AI search engines now use when someone asks them to recommend {art} {trade}. The result is below. It is not good news, but every gap is fixable, and most of the value is in a handful of quick changes.</div>
+  <div class="lead">We ran {brand} through the same checks the AI search engines now use when someone asks them to recommend {noun}. Here is what they found.</div>
+  <div class="headline">{headline}</div>
+  <div class="score-label">{score_label}</div>
   <div class="scorebar">
     <div class="score-num">{score}<small>/100</small></div>
     <div><div class="score-verdict">{escape(band['verdict'])}</div>
     <div class="score-sub">{escape(band['summary'])}</div></div>
   </div>
-  <div class="eyebrow">Three things costing you enquiries</div>
+  <div class="eyebrow">What the checks found</div>
   {prob_html}
-  <div class="foot"><span>AI search visibility report &mdash; {brand}</span><span>GEO SLAB by Antek Automation</span></div>
+  <div class="foot"><span>AI search visibility report: {brand}</span><span>GEO SLAB by Antek Automation</span></div>
 </section>
 
 <section class="page">
   <div class="eyebrow">First, the good news</div>
-  <div class="h">What you're already doing right</div>
+  <div class="h">What you are already doing right</div>
   <ul class="tick">{work_html}</ul>
   <div class="h" style="margin-top:9mm;">What the free walkthrough covers</div>
-  <p style="font-size:10.5pt; line-height:1.45; margin-bottom:4mm;">This letter is a two-minute summary. Book a free 15-minute walkthrough and I'll show you:</p>
+  <p style="font-size:10.5pt; line-height:1.45; margin-bottom:4mm;">This letter is a short summary. Book a free 15-minute walkthrough and I will show you:</p>
   <ul class="covers">{covers_html}</ul>
-  <p style="font-size:9.5pt; line-height:1.4; color:#555; margin-top:4mm;">The detailed technical report your web team needs to make the fixes is a paid follow-on &mdash; we can talk about that on the call if it's useful.</p>
+  <p style="font-size:9.5pt; line-height:1.4; color:#555; margin-top:4mm;">The detailed technical report your web team needs to make the fixes is a paid follow-on. We can talk about that on the call if it is useful.</p>
   <div class="cta">
     {qr_block}
     <div><div class="cta-t">Scan to book your free 15-minute walkthrough</div>
-    <div class="cta-d">No slides, no pitch &mdash; I walk you through your results and the two or three fixes that would move the needle most.{call_line}</div></div>
+    <div class="cta-d">No slides, no pitch. I walk you through your results and the two or three fixes that would make the biggest difference.{call_line}</div></div>
   </div>
   <div class="signoff">Kind regards,<br><br><strong>{escape(sign_name)}</strong><br>{escape(sender['name'])}<br>{sign_contact}</div>
   <div class="foot"><span>{escape(dom)}</span><span>GEO SLAB by Antek Automation</span></div>
@@ -162,7 +168,7 @@ def main():
     ap.add_argument("--recipient", default="", help="'|'-separated address lines")
     ap.add_argument("--qr-url", default="")
     ap.add_argument("--sender-name", default="Antek Automation")
-    ap.add_argument("--sender-details", default="Antek Automation\\nHampshire, UK")
+    ap.add_argument("--sender-details", default="Chantry House, 38 Chantry Way\nAndover SP10 1LZ")
     ap.add_argument("--phone", default="")
     ap.add_argument("--web", default="antekautomation.com")
     ap.add_argument("--sign-name", default="Andrew Norman")
@@ -172,7 +178,7 @@ def main():
     d = json.load(open(a.data, encoding="utf-8"))
     qr_url = a.qr_url or d.get("cta_url", "https://antekautomation.com/contact")
     recipient = [x.strip() for x in a.recipient.split("|")] if a.recipient else []
-    sender = {"name": a.sender_name, "details": a.sender_details.replace("\\n", ", "),
+    sender = {"name": a.sender_name, "details": a.sender_details.replace("\\n", "\n"),
               "phone": a.phone, "web": a.web}
     qr_uri = qr_data_uri(qr_url)
     html = build_html(d, a.director, recipient, qr_uri, qr_url, sender, a.sign_name)
