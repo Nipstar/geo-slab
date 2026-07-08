@@ -160,6 +160,69 @@ def first_valid_competitor(names: list[str]) -> str | None:
     return None
 
 
+# ── Company-name cleaning ───────────────────────────────────────────────────
+# GBP listing names carry SEO cruft: "The Accounting Studio - Accountant
+# Southampton", "Chartered Accountants Southampton Power Accountax". A letter
+# addressed to that reads like a scraped mail merge. Strip the category+town
+# cruft, keep the real firm name.
+CATEGORY_WORDS = {
+    "accountant", "accountants", "accountancy", "accounting", "chartered",
+    "bookkeeping", "bookkeeper", "bookkeepers", "tax", "taxation",
+    "dental", "dentist", "dentists", "orthodontist", "orthodontics",
+    "solicitor", "solicitors", "law", "legal", "conveyancing", "conveyancers",
+    "plumber", "plumbers", "plumbing", "electrician", "electricians",
+    "electrical", "roofing", "roofer", "roofers", "builder", "builders",
+    "building", "landscaper", "landscapers", "landscaping", "services",
+}
+
+
+def clean_company_name(name: str, town: str = "") -> str:
+    """Strip GBP category/location cruft from a listing name.
+
+    'The Accounting Studio - Accountant Southampton' -> 'The Accounting Studio'
+    'Chartered Accountants Southampton Power Accountax' -> 'Power Accountax'
+    Clean names ('Troy Accounting Ltd') are returned unchanged.
+    """
+    s = (name or "").strip()
+    if not s:
+        return s
+    tl = (town or "").strip().lower()
+
+    def _cat(tok: str) -> bool:
+        return tok.lower().strip(",.&()") in CATEGORY_WORDS
+
+    # 1) Drop any dash-separated segment that is nothing but category/town words
+    #    ("- Accountant Southampton"), keeping segments with a real token.
+    segs = re.split(r"\s+[-–—]\s+", s)
+    kept = []
+    for seg in segs:
+        toks = seg.split()
+        if any(not _cat(t) and t.lower().strip(",.&()") != tl for t in toks):
+            kept.append(seg)
+    s = " - ".join(kept) if kept else s
+
+    # 2) Remove the town token and any category words contiguous to it
+    #    (handles the prefix case with no dash).
+    if tl:
+        toks = s.split()
+        low = [t.lower().strip(",.&()") for t in toks]
+        drop = set()
+        for i, t in enumerate(low):
+            if t == tl:
+                drop.add(i)
+                j = i - 1
+                while j >= 0 and low[j] in CATEGORY_WORDS:
+                    drop.add(j); j -= 1
+                j = i + 1
+                while j < len(low) and low[j] in CATEGORY_WORDS:
+                    drop.add(j); j += 1
+        toks = [t for i, t in enumerate(toks) if i not in drop]
+        s = " ".join(toks)
+
+    s = s.strip(" -–—")
+    return s if s else (name or "").strip()
+
+
 def is_in_universe(name: str, cohort_names: list[str]) -> bool:
     """Positive booster: is this competitor one of the real firms already
     pulled for the campaign? Case-insensitive substring either direction."""
@@ -219,6 +282,18 @@ def _demo() -> None:
 
     assert is_in_universe("HWB Accountants", ["HWB Accountants Ltd", "Troy"])
     assert not is_in_universe("BDO LLP", ["Troy", "Switch"])
+
+    # company-name cleaning: strip GBP cruft, keep real names untouched
+    assert clean_company_name("The Accounting Studio - Accountant Southampton",
+                              "Southampton") == "The Accounting Studio"
+    assert clean_company_name("Mandair & Co - Accountants Southampton",
+                              "Southampton") == "Mandair & Co"
+    assert clean_company_name("Chartered Accountants Southampton Power Accountax",
+                              "Southampton") == "Power Accountax"
+    for clean in ["Troy Accounting Ltd", "Switch Accounting", "Genio Accountants",
+                  "CrunchWise Chartered Accountants", "Diamond Accounting (Southern) Ltd",
+                  "Ramji & Knight Chartered Accountants"]:
+        assert clean_company_name(clean, "Southampton") == clean, clean
     print("prospect_config self-check passed")
 
 

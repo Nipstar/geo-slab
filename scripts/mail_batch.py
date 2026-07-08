@@ -197,8 +197,9 @@ def synth_data(p: dict, check: dict | None) -> dict:
         _review_flag(p, "score is 0 but positive signals exist (live site / platform "
                         "mention) — verify the scorer or relabel before sending")
 
+    town = parse_address(p.get("address", ""), p.get("postcode", ""))["city"]
     return {
-        "brand_name": p.get("company", "your firm"),
+        "brand_name": prospect_config.clean_company_name(p.get("company", "") or "your firm", town),
         "url": p.get("website") or p.get("domain") or "",
         "industry": p.get("industry", ""),
         "geo_score": score,
@@ -233,7 +234,8 @@ def render_letter(data: dict, salute: str, recipient: list[str], out_dir: Path,
 def build_row(p: dict, pdf_file: str) -> dict:
     first, last = split_name(p.get("director_name", ""))
     addr = parse_address(p.get("address", ""), p.get("postcode", ""))
-    return {"firstname": first, "lastname": last, "company": p.get("company", ""),
+    company = prospect_config.clean_company_name(p.get("company", ""), addr["city"])
+    return {"firstname": first, "lastname": last, "company": company,
             "address1": addr["address1"], "address2": addr["address2"],
             "city": addr["city"], "postcode": addr["postcode"],
             "country": addr["country"], "ref": p.get("id", ""), "file": pdf_file}
@@ -263,7 +265,8 @@ def run(refs: list[str], out_dir: Path, force_channel: bool, no_pdf: bool) -> li
         full_name = reformat_director(p.get("director_name", ""))
         salute = split_name(p.get("director_name", ""))[0]
         addr = parse_address(p.get("address", ""), p.get("postcode", ""))
-        recipient = [x for x in [full_name, p.get("company", ""), addr["address1"], addr["address2"],
+        company_clean = prospect_config.clean_company_name(p.get("company", ""), addr["city"])
+        recipient = [x for x in [full_name, company_clean, addr["address1"], addr["address2"],
                                  f"{addr['city']} {addr['postcode']}".strip()] if x]
         pdf_file = f"LETTER-{mailer.domain_of(data.get('url','letter')) or ref}.pdf"
         if not no_pdf:

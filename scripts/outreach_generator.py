@@ -101,8 +101,8 @@ def score_line(check: dict | None) -> str:
 
 
 def build_email(p: dict, check: dict | None) -> tuple[str, str]:
-    company = p.get("company") or "your firm"
     town = p.get("postcode_town") or p.get("address_town") or _town(p)
+    company = prospect_config.clean_company_name(p.get("company") or "", town) or "your firm"
     noun = prospect_config.noun_phrase(p.get("industry", ""))
     fname = first_name(p.get("director_name", ""))
     greeting = f"Hi {fname}," if fname else "Hello,"
@@ -127,7 +127,7 @@ Antek Automation
 
 
 def build_linkedin(p: dict, check: dict | None) -> str:
-    company = p.get("company") or "your firm"
+    company = prospect_config.clean_company_name(p.get("company") or "", _town(p)) or "your firm"
     noun = prospect_config.noun_phrase(p.get("industry", ""))
     fname = first_name(p.get("director_name", ""))
     hi = f"Hi {fname}, " if fname else "Hi, "
