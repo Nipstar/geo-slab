@@ -48,16 +48,157 @@ def _art(word: str) -> str:
     return "an" if word[:1].lower() in "aeiou" else "a"
 
 
-def build_prompts(industry: str, town: str, county: str = "") -> list[str]:
-    """The 5 frozen discovery prompts (spec §7)."""
-    county = county or town
-    return [
-        f"Who is the best {industry} in {town}?",
-        f"Recommend {_art(industry)} {industry} near {town}",
-        f"I need {_art(industry)} {industry} in {county}, who should I call?",
-        f"{industry} {town} reviews — who do you recommend?",
-        f"Compare {industry}s in {town}",
-    ]
+# Raw category strings (landing form, Google Places, Companies House SIC
+# descriptions) mapped to what a real person actually types into ChatGPT.
+# Key = lowercased raw term. Value = (singular, plural). Keep UK vocabulary.
+TERM_MAP: dict[str, tuple[str, str]] = {
+    # professional services
+    "legal services": ("solicitor", "solicitors"),
+    "law firm": ("solicitor", "solicitors"),
+    "lawyer": ("solicitor", "solicitors"),
+    "solicitor": ("solicitor", "solicitors"),
+    "accounting": ("accountant", "accountants"),
+    "accountancy": ("accountant", "accountants"),
+    "accounting services": ("accountant", "accountants"),
+    "bookkeeping": ("bookkeeper", "bookkeepers"),
+    "financial services": ("financial adviser", "financial advisers"),
+    "financial advice": ("financial adviser", "financial advisers"),
+    "insurance": ("insurance broker", "insurance brokers"),
+    "insurance agency": ("insurance broker", "insurance brokers"),
+    "marketing": ("marketing agency", "marketing agencies"),
+    "marketing services": ("marketing agency", "marketing agencies"),
+    "recruitment": ("recruitment agency", "recruitment agencies"),
+    "it services": ("IT support company", "IT support companies"),
+    "it support": ("IT support company", "IT support companies"),
+    "architecture": ("architect", "architects"),
+    "surveying": ("surveyor", "surveyors"),
+    # property
+    "real estate": ("estate agent", "estate agents"),
+    "real estate agency": ("estate agent", "estate agents"),
+    "estate agency": ("estate agent", "estate agents"),
+    "letting agency": ("letting agent", "letting agents"),
+    "property management": ("property management company",
+                            "property management companies"),
+    # health
+    "dental": ("dentist", "dentists"),
+    "dental practice": ("dentist", "dentists"),
+    "dentistry": ("dentist", "dentists"),
+    "veterinary": ("vet", "vets"),
+    "veterinary practice": ("vet", "vets"),
+    "veterinary services": ("vet", "vets"),
+    "physiotherapy": ("physiotherapist", "physiotherapists"),
+    "optician": ("optician", "opticians"),
+    "chiropractic": ("chiropractor", "chiropractors"),
+    # trades
+    "plumbing": ("plumber", "plumbers"),
+    "plumbing services": ("plumber", "plumbers"),
+    "electrical": ("electrician", "electricians"),
+    "electrical services": ("electrician", "electricians"),
+    "roofing": ("roofer", "roofers"),
+    "building": ("builder", "builders"),
+    "construction": ("builder", "builders"),
+    "heating": ("heating engineer", "heating engineers"),
+    "heating services": ("heating engineer", "heating engineers"),
+    "landscaping": ("landscaper", "landscapers"),
+    "gardening": ("gardener", "gardeners"),
+    "cleaning": ("cleaning company", "cleaning companies"),
+    "cleaning services": ("cleaning company", "cleaning companies"),
+    "pest control": ("pest control company", "pest control companies"),
+    "locksmith": ("locksmith", "locksmiths"),
+    "removals": ("removals company", "removals companies"),
+    # automotive
+    "car repair": ("garage", "garages"),
+    "auto repair": ("garage", "garages"),
+    "vehicle repair": ("garage", "garages"),
+    "mot": ("MOT garage", "MOT garages"),
+    "car dealership": ("car dealer", "car dealers"),
+    # print / office (Antek verticals)
+    "managed print services": ("managed print provider",
+                               "managed print providers"),
+    "printing services": ("printer", "printing companies"),
+}
+
+
+def _clean_town(town: str) -> str:
+    """Strip trailing country suffixes people paste in — 'Southampton, UK'
+    reads robotic inside a prompt."""
+    t = town.strip()
+    for suffix in (", uk", ", united kingdom", ", england", ", scotland",
+                   ", wales", ", gb"):
+        if t.lower().endswith(suffix):
+            t = t[: -len(suffix)].rstrip(" ,")
+    return t
+
+
+def _plural(word: str) -> str:
+    """Grammar-safe pluralisation. Never produces 'servicess'."""
+    w = word.strip()
+    lower = w.lower()
+    if lower.endswith("s") or lower.endswith("services"):
+        return w
+    if lower.endswith("y") and lower[-2:-1] not in "aeiou":
+        return w[:-1] + "ies"
+    if lower.endswith(("ch", "sh", "x", "z")):
+        return w + "es"
+    return w + "s"
+
+
+def normalise_term(industry: str) -> tuple[str, str, bool]:
+    """Return (singular, plural, countable) for the search noun a real person
+    would use. countable=False means the term is a service phrase ('legal
+    services') that never got mapped — templates must avoid 'a X' grammar."""
+    raw = industry.strip().lower()
+    if raw in TERM_MAP:
+        s, p = TERM_MAP[raw]
+        return s, p, True
+    # try stripping a trailing 'services' -> map again ('roofing services')
+    if raw.endswith(" services"):
+        base = raw[: -len(" services")].strip()
+        if base in TERM_MAP:
+            s, p = TERM_MAP[base]
+            return s, p, True
+    # unmapped: keep the term, decide countability by shape
+    countable = not (raw.endswith("s") or " services" in raw
+                     or raw.endswith("ing"))
+    term = industry.strip()
+    if not countable and term.lower().endswith(" services"):
+        term = term[: -len(" services")].rstrip()
+    return term, _plural(term), countable
+
+
+# Free check runs the top FREE_PROMPTS buyer intents (best / recommend /
+# reviews). The full 5-prompt sweep (adds who-to-call + compare) is a paid
+# Quick Check / Full Audit feature. Override with env FREE_PROMPTS.
+FREE_PROMPTS = int(os.environ.get("FREE_PROMPTS", "3"))
+
+
+def build_prompts(industry: str, town: str, county: str = "",
+                  limit: int | None = None) -> list[str]:
+    """Discovery prompts (spec §7 intents), phrased the way a real person
+    types them, ordered by conversion signal. Default returns the free-tier
+    subset; pass limit=5 for the paid full sweep."""
+    town = _clean_town(town)
+    county = _clean_town(county) or town
+    sing, plur, countable = normalise_term(industry)
+    if countable:
+        prompts = [
+            f"Who's the best {sing} in {town}?",
+            f"Can you recommend a good {sing} near {town}?",
+            f"Which {plur} in {town} have the best reviews?",
+            f"I need {_art(sing)} {sing} in {county}, who should I call?",
+            f"Compare {plur} in {town}",
+        ]
+    else:
+        # service-phrase fallback — grammar-safe, no articles, no blind plurals
+        prompts = [
+            f"Who's the best for {sing} in {town}?",
+            f"Can you recommend somewhere for {sing} near {town}?",
+            f"Which {sing} companies in {town} have the best reviews?",
+            f"I need {sing} in {county}, who should I call?",
+            f"Compare {sing} companies in {town}",
+        ]
+    n = limit if limit is not None else FREE_PROMPTS
+    return prompts[:max(1, min(n, len(prompts)))]
 
 
 def run_check(company: str, domain: str, industry: str, town: str,
