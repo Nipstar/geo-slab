@@ -22,10 +22,9 @@ from antek_geo_core import providers as _providers
 from antek_geo_core import settings as _core_settings
 from antek_geo_core.models import CHECK_MODELS  # canonical 5 engines (shared)
 
-# SLAB historically did NOT attach OpenRouter's web-search plugin. Keep that off
-# so behaviour stays byte-identical. (Set env GEO_WEB_SEARCH=1 later if the paid
-# audit wants live-search grounding.)
-_core_settings.WEB_SEARCH = False
+# Web-search grounding ON by default (GEO_WEB_SEARCH, default on) — the audit
+# must reflect how ChatGPT/Gemini actually answer today (live search), not stale
+# training data. Set GEO_WEB_SEARCH=0 to disable.
 _core_settings.X_TITLE = "GEO SLAB"
 
 OPENROUTER_URL = _providers.OPENROUTER_URL
