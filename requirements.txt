@@ -15,3 +15,4 @@ python-dotenv>=1.0.0,<2.0.0
 
 # Optional: Firecrawl for JS-heavy site scraping (requires FIRECRAWL_API_KEY)
 # firecrawl-py>=1.0.0
+antek-geo-core @ git+https://github.com/Nipstar/Geo-core@v0.1.0
